@@ -1,0 +1,21 @@
+# dependencies and local runtime state
+node_modules/
+.wrangler/
+dist/
+
+# local databases and secrets, never commit
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.dev.vars
+.env
+.env.*
+
+# private working notes and data exports
+CLAUDE.md
+PUBLIC-READINESS.md
+owner-export.json
+.claude/
+
+.DS_Store
+Thumbs.db

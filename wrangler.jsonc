@@ -1,0 +1,21 @@
+{
+  "name": "cslockin",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-08-01",
+  // one small central database: accounts, sessions, key lookups, login lockout.
+  // every user's actual data lives in their own Durable Object (see src/userdo.js)
+  "d1_databases": [
+    {
+      "binding": "CENTRAL",
+      "database_name": "cslockin-central",
+      "database_id": "a4cb6e8f-b7da-4397-b668-a29b61837dbe",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "USER_DO", "class_name": "UserDO" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["UserDO"] }],
+  "routes": [{ "pattern": "cslockin.com", "custom_domain": true }],
+  "observability": { "enabled": true }
+}
