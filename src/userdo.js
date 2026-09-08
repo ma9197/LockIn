@@ -8,6 +8,12 @@ import { d1Compat } from './db/d1compat.js';
 import { migrate } from './db/schema.js';
 import { createUserApp } from './app.js';
 
+// Order matters for import: parents before children.
+const EXPORT_TABLES = ['settings', 'phases', 'categories', 'side_tasks', 'tasks', 'daily_goals', 'grind_sessions',
+  'block_moves', 'lc_solves', 'lc_notes', 'jobs', 'off_days', 'links', 'snippets', 'sessions', 'session_friends'];
+// never leave the object in an export, never trust them from an import
+const SECRET_KEYS = new Set(['api_key', 'read_key', 'ics_token', 'share_pin_hash', 'pin_hash']);
+
 export class UserDO {
   constructor(ctx, env) {
     this.ctx = ctx;
@@ -29,6 +35,8 @@ export class UserDO {
       if (c.role !== 'internal') return new Response('forbidden', { status: 403 });
       if (path === '/__internal/health') return this.health();
       if (path === '/__internal/onboard' && req.method === 'POST') return this.onboard(await req.json().catch(() => null));
+      if (path === '/__internal/export') return this.exportAll();
+      if (path === '/__internal/import' && req.method === 'POST') return this.importAll(await req.json().catch(() => null));
       return new Response('not found', { status: 404 });
     }
     // the app sees the adapter as its database and the context as a binding. The zone is read
@@ -136,6 +144,50 @@ export class UserDO {
       }
     });
     return Response.json({ ok: true, phases: phases.length, categories: cats.length, sideTasks: side.length, goalRows });
+  }
+
+  // Every table, secrets excluded. The same shape importAll() accepts, so a user can take their
+  // data anywhere and bring it back.
+  exportAll() {
+    const sql = this.ctx.storage.sql;
+    const tables = {};
+    for (const t of EXPORT_TABLES) {
+      let rows = sql.exec('SELECT * FROM ' + t).toArray();
+      if (t === 'settings') rows = rows.filter(r => !SECRET_KEYS.has(r.key));
+      tables[t] = rows;
+    }
+    return Response.json({ format: 'lockin-export/1', exportedAt: new Date().toISOString(), schema: this.schemaVersion, tables });
+  }
+
+  // Replace everything with the file. One transaction: either all of it lands or none of it.
+  // Row ids are kept so cross-references (session_friends.session_id, block ids) stay valid.
+  importAll(b) {
+    const bad = m => Response.json({ error: m }, { status: 400 });
+    if (!b || b.format !== 'lockin-export/1' || !b.tables || typeof b.tables !== 'object') return bad('not a LockIn export file');
+    const sql = this.ctx.storage.sql;
+    const counts = {};
+    try {
+      this.ctx.storage.transactionSync(() => {
+        for (const t of EXPORT_TABLES) {
+          const rows = Array.isArray(b.tables[t]) ? b.tables[t] : [];
+          const cols = sql.exec('SELECT name FROM pragma_table_info(?)', t).toArray().map(r => r.name);
+          sql.exec('DELETE FROM ' + t);
+          let n = 0;
+          for (const r of rows) {
+            if (!r || typeof r !== 'object') continue;
+            if (t === 'settings' && SECRET_KEYS.has(r.key)) continue;
+            const use = cols.filter(c => r[c] !== undefined);
+            if (!use.length) continue;
+            sql.exec('INSERT INTO ' + t + ' (' + use.join(',') + ') VALUES (' + use.map(() => '?').join(',') + ')', ...use.map(c => r[c]));
+            n++;
+          }
+          counts[t] = n;
+        }
+      });
+    } catch (e) {
+      return Response.json({ error: 'import failed: ' + String(e.message || e) }, { status: 400 });
+    }
+    return Response.json({ ok: true, counts });
   }
 
   // Runs the three adapter shapes the app relies on and reports them, so a deploy can be

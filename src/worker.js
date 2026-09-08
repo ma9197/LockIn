@@ -131,6 +131,40 @@ app.post('/api/onboarding', async c => {
   return json(c, { ok: true, next: '/' });
 });
 
+// ---------- data portability ----------
+const internalReq = (c, userId, path, method = 'GET', body) => new Request(new URL(path, c.req.url).toString(), {
+  method, headers: { 'Content-Type': 'application/json', 'X-LockIn-Ctx': JSON.stringify({ role: 'internal', userId }) },
+  body: body === undefined ? undefined : JSON.stringify(body) });
+
+app.get('/api/export', async c => {
+  const u = await sessionUser(c.env.CENTRAL, c.req.raw);
+  if (!u) return json(c, { error: 'unauthorized' }, 401);
+  const r = await userStub(c.env, u.id).fetch(internalReq(c, u.id, '/__internal/export'));
+  const body = await r.text();
+  return c.body(body, r.status, { 'Content-Type': 'application/json; charset=utf-8',
+    'Content-Disposition': 'attachment; filename="lockin-' + (u.handle || 'export') + '.json"', 'Cache-Control': 'no-store' });
+});
+
+// Owner operations, only when an ADMIN_KEY secret is configured on the Worker and presented.
+// Used once to load the owner's old instance into his account; not part of the product.
+app.post('/admin/import', async c => {
+  const key = c.env.ADMIN_KEY;
+  const given = (c.req.header('Authorization') || '').replace(/^Bearer\s+/i, '');
+  if (!key || !given || given.length !== key.length || [...given].some((ch, i) => ch !== key[i])) return c.text('not found', 404);
+  const b = await c.req.json().catch(() => null);
+  if (!b || !b.email || !b.file) return json(c, { error: 'email and file required' }, 400);
+  const u = await c.env.CENTRAL.prepare('SELECT * FROM users WHERE email=?').bind(normEmail(b.email)).first();
+  if (!u) return json(c, { error: 'no account with that email, sign up first' }, 404);
+  const r = await userStub(c.env, u.id).fetch(internalReq(c, u.id, '/__internal/import', 'POST', b.file));
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) return json(c, j, r.status);
+  if (b.handle || b.displayName) {
+    await c.env.CENTRAL.prepare('UPDATE users SET handle=COALESCE(?, handle), display_name=COALESCE(?, display_name), onboarded=1 WHERE id=?')
+      .bind(b.handle || null, b.displayName || null, u.id).run();
+  }
+  return json(c, { ok: true, user: u.email, counts: j.counts });
+});
+
 // ---------- everything else belongs to the signed-in user ----------
 app.all('*', async c => {
   const req = c.req.raw;
