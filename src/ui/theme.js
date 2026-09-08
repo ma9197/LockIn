@@ -636,6 +636,8 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
 /* ---------- desktop ---------- */
 @media(min-width:900px){
   body{padding-bottom:20px;padding-left:216px}
+  body.nonav{padding-left:0}
+  body.nonav .refresh-fab{left:12px}
   .nav,.navwrap{display:none}
   .side{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:216px;
     background:var(--surface);border-right:1px solid var(--line);padding:26px 14px;z-index:50;gap:4px}
@@ -1110,7 +1112,7 @@ return `<!doctype html><html lang="en"><head>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Atkinson+Hyperlegible:wght@400;700&family=Orbitron:wght@600;800&family=VT323&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <title>${title}</title><style>${CSS}</style></head>
-<body>${active ? navHTML(active, u) : ''}<div class="wrap">${body}</div>
+<body${active ? '' : ' class="nonav"'}>${active ? navHTML(active, u) : ''}<div class="wrap">${body}</div>
 <script>window.__U=${JSON.stringify(u)}${opts.public ? ';window.__PUBLIC=1' : ''}</script>
 ${opts.mclock ? `<script>window.__MCLOCK=${JSON.stringify(opts.mclock)}</script>` : ''}
 ${RUNTIME}${(opts.public || !u || u.modules.friends === false) ? '' : '<script>notifyBadge()</script>'}

@@ -20,16 +20,8 @@ location.href=j.next||'/';}
 catch(e){$('err').textContent='network error, try again';$('btn').disabled=false;}}
 document.querySelectorAll('input').forEach(i=>i.addEventListener('keydown',e=>{if(e.key==='Enter')go();}));`;
 
-export const landingPage = () => wrap('LockIn', `
-<div class="card">
-  <h1 style="font-size:24px;margin:0 0 6px">Lock in. Track the grind.</h1>
-  <p class="muted">Daily goals, focus timer, LeetCode log with notes, application tracker, schedule blocks, streaks and progress charts. Built for CS students on the job hunt, phone first.</p>
-  <div class="row" style="margin-top:16px;gap:10px">
-    <a href="/signup" class="pri" style="flex:1;text-align:center;padding:12px;border-radius:12px;font-weight:800">Create account</a>
-    <a href="/login" class="ghost" style="flex:1;text-align:center;padding:12px;border-radius:12px;font-weight:800">Sign in</a>
-  </div>
-</div>
-<p class="tiny" style="text-align:center;margin-top:18px">Your data lives in your own private database. Nobody else can read it, including other users.</p>`, '');
+// the home page moved to landing.js (interactive tour); re-exported so the worker import stays put
+export { landingPage } from './landing.js';
 
 export const signupPage = () => wrap('LockIn · Create account', `
 <div class="card">

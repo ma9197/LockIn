@@ -1,176 +1,261 @@
 import { shell } from './theme.js';
 
-// The setup wizard. Seven steps, one final POST to /api/onboarding.
-// Everything a user could not change in the single-user app is asked here.
-// Page-script rule: no backticks, no ${ } and no quotes inside inline onclick attributes.
+// The setup wizard. Seven screens, one final POST to /api/onboarding. Every screen shows a live
+// preview of what its answer builds (the race bar, the day strip, the goal rings), the draft
+// survives a refresh (sessionStorage), and the last screen is a summary before the single write.
+// Page-script rules: no backticks, no ${ } in the client code, and no quotes inside inline
+// handlers: every button carries data-a / data-i / data-v and one delegated listener routes it.
 
 export const onboardPage = (user) => shell('LockIn · Setup', null, `
 <style>
-.wiz{max-width:560px;margin:0 auto;padding-bottom:40px}
+.wiz{max-width:600px;margin:0 auto;padding-bottom:40px}
+.wiz-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
+.wiz-cap{font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember);white-space:nowrap}
+.wiz-top .logo{white-space:nowrap}
 .steps{display:flex;gap:4px;margin:14px 0 18px}
-.steps i{flex:1;height:4px;border-radius:2px;background:var(--surface3)}
-.steps i.on{background:var(--ember)}
-.wiz h1{font-size:22px;margin:0 0 4px}
-.wiz .lead{color:var(--ink2);margin:0 0 14px;line-height:1.5}
-.wiz label.fld{margin-top:12px}
-.wrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.lst{display:flex;flex-direction:column;gap:8px;margin-top:8px}
-.li{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.steps i{flex:1;height:5px;border-radius:3px;background:var(--surface3);transition:background .3s}
+.steps i.done{background:var(--ember2);opacity:.6}
+.steps i.on{background:var(--ember);box-shadow:0 0 10px #FF6B3588}
+.wiz h1{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}
+.wiz .lead{color:var(--ink2);margin:0 0 6px;line-height:1.55;font-size:15px}
+.wiz label.fld{margin-top:14px}
+.wiz-body{animation:none}
+.wiz-body.enter{animation:wizin .32s cubic-bezier(.2,.8,.2,1) both}
+@keyframes wizin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.lst{display:flex;flex-direction:column;gap:10px;margin-top:10px}
+.li{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px}
 .li .row{gap:8px;flex-wrap:wrap}
-.li input,.li select{padding:8px 10px;font-size:14px}
-.li input.sm{width:96px}
+.li input,.li select{padding:9px 10px;font-size:14px}
 .li input.nm{flex:1;min-width:120px}
-.li input.hm{width:88px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chips button{padding:6px 10px;font-size:12px}
+.rng{display:flex;align-items:center;gap:8px;margin-top:8px}
+.rng input{flex:1;min-width:0;width:auto;padding:9px 10px;font-size:14px}
+.rng .tiny{flex:none}
+.chips{display:flex;gap:5px;margin-top:8px}
+.chips button{flex:1;min-width:0;padding:7px 0;font-size:12px}
 .chips button.on{background:var(--ember);color:#0B0E14;border-color:var(--ember)}
-.sw{display:flex;gap:6px;flex-wrap:wrap}
-.sw button{width:30px;height:30px;border-radius:8px;border:2px solid transparent;padding:0}
+.sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.sw button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;padding:0}
 .sw button.on{border-color:#fff}
-.em{display:flex;gap:4px;flex-wrap:wrap}
-.em button{width:36px;height:36px;font-size:18px;padding:0;border-radius:9px}
+.em{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
+.em button{width:34px;height:34px;font-size:17px;padding:0;border-radius:9px}
 .em button.on{background:var(--surface3);border-color:var(--ember)}
-.nav2{display:flex;gap:10px;margin-top:22px}
-.nav2 button{flex:1;padding:13px;font-weight:800;border-radius:12px}
-.hint{font-size:12px;color:var(--ink3);margin-top:4px}
+.nav2{display:flex;gap:10px;margin-top:20px}
+.nav2 button{flex:1;padding:14px;font:800 15px var(--disp);border-radius:14px}
+.hint{font-size:12.5px;color:var(--ink3);margin-top:8px;line-height:1.5}
 .ok{color:var(--mint)}.bad{color:var(--rose)}
-.tog{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.tog{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
 .tog:last-child{border-bottom:0}
 .tog b{font-size:14px}.tog .tiny{margin-top:2px}
-.tog button{min-width:64px}
-.tog button.on{background:var(--mint);color:#0B0E14;border-color:var(--mint)}
-.goalrow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:6px}
-.goalrow label{font:700 10px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
-.goalrow input{width:100%;padding:8px}
+.cklab{font:700 10px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:10px}
+.gl{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
+.gl label{font:700 10px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px;white-space:nowrap}
+.gl input{width:100%;padding:8px}
+.prev{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
+.prev .pl{font:700 10px var(--disp);color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.strip{position:relative;height:24px;background:var(--surface3);border-radius:6px;overflow:hidden}
+.strip i{position:absolute;top:0;bottom:0;border-radius:3px;opacity:.92}
+.strip-ax{display:flex;justify-content:space-between;font:700 9.5px var(--disp);color:var(--ink3);margin-top:4px}
+.race-seg.lowp{background-image:repeating-linear-gradient(135deg,#0000 0 4px,#00000066 4px 8px)}
+.rings{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.rings .r{width:74px;text-align:center}
+.rings .r .ring{width:60px;height:60px}
+.rings .r .ring .val b{font-size:16px}
+.rings .r .ring .val span{font-size:8px;letter-spacing:.04em}
+.rings .r .nm{font:700 10px var(--disp);color:var(--ink2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{background:var(--surface2);border:1px solid var(--line2);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;text-align:left;font:inherit}
+.big.on{border-color:var(--ember);background:#FF6B3514}
+.big .e{font-size:22px;flex:none}
+.big b{display:block;font:800 15px var(--disp)}
+.big .tiny{margin-top:2px}
+.sum{display:grid;gap:8px;margin-top:8px}
+.sum div{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.sum div:last-child{border-bottom:0}
+.sum span:first-child{flex:none;width:96px;font:700 11px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding-top:2px}
+.sum span:last-child{color:var(--ink2);min-width:0}
+.sum b{color:var(--ink)}
+.tzclock{font:800 28px var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 </style>
 <div class="wiz">
-  <div class="logo" style="font-size:24px;margin-top:6px">LOCK<em>IN</em> 🔥</div>
+  <div class="wiz-top"><div class="logo" style="font-size:22px">LOCK<em>IN</em> 🔥</div><span class="wiz-cap" id="stepCap"></span></div>
   <div class="steps" id="steps"></div>
-  <div id="wiz"></div>
+  <div class="wiz-body" id="wiz"></div>
   <p class="tiny" id="err" style="color:var(--rose);min-height:16px;margin:10px 0 0"></p>
-  <div class="nav2"><button class="ghost" id="back" onclick="go(-1)">Back</button><button class="pri" id="next" onclick="go(1)">Next</button></div>
+  <div class="nav2"><button class="ghost" id="back" data-a="back">← Back</button><button class="pri" id="next" data-a="next">Next →</button></div>
 </div>`, `<script>
 const PAL=['#FF6B35','#5EA2FF','#3DDC97','#9B6EF3','#FFB347','#FF5D73','#4f8ef7','#f3a33c'];
 const CEMO=['\\uD83E\\uDDE9','\\uD83D\\uDCE8','\\uD83D\\uDCDA','\\uD83D\\uDDC4\\uFE0F','\\uD83C\\uDFD7\\uFE0F','\\uD83D\\uDCAC','\\uD83C\\uDF99\\uFE0F','\\uD83D\\uDCDD','\\u2B50','\\uD83C\\uDFAF'];
 const SEMO=['\\uD83C\\uDFCB\\uFE0F','\\uD83C\\uDF93','\\uD83D\\uDCBC','\\uD83C\\uDFC3','\\uD83C\\uDFBE','\\u26BD','\\uD83C\\uDFCA','\\uD83E\\uDDD8','\\uD83D\\uDE8C','\\uD83C\\uDF7D\\uFE0F','\\uD83D\\uDC68\\u200D\\uD83D\\uDC69\\u200D\\uD83D\\uDC67','\\uD83C\\uDFAE','\\uD83D\\uDCCC'];
 const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const NAMES=['You','Time zone','Plan','Grind blocks','Categories','Side tasks','Wrap up'];
 const guessTz=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(e){return 'UTC'}})();
-const S={name:${JSON.stringify(user.display_name || '')},handle:${JSON.stringify(user.handle || '')},tz:guessTz,clock24:false,
+let S={name:${JSON.stringify(user.display_name || '')},handle:${JSON.stringify(user.handle || '')},tz:guessTz,clock24:false,
 noPlan:false,phases:[],
 layouts:{morning:[['09:00','12:00'],['14:00','17:00']]},def:'morning',
 cats:[{key:'leetcode',name:'LeetCode',emoji:CEMO[0],color:PAL[0],wd:3,we:1,low:1,builtin:'leetcode'},
       {key:'applications',name:'Applications',emoji:CEMO[1],color:PAL[1],wd:2,we:0,low:1,builtin:'applications'}],
 side:[],modules:{leetcode:true,jobs:true,copy:true,friends:false,clock:true},target:6,booking:false,avail:[['12:00','15:00']]};
 let step=0;const N=7;
-const $$=q=>document.querySelectorAll(q);
+try{const sv=JSON.parse(sessionStorage.getItem('lockin_wiz')||'null');if(sv&&sv.v===2&&sv.S){S=Object.assign(S,sv.S);step=Math.min(N-1,sv.step||0);}}catch(e){}
+function persist(){try{sessionStorage.setItem('lockin_wiz',JSON.stringify({v:2,S,step}))}catch(e){}}
 const val=id=>{const e=$(id);return e?e.value:''};
 const today=new Date().toLocaleDateString('en-CA',{timeZone:S.tz});
 const plus=(ds,n)=>{const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
 const hm=v=>/^\\d{2}:\\d{2}$/.test(v||'');
+const ymd=v=>/^\\d{4}-\\d{2}-\\d{2}$/.test(v||'');
 const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
+const cap=ds=>new Date(ds+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'}).toUpperCase();
+const mn=v=>{const[a,b]=v.split(':').map(Number);return a*60+b;};
+const fmtH=v=>{let[h,m]=v.split(':').map(Number);if(S.clock24)return v;const ap=h>=12?'PM':'AM';h=h%12||12;return h+(m?':'+String(m).padStart(2,'0'):'')+' '+ap;};
 
+// ---- previews ----
+function strip(blocks,sides){
+const seg=(s,e,col,lab)=>{let a=mn(s),b=mn(e);if(b<=a)b+=1440;const one=(x,y)=>'<i style="left:'+(x/1440*100)+'%;width:'+((y-x)/1440*100)+'%;background:'+col+'" title="'+esc2(lab)+'"></i>';
+return b>1440?one(a,1440)+one(0,b-1440):one(a,b);};
+return '<div class="strip">'+(blocks||[]).filter(b=>hm(b[0])&&hm(b[1])).map(b=>seg(b[0],b[1],'var(--ember)','grind')).join('')
++(sides||[]).filter(t=>hm(t.start)&&hm(t.end)).map(t=>seg(t.start,t.end,'var(--mint)',t.name||'side task')).join('')
++'</div><div class="strip-ax"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>';}
+const dayCount=p=>Math.max(1,Math.round((new Date(p.end+'T12:00:00Z')-new Date(p.start+'T12:00:00Z'))/864e5)+1);
+function racePrev(){const ph=S.phases.filter(p=>ymd(p.start)&&ymd(p.end)&&p.end>=p.start);if(S.noPlan||!ph.length)return '';
+const tot=ph.reduce((a,p)=>a+dayCount(p),0);
+return '<div class="prev"><div class="pl">Your race bar</div><div class="race" style="margin:0"><div class="race-track" style="height:16px">'
++ph.map(p=>'<div class="race-seg past'+(p.low?' lowp':'')+'" style="flex:'+dayCount(p)+';--seg:'+p.color+'" title="'+esc2(p.name)+'"></div>').join('')
++'</div><div class="race-cap"><span>'+cap(ph[0].start)+'</span><b>'+tot+' DAYS</b><span>'+cap(ph[ph.length-1].end)+'</span></div></div>'
++'<div class="hint" style="margin-top:8px">'+ph.map(p=>'<span style="color:'+p.color+'">\\u25cf</span> '+esc2(p.name||'?')+' '+dayCount(p)+'d'+(p.low?' (low load)':'')).join(' \\u00b7 ')+'</div></div>';}
+function ringsPrev(){
+return '<div class="prev"><div class="pl">A weekday on your Today page</div><div class="rings">'+S.cats.map(c=>{
+return '<div class="r"><div class="ring"><svg width="60" height="60" viewBox="0 0 112 112"><circle cx="56" cy="56" r="46" fill="none" stroke="var(--surface2)" stroke-width="9"/><circle cx="56" cy="56" r="46" fill="none" stroke="'+c.color+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="'+(c.wd>0?289*0.72:289)+'"/></svg><div class="val"><b class="num">0</b><span>OF '+(c.wd||0)+'</span></div></div><div class="nm">'+c.emoji+' '+esc2(c.name||'?')+'</div></div>';}).join('')+'</div></div>';}
+function stripPrev(){const lay=S.layouts[S.def]||[];
+return '<div class="prev"><div class="pl">'+(S.side.length?'Your default day with side tasks':'Your default day')+'</div>'+strip(lay,S.side)
++'<div class="hint" style="margin-top:6px"><span style="color:var(--ember)">\\u25a0</span> grind '+(lay.length?lay.map(b=>fmtH(b[0])+'\\u2013'+fmtH(b[1])).join(', '):'none yet')
++(S.side.length?' \\u00a0 <span style="color:var(--mint)">\\u25a0</span> side tasks':'')+'</div></div>';}
+function prev(){const el=$('prev');if(!el)return;el.innerHTML=step===2?racePrev():step===3?stripPrev():step===4?ringsPrev():step===5?stripPrev():'';}
+
+// ---- steps ----
 function render(){
-$('steps').innerHTML=Array.from({length:N},(_,i)=>'<i class="'+(i<=step?'on':'')+'"></i>').join('');
+$('steps').innerHTML=Array.from({length:N},(_,i)=>'<i class="'+(i<step?'done':i===step?'on':'')+'"></i>').join('');
+$('stepCap').textContent='Step '+(step+1)+' of '+N+' \\u00b7 '+NAMES[step];
 $('err').textContent='';
 $('back').style.visibility=step?'visible':'hidden';
-$('next').textContent=step===N-1?'Finish setup':'Next';
-$('wiz').innerHTML=[stIdentity,stTime,stPlan,stBlocks,stCats,stSide,stModules][step]();
+$('next').textContent=step===N-1?'Finish setup \\uD83D\\uDD25':'Next \\u2192';
+const w=$('wiz');w.classList.remove('enter');void w.offsetWidth;
+w.innerHTML=[stIdentity,stTime,stPlan,stBlocks,stCats,stSide,stWrap][step]()+'<div id="prev"></div>';
+w.classList.add('enter');prev();
 window.scrollTo(0,0);
-if(step===0)checkHandle();}
+if(step===0)checkHandle();if(step===1)tickClock();
+persist();}
 
 function stIdentity(){
-return '<h1>Welcome. Who is grinding?</h1><p class="lead">Your name shows on your shared progress page and booking page. The handle becomes their web address.</p>'
-+'<label class="fld">Display name</label><input id="name" maxlength="40" value="'+esc2(S.name)+'" placeholder="e.g. Alex">'
-+'<label class="fld">Handle</label><input id="handle" maxlength="30" value="'+esc2(S.handle)+'" placeholder="alex" oninput="checkHandle()" autocapitalize="none" autocorrect="off">'
-+'<div class="hint" id="hh">3 to 30 characters: letters, numbers, dashes. Your pages will live at cslockin.com/u/handle/...</div>';}
+return '<h1>Welcome. Who is grinding?</h1><p class="lead">Your name shows on your shared progress page and your booking page. The handle is their address.</p>'
++'<div class="row" style="gap:12px;margin-top:14px"><span id="avPrev">'+avatar(S.name||'?')+'</span><div class="grow"><label class="fld" style="margin-top:0">Display name</label><input id="name" maxlength="40" value="'+esc2(S.name)+'" placeholder="e.g. Alex" oninput="S.name=this.value;avPrev()"></div></div>'
++'<label class="fld">Handle</label><input id="handle" maxlength="30" value="'+esc2(S.handle)+'" placeholder="alex" oninput="S.handle=this.value;checkHandle()" autocapitalize="none" autocorrect="off" spellcheck="false">'
++'<div class="hint" id="hh">3 to 30 characters: letters, numbers, dashes.</div>';}
+function avPrev(){const el=$('avPrev');if(el)el.innerHTML=avatar(S.name||'?');}
 let hT;
 function checkHandle(){clearTimeout(hT);const h=(val('handle')||'').toLowerCase().trim();const el=$('hh');if(!el)return;
-if(!/^[a-z0-9][a-z0-9-]{2,29}$/.test(h)){el.className='hint';el.textContent='3 to 30 characters: letters, numbers, dashes.';return;}
+if(!/^[a-z0-9][a-z0-9-]{2,29}$/.test(h)){el.className='hint';el.textContent='3 to 30 characters: letters, numbers, dashes. Your pages will live at '+location.host+'/u/'+(h||'handle')+'/';return;}
+el.className='hint';el.textContent='Checking '+location.host+'/u/'+h+'/ \\u2026';
 hT=setTimeout(async()=>{try{const j=await api('/api/handle/check?h='+encodeURIComponent(h));
-el.className='hint '+(j.free?'ok':'bad');el.textContent=j.free?('cslockin.com/u/'+h+' is yours'):'That handle is taken';}catch(e){}},350);}
+el.className='hint '+(j.free?'ok':'bad');el.textContent=j.free?('\\u2713 '+location.host+'/u/'+h+'/ is yours'):'\\u2715 That handle is taken';}catch(e){}},350);}
 
+let clkInt=null;
+function tickClock(){clearInterval(clkInt);const f=()=>{const el=$('tzNow');if(!el){clearInterval(clkInt);return;}
+try{el.textContent=new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit',hour12:!S.clock24,timeZone:S.tz});}catch(e){el.textContent='';}};f();clkInt=setInterval(f,1000);}
 function stTime(){
 let zones=[];try{zones=Intl.supportedValuesOf('timeZone')}catch(e){zones=['UTC','America/New_York','America/Chicago','America/Denver','America/Los_Angeles','Europe/London','Europe/Berlin','Asia/Tokyo','Asia/Kolkata','Australia/Sydney']}
 if(!zones.includes(S.tz))zones.unshift(S.tz);
-return '<h1>Where are you?</h1><p class="lead">Every day, streak and deadline is counted in your own local time.</p>'
-+'<label class="fld">Time zone</label><select id="tz">'+zones.map(z=>'<option value="'+z+'"'+(z===S.tz?' selected':'')+'>'+z.replace(/_/g,' ')+'</option>').join('')+'</select>'
-+'<label class="fld">Clock</label><div class="chips"><button class="'+(S.clock24?'':'on')+'" onclick="S.clock24=false;render()">12-hour, 9:30 PM</button><button class="'+(S.clock24?'on':'')+'" onclick="S.clock24=true;render()">24-hour, 21:30</button></div>';}
+return '<h1>Where are you?</h1><p class="lead">Every day, streak and deadline is counted in your own local time. We guessed from your browser.</p>'
++'<label class="fld">Time zone</label><select id="tz" onchange="S.tz=this.value;tickClock()">'+zones.map(z=>'<option value="'+z+'"'+(z===S.tz?' selected':'')+'>'+z.replace(/_/g,' ')+'</option>').join('')+'</select>'
++'<label class="fld">Clock</label><div class="seg-ctl"><button class="'+(S.clock24?'':'on')+'" data-a="clock" data-v="0">12-hour \\u00b7 9:30 PM</button><button class="'+(S.clock24?'on':'')+'" data-a="clock" data-v="1">24-hour \\u00b7 21:30</button></div>'
++'<div class="prev"><div class="pl">Right now, for you</div><div class="tzclock" id="tzNow"></div><div class="hint" style="margin-top:2px">If that is wrong, pick another zone above.</div></div>';}
 
 function stPlan(){
-return '<h1>Your plan</h1><p class="lead">A plan is a few phases with dates. It powers the progress bar, the pace tracking and the finish-line forecast. Mark a phase <b>low load</b> for exams, travel or guests: goals drop and a lighter schedule applies.</p>'
-+'<div class="tog"><div><b>No plan yet</b><div class="tiny">Skip this, add phases later in Settings.</div></div><button class="sm '+(S.noPlan?'on':'')+'" onclick="S.noPlan=!S.noPlan;render()">'+(S.noPlan?'Skipped':'Off')+'</button></div>'
-+(S.noPlan?'':'<div class="lst" id="phl">'+S.phases.map((p,i)=>'<div class="li"><div class="row"><input class="nm" placeholder="Phase name" value="'+esc2(p.name)+'" oninput="S.phases['+i+'].name=this.value">'
-+'<button class="ghost sm" onclick="S.phases.splice('+i+',1);render()">\\u2715</button></div>'
-+'<div class="row" style="margin-top:6px"><input type="date" class="sm" value="'+p.start+'" onchange="S.phases['+i+'].start=this.value" style="width:auto"><span class="tiny">to</span><input type="date" value="'+p.end+'" onchange="S.phases['+i+'].end=this.value" style="width:auto">'
-+'<button class="sm '+(p.low?'on':'')+'" onclick="S.phases['+i+'].low=!S.phases['+i+'].low;render()">'+(p.low?'\\uD83E\\uDEAB low load':'normal')+'</button></div>'
-+'<div class="sw" style="margin-top:8px">'+PAL.map(c=>'<button style="background:'+c+'" class="'+(p.color===c?'on':'')+'" onclick="S.phases['+i+'].color=\\''+c+'\\';render()"></button>').join('')+'</div></div>').join('')
-+'</div><button class="sm" style="margin-top:10px" onclick="addPhase()">\\uFF0B Add phase</button>'
+return '<h1>Your plan</h1><p class="lead">A plan is a few phases with dates. It powers the race bar, the pace tracking and the finish-line forecast. Mark a phase <b>low load</b> for exams, travel or guests: goals drop and a lighter schedule applies.</p>'
++'<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="big" style="flex:1;min-width:200px" data-a="template"><span class="e">\\u26A1</span><span><b>Start from a template</b><span class="tiny">Foundations \\u00b7 Interview prep \\u00b7 Finals (low load) \\u00b7 Sprint</span></span></button>'
++'<button class="big'+(S.noPlan?' on':'')+'" style="flex:1;min-width:200px" data-a="noplan"><span class="e">\\uD83E\\uDD37</span><span><b>No plan yet</b><span class="tiny">Skip for now, add phases later in Settings.</span></span></button></div>'
++(S.noPlan?'':'<div class="lst" id="phl">'+S.phases.map((p,i)=>'<div class="li"><div class="row"><input class="nm" placeholder="Phase name" value="'+esc2(p.name)+'" oninput="S.phases['+i+'].name=this.value;prev()">'
++'<button class="ghost sm" data-a="delPhase" data-i="'+i+'" aria-label="remove">\\u2715</button></div>'
++'<div class="rng"><input type="date" value="'+p.start+'" onchange="S.phases['+i+'].start=this.value;prev()"><span class="tiny">to</span><input type="date" value="'+p.end+'" onchange="S.phases['+i+'].end=this.value;prev()"></div>'
++'<div class="row" style="margin-top:8px"><button class="sm '+(p.low?'on':'')+'" data-a="lowPhase" data-i="'+i+'">'+(p.low?'\\uD83E\\uDEAB low load':'normal load')+'</button><span class="grow"></span>'
++'<div class="sw" style="margin:0">'+PAL.map(c=>'<button style="background:'+c+'" class="'+(p.color===c?'on':'')+'" data-a="phaseColor" data-i="'+i+'" data-v="'+c+'" aria-label="colour"></button>').join('')+'</div></div></div>').join('')
++'</div><button class="sm" style="margin-top:10px" data-a="addPhase">\\uFF0B Add phase</button>'
 +'<div class="hint">Phases run back to back. The first start and the last end are your plan window.</div>');}
 function addPhase(){const last=S.phases[S.phases.length-1];const start=last?plus(last.end,1):today;
-S.phases.push({name:S.phases.length?'Phase '+(S.phases.length+1):'Phase 1',start,end:plus(start,27),color:PAL[S.phases.length%PAL.length],low:false});render();}
+S.phases.push({name:'Phase '+(S.phases.length+1),start,end:plus(start,27),color:PAL[S.phases.length%PAL.length],low:false});S.noPlan=false;render();}
+function template(){S.phases=[];S.noPlan=false;const add=(name,weeks,color,low)=>{const last=S.phases[S.phases.length-1];const start=last?plus(last.end,1):today;S.phases.push({name,start,end:plus(start,weeks*7-1),color,low});};
+add('Foundations',4,PAL[1],false);add('Interview prep',6,PAL[0],false);add('Finals',1,PAL[3],true);add('Application sprint',5,PAL[2],false);render();}
 
 function stBlocks(){
 const names=Object.keys(S.layouts);const hasLow=!S.noPlan&&S.phases.some(p=>p.low);
 if(hasLow&&!S.layouts.low)S.layouts.low=[['11:00','13:00']];
-return '<h1>Grind blocks</h1><p class="lead">When do you sit down and grind? A layout is up to four blocks. Make a second one (say, Night owl) and switch between them from the Today page whenever you like.</p>'
-+Object.keys(S.layouts).map(n=>'<div class="li" style="margin-top:8px"><div class="row"><b style="flex:1;text-transform:capitalize">'+(n==='low'?'\\uD83E\\uDEAB Low-load days':n)+'</b>'
-+(n===S.def?'<span class="tiny">default</span>':'<button class="ghost sm" onclick="S.def=\\''+n+'\\';render()">make default</button>')
-+(names.length>1&&n!=='low'?'<button class="ghost sm" onclick="delete S.layouts[\\''+n+'\\'];if(S.def===\\''+n+'\\')S.def=Object.keys(S.layouts)[0];render()">\\u2715</button>':'')+'</div>'
-+'<div class="lst">'+S.layouts[n].map((b,i)=>'<div class="row"><input type="time" class="hm" value="'+b[0]+'" onchange="S.layouts[\\''+n+'\\']['+i+'][0]=this.value"><span class="tiny">to</span><input type="time" class="hm" value="'+b[1]+'" onchange="S.layouts[\\''+n+'\\']['+i+'][1]=this.value">'
-+'<button class="ghost sm" onclick="S.layouts[\\''+n+'\\'].splice('+i+',1);render()">\\u2715</button></div>').join('')+'</div>'
-+(S.layouts[n].length<4?'<button class="sm" style="margin-top:8px" onclick="S.layouts[\\''+n+'\\'].push([\\'19:00\\',\\'21:00\\']);render()">\\uFF0B block</button>':'')+'</div>').join('')
-+(S.layouts.night?'':'<button class="sm" style="margin-top:10px" onclick="S.layouts.night=[[\\'15:00\\',\\'18:00\\'],[\\'22:00\\',\\'01:00\\']];render()">\\uD83C\\uDF19 Add a Night owl layout</button>')
+return '<h1>When do you grind?</h1><p class="lead">A layout is up to four blocks. Make a second one (Night owl, say) and switch between them from the Today page whenever you like. Blocks step around your side tasks automatically.</p>'
++names.map(n=>'<div class="li" style="margin-top:10px"><div class="row"><b style="flex:1;text-transform:capitalize;font:800 15px var(--disp)">'+(n==='low'?'\\uD83E\\uDEAB Low-load days':n)+'</b>'
++(n===S.def?'<span class="pill" style="background:#FF6B3522;color:var(--ember)">default</span>':(n==='low'?'':'<button class="ghost sm" data-a="layoutDef" data-v="'+n+'">make default</button>'))
++(names.length>1&&n!=='low'?'<button class="ghost sm" data-a="layoutDel" data-v="'+n+'" aria-label="remove">\\u2715</button>':'')+'</div>'
++S.layouts[n].map((b,i)=>'<div class="rng"><span class="tiny" style="width:48px">Block '+(i+1)+'</span><input type="time" value="'+b[0]+'" onchange="S.layouts[this.dataset.n][this.dataset.i][0]=this.value;prev()" data-n="'+n+'" data-i="'+i+'"><span class="tiny">to</span><input type="time" value="'+b[1]+'" onchange="S.layouts[this.dataset.n][this.dataset.i][1]=this.value;prev()" data-n="'+n+'" data-i="'+i+'">'
++(S.layouts[n].length>1?'<button class="ghost sm" data-a="blockDel" data-v="'+n+'" data-i="'+i+'" aria-label="remove">\\u2715</button>':'<span style="width:34px"></span>')+'</div>').join('')
++(S.layouts[n].length<4?'<button class="sm" style="margin-top:8px" data-a="blockAdd" data-v="'+n+'">\\uFF0B block</button>':'')+'</div>').join('')
++(S.layouts.night?'':'<button class="sm" style="margin-top:10px" data-a="addNight">\\uD83C\\uDF19 Add a Night owl layout</button>')
 +'<div class="hint">A block ending after midnight is fine, it just runs into the next day.</div>';}
 
 function stCats(){
-return '<h1>What are you grinding?</h1><p class="lead">Each category gets a daily goal: one for weekdays, one for weekends, one for low-load days. LeetCode and Applications come with extra tools (the problem tracker and the job tracker). Add your own: a course, system design, reading.</p>'
-+'<div class="lst">'+S.cats.map((c,i)=>'<div class="li"><div class="row"><span style="font-size:22px">'+c.emoji+'</span><input class="nm" value="'+esc2(c.name)+'" oninput="S.cats['+i+'].name=this.value" placeholder="Name">'
-+'<button class="ghost sm" onclick="S.cats.splice('+i+',1);render()">\\u2715</button></div>'
-+'<div class="goalrow"><div><label>Weekday goal</label><input type="number" min="0" max="50" value="'+c.wd+'" oninput="S.cats['+i+'].wd=+this.value"></div>'
-+'<div><label>Weekend goal</label><input type="number" min="0" max="50" value="'+c.we+'" oninput="S.cats['+i+'].we=+this.value"></div>'
-+'<div><label>Low-load goal</label><input type="number" min="0" max="50" value="'+c.low+'" oninput="S.cats['+i+'].low=+this.value"></div></div>'
+return '<h1>What are you grinding?</h1><p class="lead">Each category gets a daily goal for weekdays, weekends and low-load days. LeetCode and Applications bring their own tools. Add your own: system design, a course, reading.</p>'
++'<div class="lst">'+S.cats.map((c,i)=>'<div class="li"><div class="row"><span style="font-size:22px">'+c.emoji+'</span><input class="nm" value="'+esc2(c.name)+'" oninput="S.cats['+i+'].name=this.value;prev()" placeholder="Name"'+(c.builtin?' readonly':'')+'>'
++'<button class="ghost sm" data-a="catDel" data-i="'+i+'" aria-label="remove">\\u2715</button></div>'
++'<div class="cklab">Daily goal</div><div class="gl"><div><label>Weekday</label><input type="number" min="0" max="50" value="'+c.wd+'" oninput="S.cats['+i+'].wd=+this.value;prev()"></div>'
++'<div><label>Weekend</label><input type="number" min="0" max="50" value="'+c.we+'" oninput="S.cats['+i+'].we=+this.value"></div>'
++'<div><label>Low load</label><input type="number" min="0" max="50" value="'+c.low+'" oninput="S.cats['+i+'].low=+this.value"></div></div>'
 +(c.builtin?'<div class="hint">Built in: '+(c.builtin==='leetcode'?'unlocks the LeetCode tab, timer records and problem notes.':'wired to the Jobs tracker, every logged application counts here.')+'</div>'
-:'<div class="em" style="margin-top:8px">'+CEMO.map(e=>'<button class="'+(c.emoji===e?'on':'')+'" onclick="S.cats['+i+'].emoji=this.textContent;render()">'+e+'</button>').join('')+'</div>'
-+'<div class="sw" style="margin-top:8px">'+PAL.map(col=>'<button style="background:'+col+'" class="'+(c.color===col?'on':'')+'" onclick="S.cats['+i+'].color=\\''+col+'\\';render()"></button>').join('')+'</div>')+'</div>').join('')+'</div>'
-+'<button class="sm" style="margin-top:10px" onclick="S.cats.push({key:\\'\\',name:\\'\\',emoji:CEMO[2],color:PAL[S.cats.length%PAL.length],wd:1,we:0,low:0});render()">\\uFF0B Add category</button>'
-+'<div class="hint">A goal of 0 means nothing is expected that day. Categories can be changed later; history is never lost.</div>';}
+:'<div class="em">'+CEMO.map(e=>'<button class="'+(c.emoji===e?'on':'')+'" data-a="catEmoji" data-i="'+i+'" data-v="'+e+'">'+e+'</button>').join('')+'</div>'
++'<div class="sw">'+PAL.map(col=>'<button style="background:'+col+'" class="'+(c.color===col?'on':'')+'" data-a="catColor" data-i="'+i+'" data-v="'+col+'" aria-label="colour"></button>').join('')+'</div>')+'</div>').join('')+'</div>'
++'<button class="sm" style="margin-top:10px" data-a="addCat">\\uFF0B Add category</button>'
++'<div class="hint">A goal of 0 means nothing is expected that day. Categories can change later; history is never lost.</div>';}
 
 function stSide(){
-return '<h1>Side tasks</h1><p class="lead">Recurring things that are not grind but take real time: gym, a class, a shift, a commute. They show on the timeline and the grind blocks step out of their way.</p>'
-+'<div class="lst">'+S.side.map((t,i)=>'<div class="li"><div class="row"><span style="font-size:22px">'+t.emoji+'</span><input class="nm" value="'+esc2(t.name)+'" oninput="S.side['+i+'].name=this.value" placeholder="Gym, Algorithms class, Shift...">'
-+'<button class="ghost sm" onclick="S.side.splice('+i+',1);render()">\\u2715</button></div>'
-+'<div class="em" style="margin-top:8px">'+SEMO.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" onclick="S.side['+i+'].emoji=this.textContent;render()">'+e+'</button>').join('')+'</div>'
-+'<div class="chips">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" onclick="tgDay('+i+','+di+')">'+d+'</button>').join('')+'</div>'
-+'<div class="row" style="margin-top:8px"><input type="time" class="hm" value="'+t.start+'" onchange="S.side['+i+'].start=this.value"><span class="tiny">to</span><input type="time" class="hm" value="'+t.end+'" onchange="S.side['+i+'].end=this.value"></div>'
-+'<div class="row" style="margin-top:8px"><span class="tiny">only between</span><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value" style="width:auto"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'" onchange="S.side['+i+'].to=this.value" style="width:auto"></div>'
+return '<h1>What else takes time?</h1><p class="lead">Recurring things that are not grind: gym, a class, a shift, a commute. They show on the timeline and the grind blocks step out of their way.</p>'
++'<div class="lst">'+S.side.map((t,i)=>'<div class="li"><div class="row"><span style="font-size:22px">'+t.emoji+'</span><input class="nm" value="'+esc2(t.name)+'" oninput="S.side['+i+'].name=this.value;prev()" placeholder="Gym, Algorithms class, Shift\\u2026">'
++'<button class="ghost sm" data-a="sideDel" data-i="'+i+'" aria-label="remove">\\u2715</button></div>'
++'<div class="em">'+SEMO.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" data-a="sideEmoji" data-i="'+i+'" data-v="'+e+'">'+e+'</button>').join('')+'</div>'
++'<div class="chips">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" data-a="sideDay" data-i="'+i+'" data-v="'+di+'">'+d+'</button>').join('')+'</div>'
++'<div class="rng"><input type="time" value="'+t.start+'" onchange="S.side['+i+'].start=this.value;prev()"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="S.side['+i+'].end=this.value;prev()"></div>'
++'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:4px"><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'" onchange="S.side['+i+'].to=this.value"></div>'
 +'<div class="hint">Leave the dates empty for every week.</div></div>').join('')+'</div>'
-+'<button class="sm" style="margin-top:10px" onclick="S.side.push({name:\\'\\',emoji:SEMO[0],days:[1,3,5],start:\\'19:00\\',end:\\'20:30\\',from:\\'\\',to:\\'\\'});render()">\\uFF0B Add side task</button>'
-+'<div class="hint">You can skip this and add them later in Settings.</div>';}
-function tgDay(i,d){const t=S.side[i];const k=t.days.indexOf(d);if(k<0)t.days.push(d);else t.days.splice(k,1);render();}
++(S.side.length?'':'<div class="skel">Nothing yet. Add what takes real time each week, or skip.</div>')
++'<button class="sm" style="margin-top:10px" data-a="addSide">\\uFF0B Add side task</button>';}
 
-function stModules(){
-const T=(k,label,sub)=>'<div class="tog"><div><b>'+label+'</b><div class="tiny">'+sub+'</div></div><button class="sm '+(S.modules[k]?'on':'')+'" onclick="S.modules.'+k+'=!S.modules.'+k+';render()">'+(S.modules[k]?'On':'Off')+'</button></div>';
+function stWrap(){
+const T=(k,label,sub)=>'<div class="tog"><div><b>'+label+'</b><div class="tiny">'+sub+'</div></div><div class="toggle'+(S.modules[k]?' on':'')+'" role="switch" data-a="mod" data-v="'+k+'"></div></div>';
 const hasLc=S.cats.some(c=>c.builtin==='leetcode'),hasJobs=S.cats.some(c=>c.builtin==='applications');
 if(!hasLc)S.modules.leetcode=false;if(!hasJobs)S.modules.jobs=false;
-return '<h1>Last one: what is on</h1><p class="lead">Turn off what you will not use. Everything can be switched back in Settings.</p><div class="card" style="padding:4px 14px">'
-+(hasLc?T('leetcode','LeetCode tab','Problem log, notes, array visualizer, solve-time stats.'):'')
-+(hasJobs?T('jobs','Jobs tab','Application tracker with funnel and platform stats.'):'')
-+T('copy','Quick Copy','Snippets for speed-filling application forms.')
-+T('clock','Day clock','A 12-hour dial of your day on the Today page.')
-+T('friends','Friends booking','A public page where friends grab your free slots. Off for most people.')
+const ph=S.noPlan?[]:S.phases;const tot=ph.reduce((a,p)=>a+(ymd(p.start)&&ymd(p.end)?dayCount(p):0),0);
+return '<h1>Last one: what is on</h1><p class="lead">Turn off what you will not use. Everything can be switched back in Settings.</p><div class="card" style="padding:4px 14px;margin-top:12px">'
++(hasLc?T('leetcode','\\uD83E\\uDDE9 LeetCode tab','Problem log, notes, array visualizer, solve-time stats.'):'')
++(hasJobs?T('jobs','\\uD83D\\uDCE8 Jobs tab','Application tracker with funnel and platform stats.'):'')
++T('copy','\\uD83D\\uDCCB Quick Copy','Snippets for speed-filling application forms.')
++T('clock','\\uD83D\\uDD52 Day clock','A 12-hour dial of your day on the Today page.')
++T('friends','\\uD83C\\uDFAE Friends booking','A public page where friends grab your free slots. Off for most people.')
 +'</div>'
-+'<label class="fld">Daily grind target (hours)</label><input id="target" type="number" min="1" max="16" step="0.5" value="'+S.target+'" style="width:120px">'
++'<label class="fld">Daily grind target (hours)</label><input id="target" type="number" min="1" max="16" step="0.5" value="'+S.target+'" style="width:120px" oninput="S.target=+this.value||6">'
 +'<div class="hint">Drives the heat map and the "target hit" stats. 6 is a full day of focus.</div>'
-+(S.modules.friends?'<label class="fld">Bookable window</label><div class="row"><input type="time" class="hm" id="av0" value="'+S.avail[0][0]+'"><span class="tiny">to</span><input type="time" class="hm" id="av1" value="'+S.avail[0][1]+'"></div><div class="hint">Whatever is left of this window after grind and side tasks is what friends can book.</div>':'');}
++(S.modules.friends?'<label class="fld">Bookable window</label><div class="rng" style="margin-top:0"><input type="time" id="av0" value="'+S.avail[0][0]+'"><span class="tiny">to</span><input type="time" id="av1" value="'+S.avail[0][1]+'"></div><div class="hint">Whatever is left of this window after grind and side tasks is what friends can book.</div>':'')
++'<div class="prev"><div class="pl">Ready to build</div><div class="sum">'
++'<div><span>You</span><span><b>'+esc2(S.name||'?')+'</b> \\u00b7 '+location.host+'/u/'+esc2(S.handle||'?')+'/</span></div>'
++'<div><span>Time</span><span>'+esc2(S.tz.replace(/_/g,' '))+' \\u00b7 '+(S.clock24?'24-hour':'12-hour')+'</span></div>'
++'<div><span>Plan</span><span>'+(ph.length?'<b>'+ph.length+' phase'+(ph.length>1?'s':'')+'</b> \\u00b7 '+tot+' days \\u00b7 '+ph.map(p=>esc2(p.name)).join(', '):'none yet')+'</span></div>'
++'<div><span>Layouts</span><span>'+Object.keys(S.layouts).map(n=>'<b>'+esc2(n)+'</b> '+S.layouts[n].length+' block'+(S.layouts[n].length>1?'s':'')).join(' \\u00b7 ')+'</span></div>'
++'<div><span>Categories</span><span>'+S.cats.map(c=>c.emoji+' '+esc2(c.name)+' <b>'+c.wd+'</b>/day').join(' \\u00b7 ')+'</span></div>'
++'<div><span>Side tasks</span><span>'+(S.side.length?S.side.map(t=>t.emoji+' '+esc2(t.name)+' '+t.days.map(d=>DN[d]).join(' ')+' '+fmtH(t.start)+'\\u2013'+fmtH(t.end)).join(' \\u00b7 '):'none')+'</span></div>'
++'</div><div class="hint">Your daily goals for every day of the plan are generated from these. Nothing else is seeded.</div></div>';}
 
+// ---- validation per step ----
 function collect(){
 if(step===0){S.name=val('name').trim();S.handle=val('handle').trim().toLowerCase();
 if(S.name.length<1)return 'Enter a display name';
-if(!/^[a-z0-9][a-z0-9-]{2,29}$/.test(S.handle))return 'Handle: 3 to 30 characters, letters, numbers, dashes';}
-if(step===1){S.tz=val('tz');}
+if(!/^[a-z0-9][a-z0-9-]{2,29}$/.test(S.handle))return 'Handle: 3 to 30 characters, letters, numbers, dashes';
+if($('hh').classList.contains('bad'))return 'That handle is taken, pick another';}
+if(step===1){S.tz=val('tz')||S.tz;}
 if(step===2&&!S.noPlan){
-if(!S.phases.length)return 'Add at least one phase, or choose No plan yet';
-for(const p of S.phases){if(!p.name.trim())return 'Every phase needs a name';if(!p.start||!p.end||p.end<p.start)return 'Check the phase dates';}}
+if(!S.phases.length)return 'Add at least one phase, use the template, or choose No plan yet';
+for(const p of S.phases){if(!p.name.trim())return 'Every phase needs a name';if(!ymd(p.start)||!ymd(p.end)||p.end<p.start)return 'Check the dates of "'+p.name+'"';}}
 if(step===3){for(const [n,l] of Object.entries(S.layouts)){for(const b of l)if(!hm(b[0])||!hm(b[1]))return 'Every block needs a start and an end';}
 if(!S.layouts[S.def]||!S.layouts[S.def].length)return 'The default layout needs at least one block';}
 if(step===4){if(!S.cats.length)return 'Keep at least one category';
@@ -193,6 +278,34 @@ modules:S.modules,grindTarget:S.target,bookingEnabled:S.booking,availability:S.b
 try{const r=await fetch('/api/onboarding',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
 const j=await r.json().catch(()=>({}));
 if(!r.ok){$('err').textContent=j.error||('error '+r.status);$('next').disabled=false;return;}
+try{sessionStorage.removeItem('lockin_wiz')}catch(e2){}
 location.href='/';}catch(err){$('err').textContent='network error, try again';$('next').disabled=false;}}
+
+// ---- one delegated handler for every button ----
+document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;
+const a=t.dataset.a,i=+t.dataset.i,v=t.dataset.v;
+if(a==='back')return go(-1);if(a==='next')return go(1);
+if(a==='clock'){S.clock24=v==='1';render();return;}
+if(a==='template')return template();
+if(a==='noplan'){S.noPlan=!S.noPlan;render();return;}
+if(a==='addPhase')return addPhase();
+if(a==='delPhase'){S.phases.splice(i,1);render();return;}
+if(a==='lowPhase'){S.phases[i].low=!S.phases[i].low;render();return;}
+if(a==='phaseColor'){S.phases[i].color=v;render();return;}
+if(a==='layoutDef'){S.def=v;render();return;}
+if(a==='layoutDel'){delete S.layouts[v];if(S.def===v)S.def=Object.keys(S.layouts).filter(n=>n!=='low')[0]||Object.keys(S.layouts)[0];render();return;}
+if(a==='blockDel'){S.layouts[v].splice(i,1);render();return;}
+if(a==='blockAdd'){S.layouts[v].push(['19:00','21:00']);render();return;}
+if(a==='addNight'){S.layouts.night=[['15:00','18:00'],['22:00','01:00']];render();return;}
+if(a==='catDel'){S.cats.splice(i,1);render();return;}
+if(a==='catEmoji'){S.cats[i].emoji=v;render();return;}
+if(a==='catColor'){S.cats[i].color=v;render();return;}
+if(a==='addCat'){S.cats.push({key:'',name:'',emoji:CEMO[2],color:PAL[S.cats.length%PAL.length],wd:1,we:0,low:0});render();const ins=document.querySelectorAll('#wiz input.nm');const last=ins[ins.length-1];if(last)last.focus();return;}
+if(a==='sideDel'){S.side.splice(i,1);render();return;}
+if(a==='sideEmoji'){S.side[i].emoji=v;render();return;}
+if(a==='sideDay'){const t2=S.side[i];const k=t2.days.indexOf(+v);if(k<0)t2.days.push(+v);else t2.days.splice(k,1);t2.days.sort();render();return;}
+if(a==='addSide'){S.side.push({name:'',emoji:SEMO[0],days:[1,3,5],start:'19:00',end:'20:30',from:'',to:''});render();const ins=document.querySelectorAll('#wiz input.nm');const last=ins[ins.length-1];if(last)last.focus();return;}
+if(a==='mod'){S.modules[v]=!S.modules[v];render();return;}});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type!=='date'&&e.target.type!=='time'){e.preventDefault();go(1);}});
 render();
 </script>`, { public: true });
