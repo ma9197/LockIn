@@ -106,11 +106,23 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .ld-trust{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:20px;font-size:13px;color:var(--ink3)}
 .ld-trust span{display:flex;align-items:center;gap:8px}
 .ld-trust i{width:6px;height:6px;border-radius:99px;background:var(--mint);flex:none}
-@media(min-width:900px){
+@media(min-width:900px) and (max-width:1099px){
   .ld-hero{text-align:center;padding:40px 0 0}
   .ld-h1{margin:20px auto 20px}
   .ld-lead{margin:0 auto}
   .ld-cta,.ld-trust{justify-content:center}
+}
+/* desktop: the words on the left, the working demo on the right */
+@media(min-width:1100px){
+  .ld-hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center;padding:32px 0 0}
+  .ld-copy{min-width:0}
+  .ld-h1{font-size:clamp(40px,4.4vw,56px);margin:20px 0 16px;max-width:none}
+  .ld-lead{font-size:17px}
+  .ld-demo{min-width:0}
+  .ld-demo .stage{margin-top:0}
+  .ld-demo .stage .phwrap{width:240px;margin-left:-104px}
+  .ld-demo .stage .phone{width:240px;height:clamp(380px,calc(820px * var(--lps,.6) + 40px),560px)}
+  .ld-demo .stagecap{margin-top:16px}
 }
 
 /* device stage */
@@ -258,12 +270,15 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 </header>
 
 <section class="ld-hero">
+  <div class="ld-copy">
   <span class="ld-eyebrow">🎓 For CS students on the job hunt</span>
   <h1 class="ld-h1">Lock in. Track the grind. <em>Land your Goal.</em></h1>
   <p class="ld-lead">Daily goals for every category you grind, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, schedule blocks that step around your gym and classes, streaks, pace against your plan and a finish-line forecast. <b>Phone first, laptop ready.</b></p>
   <div class="ld-cta"><a class="ld-btn pri big" href="/signup">Create your account</a><a class="ld-btn big" href="#tour">See every tab ↓</a></div>
   <div class="ld-trust"><span><i></i>Free</span><span><i></i>Open source, MIT</span><span><i></i>Your own private database</span><span><i></i>Set up in three minutes</span></div>
+  </div>
 
+  <div class="ld-demo">
   <div class="stage rv" id="stage">
     <div class="laptop" id="devLaptop" title="Show the laptop view">
       <div class="lp-screen"><div class="lp-view"><div class="lp-canvas">
@@ -303,6 +318,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   </div>
   <div class="stagecap" role="tablist" aria-label="device"><button class="on" data-dev="laptop">💻 Laptop</button><button data-dev="phone">📱 Phone</button></div>
   <p class="devhint">Tap the phone to bring it forward. Tap + on a ring, start the timer: both screens follow.</p>
+  </div>
 </section>
 
 <section class="ld-sec" id="tour">
