@@ -1140,13 +1140,14 @@ app.get('/api/settings', async c => {
     shareUrl: pub + '/share', bookUrl: pub + '/book', share: { ...cfg.share, pinHash: undefined, isOn: !!cfg.share.pinHash },
   });
 });
-app.post('/api/settings', async c => {
+// Applies every recognised key of a settings body. Returns an error string or null. Shared by
+// POST /api/settings (single keys, used by Today's mode switch and the like) and the one-shot save.
+const applySettings = async (c, b) => {
   const db = c.env.DB;
   const cfg = c.get('cfg');
-  const b = await c.req.json();
   const hm = v => /^\d{2}:\d{2}$/.test(v || '');
   const blocks = v => Array.isArray(v) ? v.filter(g => Array.isArray(g) && hm(g[0]) && hm(g[1])).slice(0, 4).map(g => [g[0], g[1]]) : null;
-  if (b.timezone !== undefined) { if (!validTz(b.timezone)) return json(c, { error: 'unknown time zone' }, 400); await setSetting(db, 'timezone', b.timezone); }
+  if (b.timezone !== undefined) { if (!validTz(b.timezone)) return 'unknown time zone'; await setSetting(db, 'timezone', b.timezone); }
   if (b.clock24 !== undefined) await setSetting(db, 'clock_24h', b.clock24 ? '1' : '0');
   if (b.modules !== undefined && typeof b.modules === 'object') {
     const m = { ...cfg.modules };
@@ -1163,7 +1164,7 @@ app.post('/api/settings', async c => {
   if (b.sharePin !== undefined) {
     // an empty PIN turns sharing off; either way the derived cookie changes, so friends re-enter it
     if (!b.sharePin) await setSetting(db, 'share_pin_hash', '');
-    else if (String(b.sharePin).length < 4) return json(c, { error: 'share PIN must be at least 4 characters' }, 400);
+    else if (String(b.sharePin).length < 4) return 'share PIN must be at least 4 characters';
     else await setSetting(db, 'share_pin_hash', await pinHash(c.env.CTX.userId + ':' + String(b.sharePin)));
   }
   if (b.shareTitle !== undefined) await setSetting(db, 'share_title', String(b.shareTitle).trim().slice(0, 60) || 'My grind');
@@ -1194,7 +1195,7 @@ app.post('/api/settings', async c => {
   if (b.sched !== undefined) {
     // whole-object replace: { layouts:{name:[[s,e]..]}, default, byDow, low }
     const next = normSched(b.sched);
-    if (!next.default) return json(c, { error: 'at least one layout with one grind block is needed' }, 400);
+    if (!next.default) return 'at least one layout with one grind block is needed';
     await setSetting(db, 'sched', JSON.stringify(next));
   }
   if (b.blockBudgets !== undefined && typeof b.blockBudgets === 'object') {
@@ -1205,7 +1206,11 @@ app.post('/api/settings', async c => {
     }
     await setSetting(db, 'block_budgets', JSON.stringify(out));
   }
-  return json(c, { ok: true });
+  return null;
+};
+app.post('/api/settings', async c => {
+  const err = await applySettings(c, await c.req.json());
+  return err ? json(c, { error: err }, 400) : json(c, { ok: true });
 });
 // rotating the read key breaks only the three read URLs; the CV agent's api_key is untouched
 app.post('/api/readkey/regen', async c => {
@@ -1490,17 +1495,23 @@ app.delete('/api/phases/:id', async c => {
 });
 
 app.get('/api/categories', async c => json(c, { categories: c.get('cfg').allCategories }));
-app.post('/api/categories', async c => {
-  const b = await c.req.json(), db = c.env.DB;
+// A new category gets a slug key derived from its name; the two builtin keys are reserved.
+const insertCategory = async (db, b, sort) => {
   const name = String(b.name || '').trim().slice(0, 40);
-  if (!name) return json(c, { error: 'name is required' }, 400);
   const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || 'cat';
   let key = ['leetcode', 'applications'].includes(base) ? base + '-2' : base, n = 2;
   while (await db.prepare('SELECT 1 FROM categories WHERE key=?').bind(key).first()) key = base + '-' + (n++);
+  const r = await db.prepare('INSERT INTO categories (key,name,emoji,color,goal_wd,goal_we,goal_low,builtin,enabled,sort) VALUES (?,?,?,?,?,?,?,NULL,?,?)')
+    .bind(key, name, emojiOk(b.emoji, '⭐'), colorOk(b.color) ? b.color : '#5C6779', goalN(b.goal_wd), goalN(b.goal_we), goalN(b.goal_low),
+      b.enabled === undefined || b.enabled ? 1 : 0, sort).run();
+  return { id: r.meta.last_row_id, key };
+};
+app.post('/api/categories', async c => {
+  const b = await c.req.json(), db = c.env.DB;
+  if (!String(b.name || '').trim()) return json(c, { error: 'name is required' }, 400);
   const cnt = (await db.prepare('SELECT COUNT(*) n FROM categories').first()).n;
-  const r = await db.prepare('INSERT INTO categories (key,name,emoji,color,goal_wd,goal_we,goal_low,builtin,enabled,sort) VALUES (?,?,?,?,?,?,?,NULL,1,?)')
-    .bind(key, name, emojiOk(b.emoji, '⭐'), colorOk(b.color) ? b.color : '#5C6779', goalN(b.goal_wd), goalN(b.goal_we), goalN(b.goal_low), cnt).run();
-  return json(c, { ok: true, id: r.meta.last_row_id, key });
+  const r = await insertCategory(db, b, cnt);
+  return json(c, { ok: true, id: r.id, key: r.key });
 });
 app.patch('/api/categories/:id', async c => {
   const b = await c.req.json(), id = +c.req.param('id'), db = c.env.DB;
@@ -1560,11 +1571,7 @@ app.delete('/api/side_tasks/:id', async c => {
 
 // Rewrite the daily goals from the categories' weekday / weekend / low-load values.
 // Never touches a day with logged work (done>0) and never touches off days.
-app.post('/api/goals/regenerate', async c => {
-  const cfg = c.get('cfg'), db = c.env.DB;
-  if (!cfg.plan) return json(c, { error: 'no plan: add a phase first' }, 400);
-  const b = await c.req.json().catch(() => ({}));
-  const from = b.from === 'start' ? cfg.plan.start : shiftDays(todayIn(c.env.TZ), 1);
+const regenGoals = async (db, cfg, from) => {
   const off = new Set((await db.prepare('SELECT date FROM off_days').all()).results.map(r => r.date));
   let touched = 0;
   for (let ds = from < cfg.plan.start ? cfg.plan.start : from; ds <= cfg.plan.end; ds = nextDay(ds)) {
@@ -1578,7 +1585,88 @@ app.post('/api/goals/regenerate', async c => {
       touched += r.meta.changes || 0;
     }
   }
+  return touched;
+};
+app.post('/api/goals/regenerate', async c => {
+  const cfg = c.get('cfg'), db = c.env.DB;
+  if (!cfg.plan) return json(c, { error: 'no plan: add a phase first' }, 400);
+  const b = await c.req.json().catch(() => ({}));
+  const from = b.from === 'start' ? cfg.plan.start : shiftDays(todayIn(c.env.TZ), 1);
+  const touched = await regenGoals(db, cfg, from);
   return json(c, { ok: true, from, to: cfg.plan.end, touched });
+});
+
+// One-shot save from the Settings page: settings keys + phases + categories + side tasks in one
+// request, so the page can hold a draft and show a single "Save changes" bar. Rows carry ids; rows
+// without one are inserted; phases and side tasks missing from the payload are deleted (categories
+// are only ever disabled). Everything is validated before the first write. If the plan or any
+// category changed, the goals of today and every future day are rewritten (logged days untouched),
+// so a separate "regenerate" step is never needed.
+app.post('/api/settings/all', async c => {
+  const db = c.env.DB, b = await c.req.json().catch(() => null);
+  if (!b || typeof b !== 'object') return json(c, { error: 'bad body' }, 400);
+  const P = Array.isArray(b.phases) ? b.phases : null, C = Array.isArray(b.categories) ? b.categories : null, T = Array.isArray(b.sideTasks) ? b.sideTasks : null;
+  if (P) for (const p of P) {
+    if (!String(p.name || '').trim()) return json(c, { error: 'every phase needs a name' }, 400);
+    if (!ymd(p.start_date) || !ymd(p.end_date) || p.end_date < p.start_date) return json(c, { error: 'phase "' + String(p.name).slice(0, 40) + '" ends before it starts' }, 400);
+  }
+  if (C) {
+    if (!C.some(x => x.enabled)) return json(c, { error: 'keep at least one category on' }, 400);
+    for (const x of C) if (!x.builtin && !String(x.name || '').trim()) return json(c, { error: 'every category needs a name' }, 400);
+  }
+  const sides = T ? T.map(t => ({ id: t.id ? +t.id : 0, row: sideBody(t) })) : null;
+  if (sides) for (const s of sides) if (!s.row) return json(c, { error: 'a side task is missing its name, days or times' }, 400);
+  if (b.settings && typeof b.settings === 'object') {
+    const err = await applySettings(c, b.settings);
+    if (err) return json(c, { error: err }, 400);
+  }
+  const cfg0 = c.get('cfg');
+  const before = JSON.stringify([cfg0.phases, cfg0.allCategories]);
+  if (P) {
+    const keep = new Set();
+    for (let i = 0; i < P.length; i++) {
+      const p = P[i], name = String(p.name).trim().slice(0, 60), color = colorOk(p.color) ? p.color : '#5EA2FF', low = p.low_load ? 1 : 0;
+      if (p.id && (await db.prepare('SELECT 1 FROM phases WHERE id=?').bind(+p.id).first())) {
+        await db.prepare('UPDATE phases SET name=?, start_date=?, end_date=?, color=?, low_load=?, sort=? WHERE id=?').bind(name, p.start_date, p.end_date, color, low, i, +p.id).run();
+        keep.add(+p.id);
+      } else {
+        const r = await db.prepare('INSERT INTO phases (name,start_date,end_date,color,low_load,sort) VALUES (?,?,?,?,?,?)').bind(name, p.start_date, p.end_date, color, low, i).run();
+        keep.add(r.meta.last_row_id);
+      }
+    }
+    for (const r of (await db.prepare('SELECT id FROM phases').all()).results) if (!keep.has(r.id)) await db.prepare('DELETE FROM phases WHERE id=?').bind(r.id).run();
+  }
+  if (C) for (let i = 0; i < C.length; i++) {
+    const x = C[i];
+    const cur = x.id ? await db.prepare('SELECT * FROM categories WHERE id=?').bind(+x.id).first() : null;
+    if (cur) {
+      // builtin rows keep their name and look; only goals, on/off and order move
+      const name = cur.builtin ? cur.name : (String(x.name).trim().slice(0, 40) || cur.name);
+      await db.prepare('UPDATE categories SET name=?, emoji=?, color=?, goal_wd=?, goal_we=?, goal_low=?, enabled=?, sort=? WHERE id=?')
+        .bind(name, cur.builtin ? cur.emoji : emojiOk(x.emoji, cur.emoji), cur.builtin ? cur.color : (colorOk(x.color) ? x.color : cur.color),
+          goalN(x.goal_wd), goalN(x.goal_we), goalN(x.goal_low), x.enabled ? 1 : 0, i, cur.id).run();
+    } else await insertCategory(db, x, i);
+  }
+  if (sides) {
+    const keep = new Set();
+    for (let i = 0; i < sides.length; i++) {
+      const { id, row: t } = sides[i];
+      if (id && (await db.prepare('SELECT 1 FROM side_tasks WHERE id=?').bind(id).first())) {
+        await db.prepare('UPDATE side_tasks SET name=?, emoji=?, days=?, start=?, end=?, date_from=?, date_to=?, enabled=?, sort=? WHERE id=?')
+          .bind(t.name, t.emoji, t.days, t.start, t.end, t.date_from, t.date_to, t.enabled, i, id).run();
+        keep.add(id);
+      } else {
+        const r = await db.prepare('INSERT INTO side_tasks (name,emoji,days,start,end,date_from,date_to,enabled,sort) VALUES (?,?,?,?,?,?,?,?,?)')
+          .bind(t.name, t.emoji, t.days, t.start, t.end, t.date_from, t.date_to, t.enabled, i).run();
+        keep.add(r.meta.last_row_id);
+      }
+    }
+    for (const r of (await db.prepare('SELECT id FROM side_tasks').all()).results) if (!keep.has(r.id)) await db.prepare('DELETE FROM side_tasks WHERE id=?').bind(r.id).run();
+  }
+  const cfg = await loadCfg(db);
+  let regenerated = 0;
+  if (cfg.plan && JSON.stringify([cfg.phases, cfg.allCategories]) !== before) regenerated = await regenGoals(db, cfg, todayIn(cfg.tz));
+  return json(c, { ok: true, regenerated });
 });
 
 // ---- tasks: create, edit, delete (the Today list used to be seed-only) ----
