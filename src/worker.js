@@ -9,7 +9,7 @@ import { landingPage, signupPage, loginPage } from './ui/auth.js';
 import { onboardPage } from './ui/onboard.js';
 import {
   normEmail, validEmail, newPasswordHash, verifyPassword, randomHex,
-  createSession, sessionUser, destroySession, sessionCookie, clearSessionCookie,
+  createSession, sessionUser, destroySession, destroyAllSessions, sessionCookie, clearSessionCookie,
   gateKeys, gateLocked, gateFail, gateClear, sameOrigin,
 } from './auth.js';
 export { UserDO } from './userdo.js';
@@ -26,7 +26,7 @@ const withCtx = (req, ctx, path) => {
   h.set('X-LockIn-Ctx', JSON.stringify(ctx));
   return new Request(u.toString(), { method: req.method, headers: h, body: req.body, redirect: 'manual' });
 };
-const ownerCtx = u => ({ role: 'owner', userId: u.id, handle: u.handle || '', displayName: u.display_name || '', base: '' });
+const ownerCtx = u => ({ role: 'owner', userId: u.id, handle: u.handle || '', displayName: u.display_name || '', email: u.email, base: '' });
 
 // a thrown error becomes a logged line (tail shows strings, not Error objects) and a plain 500
 app.onError((e, c) => {
@@ -142,6 +142,42 @@ app.post('/api/onboarding', async c => {
   } catch (e) {
     return json(c, { error: 'that handle was just taken, pick another' }, 409);
   }
+  return json(c, { ok: true, next: '/' });
+});
+
+// ---------- account ----------
+app.post('/api/auth/password', async c => {
+  const u = await sessionUser(c.env.CENTRAL, c.req.raw);
+  if (!u) return json(c, { error: 'unauthorized' }, 401);
+  if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
+  const b = await c.req.json().catch(() => ({}));
+  const next = String(b.next || '');
+  if (!(await verifyPassword(String(b.current || ''), u))) return json(c, { error: 'current password is wrong' }, 401);
+  if (next.length < 10 || next.length > 200) return json(c, { error: 'new password needs 10 to 200 characters' }, 400);
+  const { hash, salt, iters } = await newPasswordHash(next);
+  await c.env.CENTRAL.prepare('UPDATE users SET pw_hash=?, pw_salt=?, pw_iters=? WHERE id=?').bind(hash, salt, iters, u.id).run();
+  // every other device is signed out; this one gets a fresh session
+  await destroyAllSessions(c.env.CENTRAL, u.id);
+  const tok = await createSession(c.env.CENTRAL, u.id);
+  c.header('Set-Cookie', sessionCookie(tok));
+  return json(c, { ok: true });
+});
+
+// Deletes the account row, its sessions and keys, then wipes the user's database.
+// Order: central rows first, so a half-failure leaves an unreachable database, never an
+// account whose data is gone.
+app.post('/api/auth/delete', async c => {
+  const u = await sessionUser(c.env.CENTRAL, c.req.raw);
+  if (!u) return json(c, { error: 'unauthorized' }, 401);
+  if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
+  const b = await c.req.json().catch(() => ({}));
+  if (!(await verifyPassword(String(b.password || ''), u))) return json(c, { error: 'password is wrong' }, 401);
+  const db = c.env.CENTRAL;
+  await db.prepare('DELETE FROM sessions WHERE user_id=?').bind(u.id).run();
+  await db.prepare('DELETE FROM api_keys WHERE user_id=?').bind(u.id).run();
+  await db.prepare('DELETE FROM users WHERE id=?').bind(u.id).run();
+  await userStub(c.env, u.id).fetch(internalReq(c, u.id, '/__internal/destroy', 'POST', {}));
+  c.header('Set-Cookie', clearSessionCookie());
   return json(c, { ok: true, next: '/' });
 });
 

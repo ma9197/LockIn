@@ -93,8 +93,7 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
       <button class="pri" id="tgo" onclick="tPrimary()">Start</button>
       <button id="tpause" onclick="tPause()" style="display:none">⏸ Pause</button>
       <button id="treset" onclick="tReset()">Reset</button>
-      <select id="tlen" style="width:auto" onchange="tReset()">
-        <option value="10">10 min</option><option value="15">15 min</option><option value="20">20 min</option><option value="25">25 min</option><option value="50">50 min</option></select>
+      <select id="tlen" style="width:auto" onchange="tReset()"></select>
     </div>
     <label class="row" style="gap:8px;cursor:pointer;justify-content:center">
       <input type="checkbox" id="lcRec" style="width:auto" onchange="lcRecToggle()">
@@ -550,8 +549,8 @@ if(t.status==='hold')return '<div class="task hold">'
 return '<div class="task '+(t.status==='done'?'done':'')+'" onclick="toggle('+t.id+')" role="checkbox" aria-checked="'+(t.status==='done')+'" tabindex="0">'
 +'<div class="box">✓</div><div class="grow"><div class="t"><span class="track-ic">'+(TRACK[t.track]||'📖')+'</span>'+esc(t.title)+'</div>'
 +(t.detail?'<div class="d">'+esc(t.detail)+'</div>':'')+'</div>'
-+(t.shiftable?'':'<span class="tiny" title="pinned date">📌</span>')+'</div>';}).join('');
-$('tasks').innerHTML=rows||'<div class="skel">Nothing planned for this day. Anything you log still counts.</div>';
++(t.shiftable?'':'<span class="tiny" title="pinned date">📌</span>')+'<button class="ghost sm" style="padding:0 6px" onclick="event.stopPropagation();delTask('+t.id+')" aria-label="delete task">\u2715</button></div>';}).join('');
+$('tasks').innerHTML=(rows||'<div class="skel">Nothing planned for this day. Anything you log still counts.</div>')+'<div id="ntask" class="row" style="margin-top:10px"><button class="sm" onclick="addTaskUI()">\uFF0B Add task</button></div>';
 // off day state
 $('offBtn').style.display=(!J.offDay&&D>=TODAY)?'':'none';
 $('offStrip').style.display=J.offDay?'':'none';
@@ -570,7 +569,7 @@ $('notifBanner').style.display=pend>0?'':'none';
 if(pend>0)$('notifTxt').textContent=pend+(pend===1?' friend wants':' friends want')+' time with you';
 if(!timerInit){timerInit=true;
 const def=String(J.timerDefault||25);
-if(![...($('tlen').options)].some(o=>o.value===def)){const o=document.createElement('option');o.value=def;o.textContent=def+' min';$('tlen').prepend(o);}
+const TO=((window.__U&&window.__U.timerOptions)||[10,15,20,25,50]).map(Number);if(!TO.includes(+def))TO.unshift(+def);$('tlen').innerHTML=TO.map(m=>'<option value="'+m+'">'+m+' min</option>').join('');
 if(!tRead())$('tlen').value=def;
 tRestore();}
 }
@@ -606,6 +605,14 @@ try{await api('/api/offday',{body:{date:D,reason}});$('modalHost').innerHTML='';
 catch(e){toast(String(e))}}
 async function undoOffDay(){
 await api('/api/offday/'+D,{method:'DELETE'});toast('Back on. Goals restored.');load();}
+function addTaskUI(){
+$('ntask').innerHTML='<div class="grow"><input id="nt-title" placeholder="What needs doing?" style="margin-bottom:6px"><input id="nt-detail" placeholder="Details (optional)">'
++'<div class="row" style="margin-top:6px;flex-wrap:wrap"><label class="tiny" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="nt-pin" style="width:auto;margin:0"> pinned to this date</label><span class="grow"></span>'
++'<button class="ghost sm" onclick="load()">Cancel</button><button class="sm pri" onclick="saveNewTask()">Save</button></div></div>';
+$('nt-title').focus();}
+async function saveNewTask(){const title=$('nt-title').value.trim();if(!title)return toast('Give it a title');
+await api('/api/task',{body:{title,detail:$('nt-detail').value,date:D,pinned:$('nt-pin').checked}});toast('Task added');load();}
+async function delTask(id){if(!confirm('Delete this task?'))return;await api('/api/task/'+id,{method:'DELETE'});load();}
 async function bump(t,n){
 if(t==='leetcode'&&n>0)return openLcLog({},lcCtx());   // every +1 must carry difficulty + time
 await api('/api/goal',{body:{date:D,type:t,delta:n}});load();}

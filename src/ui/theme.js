@@ -982,7 +982,7 @@ let open=[];
 try{const r=await Promise.all([api('/api/lc/open'),api('/api/lc/names')]);open=r[0].open;LCNAMES=r[1].names||[];}catch(e){}
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<h1 style="font-size:19px">\uD83E\uDDE9 Log a LeetCode problem</h1>'
-+'<p class="muted" style="margin-top:4px">All three count for today. \u26a1 Solved, slow counts as solved but stays in your come-back list.</p>'
++'<p class="muted" style="margin-top:4px">All three count for today. \u26a1 Solved, slow is not counted as solved and stays in your come-back list.</p>'
 +(open.length?'<label class="fld">Come back to one of these</label>'
 +'<div class="row" style="flex-wrap:wrap;gap:6px">'+open.map(o=>
 '<button class="chip" style="cursor:pointer" data-n="'+esc(o.name)+'" data-d="'+o.difficulty+'" onclick="lcPickOpen(this)">'
@@ -1097,7 +1097,7 @@ export const userCtx = cfg => cfg ? {
   tz: cfg.tz, clock24: !!cfg.clock24, today: new Date().toLocaleDateString('en-CA', { timeZone: cfg.tz || 'UTC' }),
   plan: cfg.plan || null, modules: cfg.modules || {}, layouts: cfg.sched ? Object.keys(cfg.sched.layouts) : [],
   categories: (cfg.categories || []).map(c => ({ key: c.key, name: c.name, emoji: c.emoji, color: c.color, builtin: c.builtin || null })),
-  streakCategory: cfg.streakCategory || null, grindTarget: cfg.grindTarget || 6,
+  streakCategory: cfg.streakCategory || null, grindTarget: cfg.grindTarget || 6, timerOptions: cfg.timerOptions || [10, 15, 20, 25, 50], timerDefault: cfg.timerDefault || 25,
   displayName: cfg.user ? cfg.user.displayName : '', handle: cfg.user ? cfg.user.handle : '', base: cfg.user ? (cfg.user.base || '') : '',
 } : null;
 

@@ -50,8 +50,7 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
       <button class="pri" id="tgo" onclick="tPrimary()">Start</button>
       <button id="tpause" onclick="tPause()" style="display:none">⏸ Pause</button>
       <button id="treset" onclick="tReset()">Reset</button>
-      <select id="tlen" style="width:auto" onchange="tReset()">
-        <option value="10">10 min</option><option value="15">15 min</option><option value="20">20 min</option><option value="25">25 min</option><option value="50">50 min</option></select>
+      <select id="tlen" style="width:auto" onchange="tReset()"></select>
     </div>
     <div style="width:100%;max-width:300px">
       <div class="seg-ctl" id="lcDiff">
@@ -508,7 +507,7 @@ $('lkCount').textContent=n?(n+' saved'+(b?' · '+b+' in Open all':'')):'the site
 try{LCNAMES=(await api('/api/lc/names')).names||[];}catch(e){}
 try{const d=await api('/api/day');HASGRIND=!!d.active;
 const def=String(d.timerDefault||25);
-if(![...$('tlen').options].some(o=>o.value===def)){const o=document.createElement('option');o.value=def;o.textContent=def+' min';$('tlen').prepend(o);}
+const TO=((window.__U&&window.__U.timerOptions)||[10,15,20,25,50]).map(Number);if(!TO.includes(+def))TO.unshift(+def);$('tlen').innerHTML=TO.map(m=>'<option value="'+m+'">'+m+' min</option>').join('');
 $('tlen').value=def;}catch(e){}
 tRestore();
 const last=localStorage.getItem('lc_prob');

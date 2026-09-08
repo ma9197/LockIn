@@ -5,7 +5,7 @@
 //
 // Derived from the single-user index.js by scripts/port-app.mjs.
 import { Hono } from 'hono';
-import { sha256hex, pinHash, setSetting, todayIn, nowIn, localEpoch, isAuthed, loadCfg, normSched, validTz, isLowLoad, SIDE_EMOJI, modeForDate, blocksFor, bookableWindows, buildICS, dayBlocks, movesFor, canonName, shareToken } from './helpers.js';
+import { sha256hex, pinHash, setSetting, todayIn, nowIn, localEpoch, isAuthed, loadCfg, normSched, validTz, isLowLoad, SIDE_EMOJI, nextDay, shiftDays, modeForDate, blocksFor, bookableWindows, buildICS, dayBlocks, movesFor, canonName, shareToken } from './helpers.js';
 import { GUIDES, toMarkdown } from './readapi.js';
 import { jobsPage } from './ui/jobs.js';
 import { pinPage, sharePinPage, shareOffPage } from './ui/pin.js';
@@ -1442,6 +1442,158 @@ app.get('/api/read/progress', async c => {
     total, returned: (stats.history.leetcode || []).length + (stats.history.apps || []).length,
     stats,
   }, P.format);
+});
+
+// ---- plan, categories, side tasks: the editors behind Settings ----
+const ymd = v => /^\d{4}-\d{2}-\d{2}$/.test(v || '');
+const hmOk = v => /^\d{2}:\d{2}$/.test(v || '');
+const colorOk = v => /^#[0-9a-fA-F]{6}$/.test(v || '');
+const emojiOk = (v, d) => { v = String(v || '').trim(); return v && v.length <= 8 ? v : d; };
+const goalN = v => Math.min(50, Math.max(0, Math.round(+v || 0)));
+
+app.get('/api/phases', async c => json(c, { phases: c.get('cfg').phases }));
+app.post('/api/phases', async c => {
+  const b = await c.req.json();
+  const name = String(b.name || '').trim().slice(0, 60);
+  if (!name || !ymd(b.start_date) || !ymd(b.end_date) || b.end_date < b.start_date) return json(c, { error: 'name, start and end are required' }, 400);
+  const n = (await c.env.DB.prepare('SELECT COUNT(*) n FROM phases').first()).n;
+  const r = await c.env.DB.prepare('INSERT INTO phases (name,start_date,end_date,color,low_load,sort) VALUES (?,?,?,?,?,?)')
+    .bind(name, b.start_date, b.end_date, colorOk(b.color) ? b.color : '#5EA2FF', b.low_load ? 1 : 0, n).run();
+  return json(c, { ok: true, id: r.meta.last_row_id });
+});
+app.patch('/api/phases/:id', async c => {
+  const b = await c.req.json(), id = +c.req.param('id');
+  const cur = await c.env.DB.prepare('SELECT * FROM phases WHERE id=?').bind(id).first();
+  if (!cur) return json(c, { error: 'no such phase' }, 404);
+  const name = b.name !== undefined ? String(b.name).trim().slice(0, 60) || cur.name : cur.name;
+  const start = ymd(b.start_date) ? b.start_date : cur.start_date, end = ymd(b.end_date) ? b.end_date : cur.end_date;
+  if (end < start) return json(c, { error: 'end is before start' }, 400);
+  await c.env.DB.prepare('UPDATE phases SET name=?, start_date=?, end_date=?, color=?, low_load=?, sort=? WHERE id=?')
+    .bind(name, start, end, colorOk(b.color) ? b.color : cur.color, b.low_load !== undefined ? (b.low_load ? 1 : 0) : cur.low_load,
+      b.sort !== undefined ? +b.sort || 0 : cur.sort, id).run();
+  return json(c, { ok: true });
+});
+app.delete('/api/phases/:id', async c => {
+  await c.env.DB.prepare('DELETE FROM phases WHERE id=?').bind(+c.req.param('id')).run();
+  return json(c, { ok: true });
+});
+
+app.get('/api/categories', async c => json(c, { categories: c.get('cfg').allCategories }));
+app.post('/api/categories', async c => {
+  const b = await c.req.json(), db = c.env.DB;
+  const name = String(b.name || '').trim().slice(0, 40);
+  if (!name) return json(c, { error: 'name is required' }, 400);
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 24) || 'cat';
+  let key = ['leetcode', 'applications'].includes(base) ? base + '-2' : base, n = 2;
+  while (await db.prepare('SELECT 1 FROM categories WHERE key=?').bind(key).first()) key = base + '-' + (n++);
+  const cnt = (await db.prepare('SELECT COUNT(*) n FROM categories').first()).n;
+  const r = await db.prepare('INSERT INTO categories (key,name,emoji,color,goal_wd,goal_we,goal_low,builtin,enabled,sort) VALUES (?,?,?,?,?,?,?,NULL,1,?)')
+    .bind(key, name, emojiOk(b.emoji, '⭐'), colorOk(b.color) ? b.color : '#5C6779', goalN(b.goal_wd), goalN(b.goal_we), goalN(b.goal_low), cnt).run();
+  return json(c, { ok: true, id: r.meta.last_row_id, key });
+});
+app.patch('/api/categories/:id', async c => {
+  const b = await c.req.json(), id = +c.req.param('id'), db = c.env.DB;
+  const cur = await db.prepare('SELECT * FROM categories WHERE id=?').bind(id).first();
+  if (!cur) return json(c, { error: 'no such category' }, 404);
+  const pick = (k, f) => b[k] !== undefined ? f(b[k]) : cur[k];
+  await db.prepare('UPDATE categories SET name=?, emoji=?, color=?, goal_wd=?, goal_we=?, goal_low=?, enabled=?, sort=? WHERE id=?')
+    .bind(pick('name', v => String(v).trim().slice(0, 40) || cur.name), pick('emoji', v => emojiOk(v, cur.emoji)),
+      pick('color', v => colorOk(v) ? v : cur.color), pick('goal_wd', goalN), pick('goal_we', goalN), pick('goal_low', goalN),
+      pick('enabled', v => v ? 1 : 0), pick('sort', v => +v || 0), id).run();
+  return json(c, { ok: true });
+});
+// history keeps pointing at the key, so a category is only ever disabled, never deleted
+app.delete('/api/categories/:id', async c => {
+  const id = +c.req.param('id');
+  const cur = await c.env.DB.prepare('SELECT * FROM categories WHERE id=?').bind(id).first();
+  if (!cur) return json(c, { error: 'no such category' }, 404);
+  const enabled = (await c.env.DB.prepare('SELECT COUNT(*) n FROM categories WHERE enabled=1 AND id!=?').bind(id).first()).n;
+  if (!enabled) return json(c, { error: 'keep at least one category on' }, 400);
+  await c.env.DB.prepare('UPDATE categories SET enabled=0 WHERE id=?').bind(id).run();
+  return json(c, { ok: true, disabled: true });
+});
+
+app.get('/api/side_tasks', async c => json(c, { sideTasks: (await c.env.DB.prepare('SELECT * FROM side_tasks ORDER BY sort, id').all()).results, emoji: SIDE_EMOJI }));
+const sideBody = (b, cur = {}) => {
+  const name = b.name !== undefined ? String(b.name).trim().slice(0, 40) : cur.name;
+  const days = b.days !== undefined ? [...new Set((Array.isArray(b.days) ? b.days : String(b.days).split(',')).map(Number).filter(d => d >= 0 && d <= 6))].sort().join(',') : cur.days;
+  const start = hmOk(b.start) ? b.start : cur.start, end = hmOk(b.end) ? b.end : cur.end;
+  if (!name || !days || !start || !end) return null;
+  return { name, days, start, end, emoji: emojiOk(b.emoji, cur.emoji || '📌'),
+    date_from: b.date_from !== undefined ? (ymd(b.date_from) ? b.date_from : null) : (cur.date_from || null),
+    date_to: b.date_to !== undefined ? (ymd(b.date_to) ? b.date_to : null) : (cur.date_to || null),
+    enabled: b.enabled !== undefined ? (b.enabled ? 1 : 0) : (cur.enabled === undefined ? 1 : cur.enabled),
+    sort: b.sort !== undefined ? +b.sort || 0 : (cur.sort || 0) };
+};
+app.post('/api/side_tasks', async c => {
+  const t = sideBody(await c.req.json());
+  if (!t) return json(c, { error: 'name, days, start and end are required' }, 400);
+  const r = await c.env.DB.prepare('INSERT INTO side_tasks (name,emoji,days,start,end,date_from,date_to,enabled,sort) VALUES (?,?,?,?,?,?,?,?,?)')
+    .bind(t.name, t.emoji, t.days, t.start, t.end, t.date_from, t.date_to, t.enabled, t.sort).run();
+  return json(c, { ok: true, id: r.meta.last_row_id });
+});
+app.patch('/api/side_tasks/:id', async c => {
+  const id = +c.req.param('id');
+  const cur = await c.env.DB.prepare('SELECT * FROM side_tasks WHERE id=?').bind(id).first();
+  if (!cur) return json(c, { error: 'no such side task' }, 404);
+  const t = sideBody(await c.req.json(), cur);
+  if (!t) return json(c, { error: 'name, days, start and end are required' }, 400);
+  await c.env.DB.prepare('UPDATE side_tasks SET name=?, emoji=?, days=?, start=?, end=?, date_from=?, date_to=?, enabled=?, sort=? WHERE id=?')
+    .bind(t.name, t.emoji, t.days, t.start, t.end, t.date_from, t.date_to, t.enabled, t.sort, id).run();
+  return json(c, { ok: true });
+});
+app.delete('/api/side_tasks/:id', async c => {
+  await c.env.DB.prepare('DELETE FROM side_tasks WHERE id=?').bind(+c.req.param('id')).run();
+  return json(c, { ok: true });
+});
+
+// Rewrite the daily goals from the categories' weekday / weekend / low-load values.
+// Never touches a day with logged work (done>0) and never touches off days.
+app.post('/api/goals/regenerate', async c => {
+  const cfg = c.get('cfg'), db = c.env.DB;
+  if (!cfg.plan) return json(c, { error: 'no plan: add a phase first' }, 400);
+  const b = await c.req.json().catch(() => ({}));
+  const from = b.from === 'start' ? cfg.plan.start : shiftDays(todayIn(c.env.TZ), 1);
+  const off = new Set((await db.prepare('SELECT date FROM off_days').all()).results.map(r => r.date));
+  let touched = 0;
+  for (let ds = from < cfg.plan.start ? cfg.plan.start : from; ds <= cfg.plan.end; ds = nextDay(ds)) {
+    if (off.has(ds)) continue;
+    const dow = new Date(ds + 'T12:00:00Z').getUTCDay(), low = isLowLoad(cfg, ds), we = dow === 0 || dow === 6;
+    for (const cat of cfg.categories) {
+      const g = low ? cat.goal_low : we ? cat.goal_we : cat.goal_wd;
+      const r = g > 0
+        ? await db.prepare('INSERT INTO daily_goals (date,type,goal,done) VALUES (?,?,?,0) ON CONFLICT(date,type) DO UPDATE SET goal=excluded.goal WHERE done=0').bind(ds, cat.key, g).run()
+        : await db.prepare('UPDATE daily_goals SET goal=0 WHERE date=? AND type=? AND done=0').bind(ds, cat.key).run();
+      touched += r.meta.changes || 0;
+    }
+  }
+  return json(c, { ok: true, from, to: cfg.plan.end, touched });
+});
+
+// ---- tasks: create, edit, delete (the Today list used to be seed-only) ----
+app.post('/api/task', async c => {
+  const b = await c.req.json();
+  const title = String(b.title || '').trim().slice(0, 140);
+  if (!title) return json(c, { error: 'title is required' }, 400);
+  const date = ymd(b.date) ? b.date : todayIn(c.env.TZ);
+  const sort = (await c.env.DB.prepare('SELECT COALESCE(MAX(sort),0)+1 s FROM tasks WHERE date=?').bind(date).first()).s;
+  const r = await c.env.DB.prepare("INSERT INTO tasks (date,track,title,detail,status,shiftable,sort) VALUES (?,?,?,?,'todo',?,?)")
+    .bind(date, String(b.track || 'other').slice(0, 20), title, String(b.detail || '').trim().slice(0, 500), b.pinned ? 0 : 1, sort).run();
+  return json(c, { ok: true, id: r.meta.last_row_id });
+});
+app.patch('/api/task/:id', async c => {
+  const b = await c.req.json(), id = +c.req.param('id');
+  const cur = await c.env.DB.prepare('SELECT * FROM tasks WHERE id=?').bind(id).first();
+  if (!cur) return json(c, { error: 'no such task' }, 404);
+  await c.env.DB.prepare('UPDATE tasks SET title=?, detail=?, date=?, shiftable=? WHERE id=?')
+    .bind(b.title !== undefined ? String(b.title).trim().slice(0, 140) || cur.title : cur.title,
+      b.detail !== undefined ? String(b.detail).trim().slice(0, 500) : cur.detail,
+      ymd(b.date) ? b.date : cur.date, b.pinned !== undefined ? (b.pinned ? 0 : 1) : cur.shiftable, id).run();
+  return json(c, { ok: true });
+});
+app.delete('/api/task/:id', async c => {
+  await c.env.DB.prepare('DELETE FROM tasks WHERE id=?').bind(+c.req.param('id')).run();
+  return json(c, { ok: true });
 });
 
 // ---- ICS feed ----

@@ -37,6 +37,7 @@ export class UserDO {
       if (path === '/__internal/onboard' && req.method === 'POST') return this.onboard(await req.json().catch(() => null));
       if (path === '/__internal/export') return this.exportAll();
       if (path === '/__internal/import' && req.method === 'POST') return this.importAll(await req.json().catch(() => null));
+      if (path === '/__internal/destroy' && req.method === 'POST') { await this.ctx.storage.deleteAll(); return Response.json({ ok: true }); }
       return new Response('not found', { status: 404 });
     }
     // the app sees the adapter as its database and the context as a binding. The zone is read
