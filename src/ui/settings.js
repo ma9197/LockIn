@@ -8,10 +8,11 @@ import { shell } from './theme.js';
 // Page-script rules: no backticks, no ${ }, quotes inside onclick strings are written as \\'.
 
 const tog = (id, label, sub) => `<div class="row" style="margin-top:10px"><div class="grow"><b>${label}</b><div class="tiny">${sub}</div></div><div class="toggle" id="${id}" role="switch" tabindex="0"></div></div>`;
-const h2 = (id, label) => `<h2 id="h-${id}"><a href="#sec-${id}" style="color:inherit;text-decoration:none">${label}</a><span class="dot">●</span></h2>`;
-const SECTIONS = [['time', 'Time'], ['plan', 'Plan'], ['cats', 'Categories'], ['layouts', 'Grind layouts'], ['sides', 'Side tasks'],
-  ['modules', 'Modules'], ['today', 'Today page'], ['clock', 'Day clock'], ['mclock', 'Top clock'], ['booking', 'Booking'],
-  ['share', 'Sharing'], ['calendar', 'Calendar'], ['platforms', 'Platforms'], ['api', 'API keys'], ['account', 'Account']];
+const h2 = (id, label) => `<h2 id="h-${id}">${label}<span class="dot">●</span></h2>`;
+// Six tabs, each a short page. The draft spans all of them: switching tabs never loses an edit,
+// and the save bar names the tabs that hold changes.
+const TABS = [['plan', 'Plan'], ['schedule', 'Schedule'], ['today', 'Today'], ['sharing', 'Sharing'], ['api', 'Integrations'], ['account', 'Account']];
+const pane = (id, first) => `${first ? '' : '</div>'}<div class="tabpane" id="tab-${id}">`;
 
 export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 <style>
@@ -37,11 +38,11 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 .dim{opacity:.55}
 .hint{font-size:12px;color:var(--ink3);margin-top:6px;line-height:1.45}
 .danger{border-color:#FF5D7355}
-.sec{scroll-margin-top:calc(var(--clkh,46px) + 16px)}
-.jump{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:6px 0 2px;padding:2px 0 6px}
-.jump::-webkit-scrollbar{display:none}
-.jump a{flex:none;background:var(--surface2);border:1px solid var(--line2);border-radius:99px;padding:6px 12px;font:700 12px var(--disp);color:var(--ink2);white-space:nowrap;text-decoration:none}
-.jump a.chg{border-color:var(--ember);color:var(--ember)}
+.sec{scroll-margin-top:calc(var(--clkh,46px) + 70px)}
+.tabbar{position:sticky;top:calc(var(--clkh,46px) + 6px);z-index:5;margin:8px 0 4px}
+.tabbar button{position:relative}
+.tabbar button.chg::after{content:'';position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:99px;background:var(--ember)}
+.tabpane>.sec:first-child h2{margin-top:14px}
 h2 .dot{display:none;color:var(--ember);margin-left:6px;font-size:10px;vertical-align:middle}
 h2.chg .dot{display:inline}
 .savebar{position:fixed;left:0;right:0;bottom:calc(74px + env(safe-area-inset-bottom));z-index:49;background:rgba(13,17,26,.94);backdrop-filter:blur(14px);
@@ -58,9 +59,10 @@ body.dirty .refresh-fab{display:none}
 .pick.on span{color:var(--ember)}
 </style>
 <h1>Settings</h1>
-<div class="jump" id="jump">${SECTIONS.map(([id, l]) => `<a href="#sec-${id}" id="j-${id}">${l}</a>`).join('')}</div>
-<p class="tiny" style="margin-top:4px">Change anything below. A save bar appears when something differs from what is stored; nothing is applied until you press it.</p>
+<div class="tabbar" id="tabs">${TABS.map(([id, l]) => `<button id="tb-${id}" onclick="showTab('${id}')">${l}</button>`).join('')}</div>
+<p class="tiny" style="margin:6px 0 0">Nothing is applied until you press the save bar, which appears as soon as something differs from what is stored.</p>
 
+${pane('plan', true)}
 <div class="sec" id="sec-time">${h2('time', 'Time')}
 <div class="card">
   <label class="fld" style="margin-top:0">Time zone</label>
@@ -90,6 +92,7 @@ body.dirty .refresh-fab{display:none}
   <div class="hint">Turning a category off hides it. History is kept, so it can come back any time.</div>
 </div></div>
 
+${pane('schedule')}
 <div class="sec" id="sec-layouts">${h2('layouts', 'Grind layouts')}
 <div class="card">
   <p class="muted">A layout is up to four grind blocks. The Today page switches between layouts; one is the default.</p>
@@ -111,10 +114,12 @@ body.dirty .refresh-fab{display:none}
   <button class="sm" style="margin-top:10px" onclick="addSide()">＋ Add side task</button>
 </div></div>
 
+${pane('today')}
 <div class="sec" id="sec-modules">${h2('modules', 'Modules')}
 <div class="card">
   <p class="muted">Turn off what you do not use. The tab, its routes and its stats disappear; nothing is deleted.</p>
   <div id="modToggles"></div>
+  <div class="hint" id="modHint"></div>
   <label class="fld" style="margin-top:14px">Daily grind target (hours)</label>
   <input id="s-target" type="number" min="1" max="16" step="0.5" style="width:120px">
 </div></div>
@@ -164,6 +169,7 @@ body.dirty .refresh-fab{display:none}
   <div class="hint">The clock at the top of this page previews your pick before you save.</div>
 </div></div>
 
+${pane('sharing')}
 <div class="sec" id="sec-booking">${h2('booking', 'Booking')}
 <div class="card">
   <div class="row">
@@ -218,6 +224,7 @@ body.dirty .refresh-fab{display:none}
   <button class="rose sm" style="margin-top:10px" onclick="regenIcs()">Regenerate link (if leaked)</button>
 </div></div>
 
+${pane('api')}
 <div class="sec" id="sec-platforms">${h2('platforms', 'Job platforms')}
 <div class="card">
   <p class="muted">The dropdown on the Jobs tab. Anything not listed gets filed under "Other".</p>
@@ -273,6 +280,7 @@ body.dirty .refresh-fab{display:none}
   </div>
 </div></div>
 
+${pane('account')}
 <div class="sec" id="sec-account">${h2('account', 'Account')}
 <div class="card">
   <div class="row"><div class="grow"><b id="accEmail"></b><div class="tiny">Handle: <span id="accHandle" class="num"></span></div></div>
@@ -294,9 +302,10 @@ body.dirty .refresh-fab{display:none}
   <p class="tiny" style="margin-top:4px">Removes your account and your entire database. There is no undo. Export first if you want a copy.</p>
   <div class="row" style="margin-top:8px"><input id="p-del" type="password" placeholder="your password"><button class="rose sm" onclick="delAccount()">Delete everything</button></div>
 </div></div>
+</div>
 
 <div class="savebar" id="savebar">
-  <div class="msg" id="sbMsg"></div>
+  <div class="msg" id="sbMsg" onclick="gotoChanged()" style="cursor:pointer"></div>
   <button class="ghost sm" onclick="discard()">Discard</button>
   <button class="pri sm" id="sbSave" onclick="saveAll()">Save changes</button>
 </div>
@@ -309,7 +318,15 @@ const MODS=[['leetcode','\\uD83E\\uDDE9 LeetCode tab','problem log, notes, visua
 const SHK=[['shOverview','overview'],['shLc','lc'],['shGrind','grind'],['shJobs','jobs'],['shLcNames','lcNames'],['shFriends','friends'],['shOffReasons','offReasons']];
 // which draft keys belong to which section, for the change markers and the save bar text
 const SEC={time:['tz','clock24'],plan:['phases'],cats:['cats'],layouts:['sched'],sides:['sides'],modules:['modules','grindTarget'],today:['todayLayout','timerDefault','timerOptions'],clock:['clock'],mclock:['mclock'],booking:['booking'],share:['share'],platforms:['platforms']};
-const SECN={time:'Time',plan:'Plan',cats:'Categories',layouts:'Grind layouts',sides:'Side tasks',modules:'Modules',today:'Today page',clock:'Day clock',mclock:'Top clock',booking:'Booking',share:'Sharing',platforms:'Platforms'};
+const TABOF={time:'plan',plan:'plan',cats:'plan',layouts:'schedule',sides:'schedule',modules:'today',today:'today',clock:'today',mclock:'today',booking:'sharing',share:'sharing',platforms:'api'};
+const TABN={plan:'Plan',schedule:'Schedule',today:'Today',sharing:'Sharing',api:'Integrations',account:'Account'};
+let TAB='plan';
+function showTab(t){if(!TABN[t])t='plan';TAB=t;
+document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.id==='tb-'+t));
+document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('on',p.id==='tab-'+t));
+if(location.hash!=='#'+t)history.replaceState(null,'','#'+t);
+window.scrollTo({top:0});}
+function gotoChanged(){const t=Object.keys(TABN).find(t=>$('tb-'+t).classList.contains('chg'));if(t)showTab(t);}
 function toggle(el,on){el.classList.toggle('on',on);el.setAttribute('aria-checked',on);}
 const hmOk=v=>/^\\d{2}:\\d{2}$/.test(v||'');
 const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));
@@ -331,17 +348,26 @@ share:{title:sh.title||'',overview:!!sh.overview,lc:!!sh.lc,grind:!!sh.grind,job
 platforms:[...S.jobPlatforms]};}
 
 // ---- change tracking ----
-function mark(){const chg=[];
-for(const [sec,keys] of Object.entries(SEC)){const d=keys.some(k=>snap(k)!==B[k]);$('h-'+sec).classList.toggle('chg',d);$('j-'+sec).classList.toggle('chg',d);if(d)chg.push(SECN[sec]);}
-const dirty=chg.length>0;$('savebar').classList.toggle('show',dirty);document.body.classList.toggle('dirty',dirty);
-$('sbMsg').innerHTML=dirty?'<b>Unsaved changes</b>'+esc(chg.join(' \\u00b7 ')):'';}
+function mark(){const tabs={};
+for(const [sec,keys] of Object.entries(SEC)){const d=keys.some(k=>snap(k)!==B[k]);$('h-'+sec).classList.toggle('chg',d);if(d)tabs[TABOF[sec]]=1;}
+Object.keys(TABN).forEach(t=>$('tb-'+t).classList.toggle('chg',!!tabs[t]));
+const names=Object.keys(TABN).filter(t=>tabs[t]).map(t=>TABN[t]);
+const dirty=names.length>0;$('savebar').classList.toggle('show',dirty);document.body.classList.toggle('dirty',dirty);
+$('sbMsg').innerHTML=dirty?'<b>Unsaved changes</b>'+esc(names.join(' \\u00b7 ')):'';
+syncModHint();}
 function baseline(){B={};for(const k of Object.keys(D))B[k]=snap(k);mark();}
 window.addEventListener('beforeunload',e=>{if(document.body.classList.contains('dirty')){e.preventDefault();e.returnValue='';}});
-function bad(sec,msg){toast(msg);const el=$('sec-'+sec);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});return false;}
+function bad(sec,msg){toast(msg);showTab(TABOF[sec]||'plan');const el=$('sec-'+sec);if(el)setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),50);return false;}
+// the LeetCode tab only exists while the LeetCode category is on, so the two move together
+const lcCat=()=>D.cats.find(c=>c.builtin==='leetcode');
+function syncModHint(){const c=lcCat();const el=$('modHint');if(!el)return;
+el.textContent=(c&&!c.enabled&&D.modules.leetcode)?'The LeetCode tab needs the LeetCode category, which is off. Saving turns the category back on.':'';}
 
 async function load(){
 S=await api('/api/settings');D=draftFrom(S);
 renderAll();renderStatic();baseline();}
+showTab(location.hash.slice(1));
+window.addEventListener('hashchange',()=>showTab(location.hash.slice(1)));
 function renderAll(){
 let zones=[];try{zones=Intl.supportedValuesOf('timeZone')}catch(e){zones=['UTC','America/New_York','America/Los_Angeles','Europe/London','Europe/Berlin','Asia/Tokyo']}
 if(!zones.includes(D.tz))zones.unshift(D.tz);
@@ -350,7 +376,8 @@ $('s-tz').onchange=()=>{D.tz=$('s-tz').value;mark();};
 seg('clkSeg','c',D.clock24?'1':'0',v=>{D.clock24=v==='1';});
 renderPhases();renderCats();renderLayouts();renderSides();
 $('modToggles').innerHTML=MODS.map(([k,l,s])=>'<div class="row" style="margin-top:10px"><div class="grow"><b>'+l+'</b><div class="tiny">'+s+'</div></div><div class="toggle" id="mod-'+k+'" role="switch" tabindex="0"></div></div>').join('');
-MODS.forEach(([k])=>tg('mod-'+k,()=>!!D.modules[k],v=>{D.modules[k]=v;}));
+MODS.forEach(([k])=>tg('mod-'+k,()=>!!D.modules[k],v=>{D.modules[k]=v;
+if(k==='leetcode'&&v){const c=lcCat();if(c&&!c.enabled){c.enabled=1;renderCats();toast('LeetCode category turned on too');}}}));
 num('s-target',()=>D.grindTarget,v=>{D.grindTarget=v;});
 seg('layoutSeg','l',D.todayLayout,v=>{D.todayLayout=v;});
 num('s-timer',()=>D.timerDefault,v=>{D.timerDefault=v;});
@@ -407,7 +434,7 @@ try{const j=await api('/api/goals/regenerate',{body:{}});toast('Goals rewritten,
 function renderCats(){
 $('cats').innerHTML=D.cats.map((c,i)=>'<div class="ed'+(c.enabled?'':' dim')+'"><div class="row"><span style="font-size:20px">'+c.emoji+'</span>'
 +'<input class="nm" value="'+esc2(c.name)+'" oninput="D.cats['+i+'].name=this.value;mark()"'+(c.builtin?' readonly':'')+' placeholder="Category name">'
-+'<button class="sm '+(c.enabled?'':'pri')+'" onclick="D.cats['+i+'].enabled=D.cats['+i+'].enabled?0:1;renderCats();mark()">'+(c.enabled?'Turn off':'Turn on')+'</button></div>'
++'<button class="sm '+(c.enabled?'':'pri')+'" onclick="tgCat('+i+')">'+(c.enabled?'Turn off':'Turn on')+'</button></div>'
 +'<div class="gl"><div><label>Weekday goal</label><input type="number" min="0" max="50" value="'+c.goal_wd+'" oninput="D.cats['+i+'].goal_wd=+this.value;mark()"></div>'
 +'<div><label>Weekend goal</label><input type="number" min="0" max="50" value="'+c.goal_we+'" oninput="D.cats['+i+'].goal_we=+this.value;mark()"></div>'
 +'<div><label>Low-load goal</label><input type="number" min="0" max="50" value="'+c.goal_low+'" oninput="D.cats['+i+'].goal_low=+this.value;mark()"></div></div>'
@@ -415,6 +442,9 @@ $('cats').innerHTML=D.cats.map((c,i)=>'<div class="ed'+(c.enabled?'':' dim')+'">
 :'<div class="em">'+CEMO.map(e=>'<button class="'+(c.emoji===e?'on':'')+'" onclick="D.cats['+i+'].emoji=this.textContent;renderCats();mark()">'+e+'</button>').join('')+'</div>'
 +'<div class="sw">'+PAL.map(col=>'<button style="background:'+col+'" class="'+(c.color===col?'on':'')+'" onclick="D.cats['+i+'].color=\\''+col+'\\';renderCats();mark()"></button>').join('')+'</div>')
 +'</div>').join('');}
+function tgCat(i){const c=D.cats[i];c.enabled=c.enabled?0:1;
+if(c.builtin==='leetcode'){D.modules.leetcode=!!c.enabled;const t=$('mod-leetcode');if(t)toggle(t,!!c.enabled);toast(c.enabled?'LeetCode tab turned on too':'LeetCode tab turned off too');}
+renderCats();mark();}
 function addCat(){D.cats.push({id:null,name:'',emoji:CEMO[2],color:PAL[D.cats.length%PAL.length],goal_wd:1,goal_we:0,goal_low:0,enabled:1,builtin:null});renderCats();mark();
 const inputs=document.querySelectorAll('#cats input.nm');const last=inputs[inputs.length-1];if(last)last.focus();}
 
