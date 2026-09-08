@@ -1111,9 +1111,8 @@ return `<!doctype html><html lang="en"><head>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Atkinson+Hyperlegible:wght@400;700&family=Orbitron:wght@600;800&family=VT323&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <title>${title}</title><style>${CSS}</style></head>
 <body>${active ? navHTML(active, u) : ''}<div class="wrap">${body}</div>
-<script>window.__U=${JSON.stringify(u)}</script>
+<script>window.__U=${JSON.stringify(u)}${opts.public ? ';window.__PUBLIC=1' : ''}</script>
 ${opts.mclock ? `<script>window.__MCLOCK=${JSON.stringify(opts.mclock)}</script>` : ''}
 ${RUNTIME}${(opts.public || !u || u.modules.friends === false) ? '' : '<script>notifyBadge()</script>'}
-${opts.public ? '<script>window.__PUBLIC=1</script>' : ''}
 ${pageScript}</body></html>`;
 };

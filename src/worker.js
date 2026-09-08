@@ -28,6 +28,20 @@ const withCtx = (req, ctx, path) => {
 };
 const ownerCtx = u => ({ role: 'owner', userId: u.id, handle: u.handle || '', displayName: u.display_name || '', base: '' });
 
+// a thrown error becomes a logged line (tail shows strings, not Error objects) and a plain 500
+app.onError((e, c) => {
+  console.error('unhandled: ' + (e && e.stack ? e.stack : String(e)));
+  const isApi = new URL(c.req.url).pathname.startsWith('/api/');
+  return isApi ? c.json({ error: 'server error' }, 500) : c.text('server error', 500);
+});
+
+// the PWA manifest must be reachable without a session
+app.get('/manifest.json', c => c.json({
+  name: 'LockIn', short_name: 'LockIn', start_url: '/', display: 'standalone',
+  background_color: '#0B0E14', theme_color: '#0B0E14',
+  icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230B0E14'/><text x='50' y='68' font-size='52' text-anchor='middle'>🔥</text></svg>", sizes: 'any', type: 'image/svg+xml' }],
+}));
+
 // ---------- health ----------
 app.get('/healthz', async c => {
   const central = await c.env.CENTRAL.prepare('SELECT COUNT(*) n FROM users').first().catch(e => ({ error: String(e) }));

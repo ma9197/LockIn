@@ -3,7 +3,9 @@
 
 import { sha256hex } from './helpers.js';
 
-export const PW_ITERS = 210000;
+// Cloudflare Workers cap PBKDF2 at 100,000 iterations (the local runtime does not enforce it,
+// which is how 210k got past local testing). Stored per user, so it can be raised if the cap moves.
+export const PW_ITERS = 100000;
 export const SESSION_DAYS = 180;
 export const SESSION_COOKIE = 'lockin_sess';
 const enc = new TextEncoder();
