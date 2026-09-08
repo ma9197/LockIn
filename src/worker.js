@@ -5,9 +5,10 @@
 // Durable Object with a trusted context header. It never reads or writes user data itself.
 
 import { Hono } from 'hono';
-import { landingPage, signupPage, loginPage } from './ui/auth.js';
+import { landingPage, signupPage, loginPage, forgotPage, resetPage } from './ui/auth.js';
 import { onboardPage } from './ui/onboard.js';
 import { sha256hex } from './helpers.js';
+import { sendMail } from './mailer.js';
 import {
   normEmail, validEmail, newPasswordHash, verifyPassword, randomHex,
   createSession, sessionUser, destroySession, destroyAllSessions, sessionCookie, clearSessionCookie,
@@ -31,6 +32,16 @@ const withCtx = async (req, ctx, path) => {
   return new Request(u.toString(), { method: req.method, headers: h, body, redirect: 'manual' });
 };
 const ownerCtx = u => ({ role: 'owner', userId: u.id, handle: u.handle || '', displayName: u.display_name || '', email: u.email, base: '' });
+
+// baseline security headers on every response, including ones handed back from a Durable Object
+app.use('*', async (c, next) => {
+  await next();
+  const r = new Response(c.res.body, c.res);
+  r.headers.set('X-Content-Type-Options', 'nosniff');
+  r.headers.set('X-Frame-Options', 'DENY');
+  if (!r.headers.has('Referrer-Policy')) r.headers.set('Referrer-Policy', 'same-origin');
+  c.res = r;
+});
 
 // a thrown error becomes a logged line (tail shows strings, not Error objects) and a plain 500
 app.onError((e, c) => {
@@ -93,6 +104,9 @@ app.post('/api/auth/login', async c => {
   const ok = u ? await verifyPassword(pw, u) : (await verifyPassword(pw, { pw_hash: '0'.repeat(64), pw_salt: '0'.repeat(32), pw_iters: 210000 }), false);
   if (!ok) { await gateFail(db, keys); return json(c, { error: 'wrong email or password' }, 401); }
   await gateClear(db, keys);
+  // housekeeping rides on logins: expired sessions and stale lockout rows go away
+  await db.prepare("DELETE FROM sessions WHERE expires_at < datetime('now')").run();
+  await db.prepare("DELETE FROM login_gate WHERE until IS NOT NULL AND until < datetime('now', '-1 day')").run();
   const tok = await createSession(db, u.id);
   c.header('Set-Cookie', sessionCookie(tok));
   return json(c, { ok: true, next: u.onboarded ? '/' : '/welcome' });
@@ -149,6 +163,40 @@ app.post('/api/onboarding', async c => {
   return json(c, { ok: true, next: '/' });
 });
 
+// ---------- forgot / reset password ----------
+// Always answers the same way, so the endpoint cannot be used to test whether an email exists.
+app.post('/api/auth/forgot', async c => {
+  if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
+  const b = await c.req.json().catch(() => ({}));
+  const email = normEmail(b.email);
+  const u = validEmail(email) ? await c.env.CENTRAL.prepare('SELECT id FROM users WHERE email=?').bind(email).first() : null;
+  if (u) {
+    const token = randomHex(32);
+    const exp = new Date(Date.now() + 3600e3).toISOString().slice(0, 19).replace('T', ' ');
+    await c.env.CENTRAL.prepare('UPDATE users SET reset_token_hash=?, reset_expires=? WHERE id=?').bind(await sha256hex('reset:' + token), exp, u.id).run();
+    const link = new URL('/reset?token=' + token, c.req.url).toString();
+    await sendMail(c.env, email, 'Reset your LockIn password', 'Open this link within an hour to set a new password:\n\n' + link + '\n\nIf you did not ask for this, ignore it.');
+  }
+  return json(c, { ok: true });
+});
+app.get('/reset', c => c.html(resetPage(String(c.req.query('token') || ''))));
+app.get('/forgot', c => c.html(forgotPage()));
+app.post('/api/auth/reset', async c => {
+  if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
+  const b = await c.req.json().catch(() => ({}));
+  const token = String(b.token || ''), next = String(b.password || '');
+  if (!/^[0-9a-f]{64}$/.test(token)) return json(c, { error: 'this reset link is not valid' }, 400);
+  if (next.length < 10 || next.length > 200) return json(c, { error: 'password needs 10 to 200 characters' }, 400);
+  const u = await c.env.CENTRAL.prepare("SELECT * FROM users WHERE reset_token_hash=? AND reset_expires > datetime('now')").bind(await sha256hex('reset:' + token)).first();
+  if (!u) return json(c, { error: 'this reset link is not valid or has expired' }, 400);
+  const { hash, salt, iters } = await newPasswordHash(next);
+  await c.env.CENTRAL.prepare('UPDATE users SET pw_hash=?, pw_salt=?, pw_iters=?, reset_token_hash=NULL, reset_expires=NULL WHERE id=?').bind(hash, salt, iters, u.id).run();
+  await destroyAllSessions(c.env.CENTRAL, u.id);
+  const tok = await createSession(c.env.CENTRAL, u.id);
+  c.header('Set-Cookie', sessionCookie(tok));
+  return json(c, { ok: true, next: '/' });
+});
+
 // ---------- account ----------
 app.post('/api/auth/password', async c => {
   const u = await sessionUser(c.env.CENTRAL, c.req.raw);
@@ -197,6 +245,19 @@ app.get('/api/export', async c => {
   const body = await r.text();
   return c.body(body, r.status, { 'Content-Type': 'application/json; charset=utf-8',
     'Content-Disposition': 'attachment; filename="lockin-' + (u.handle || 'export') + '.json"', 'Cache-Control': 'no-store' });
+});
+
+// Replace everything in the user's database with an export file. Password confirmed first.
+app.post('/api/import', async c => {
+  const u = await sessionUser(c.env.CENTRAL, c.req.raw);
+  if (!u) return json(c, { error: 'unauthorized' }, 401);
+  if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
+  const b = await c.req.json().catch(() => null);
+  if (!b || !b.file) return json(c, { error: 'no file' }, 400);
+  if (!(await verifyPassword(String(b.password || ''), u))) return json(c, { error: 'password is wrong' }, 401);
+  const r = await userStub(c.env, u.id).fetch(internalReq(c, u.id, '/__internal/import', 'POST', b.file));
+  const j = await r.json().catch(() => ({}));
+  return json(c, j, r.status);
 });
 
 // Owner operations, only when an ADMIN_KEY secret is configured on the Worker and presented.

@@ -1,0 +1,4 @@
+# Copy to .dev.vars for local development (git-ignored). All optional.
+# ADMIN_KEY=change-me
+# RESEND_API_KEY=re_xxx
+# MAIL_FROM=LockIn <noreply@example.com>

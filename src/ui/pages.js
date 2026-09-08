@@ -10,7 +10,9 @@ import { friendsPage } from './friends.js';
 import { settingsPage } from './settings.js';
 import { bookPage } from './book.js';
 import { sharePinPage, shareOffPage } from './pin.js';
-import { landingPage, signupPage, loginPage } from './auth.js';
+import { landingPage, signupPage, loginPage, forgotPage, resetPage } from './auth.js';
+export const forgot = () => forgotPage();
+export const reset = () => resetPage('0'.repeat(64));
 import { onboardPage } from './onboard.js';
 
 export const today = cfg => dashboardPage(cfg);

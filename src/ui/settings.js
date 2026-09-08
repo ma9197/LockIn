@@ -263,6 +263,9 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
   </div>
   <button class="pri" style="margin-top:12px" onclick="changePw()">Change password</button>
   <div class="hint">Every other signed-in device is signed out.</div>
+  <label class="fld">Import a LockIn export</label>
+  <div class="row" style="flex-wrap:wrap"><input type="file" id="impFile" accept="application/json,.json" style="flex:1;min-width:180px"><input id="p-imp" type="password" placeholder="your password" style="width:150px"><button class="rose sm" onclick="importFile()">Replace everything</button></div>
+  <div class="hint">Replaces every table with the file. Export first if you are unsure. Keys and PINs are never in an export.</div>
   <div class="row" style="margin-top:18px"><button class="ghost sm" onclick="logout()">Sign out</button></div>
 </div>
 <div class="card danger">
@@ -554,6 +557,13 @@ try{await api('/api/auth/password',{body:{current:$('p-cur').value,next:$('p-new
 $('p-cur').value='';$('p-new').value='';toast('Password changed');}
 catch(e){toast(String(e))}}
 async function logout(){await api('/api/auth/logout',{});location.href='/login';}
+async function importFile(){
+const f=$('impFile').files[0];if(!f)return toast('Pick an export file first');
+if(!$('p-imp').value)return toast('Type your password');
+if(!confirm('Replace EVERYTHING in your account with this file? There is no undo.'))return;
+let file;try{file=JSON.parse(await f.text());}catch(e){return toast('That is not a JSON file');}
+try{const j=await api('/api/import',{body:{password:$('p-imp').value,file}});toast('Imported: '+Object.values(j.counts||{}).reduce((a,b)=>a+b,0)+' rows');setTimeout(()=>location.href='/',900);}
+catch(e){toast(String(e))}}
 async function delAccount(){
 if(!$('p-del').value)return toast('Type your password first');
 if(!confirm('Delete your account and every bit of data in it? This cannot be undone.'))return;

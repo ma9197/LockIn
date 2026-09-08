@@ -6,6 +6,8 @@
   "type": "module",
   "license": "MIT",
   "repository": { "type": "git", "url": "https://github.com/ma9197/LockIn" },
+  "author": "ma9197",
+  "keywords": ["cloudflare-workers", "durable-objects", "leetcode", "job-search", "productivity", "hono"],
   "scripts": {
     "dev": "wrangler dev --port 8787",
     "deploy": "wrangler deploy",
