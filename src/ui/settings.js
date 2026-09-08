@@ -20,12 +20,25 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 .ed .row{gap:8px;flex-wrap:wrap}
 .ed input,.ed select{padding:8px 10px;font-size:14px}
 .ed input.nm{flex:1;min-width:130px}
-.ed input.hm{width:118px}
-.ed input.dt{width:auto}
+.ed input.dt{flex:1;min-width:0;width:auto}
 .ed input.g{width:64px}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.chips button{padding:6px 10px;font-size:12px}
+.rng{display:flex;align-items:center;gap:8px;margin-top:8px}
+.rng input{flex:1;min-width:0;width:auto;padding:8px 10px;font-size:14px}
+.rng .tiny{flex:none}
+.rng button{flex:none}
+.chips{display:flex;gap:5px;margin-top:8px}
+.chips button{flex:1;min-width:0;padding:7px 0;font-size:12px}
 .chips button.on{background:var(--ember);color:#0B0E14;border-color:var(--ember)}
+.cklab{font:700 10px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:10px}
+.picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px;margin-top:8px}
+.picks .pick{width:100%;min-height:92px;justify-content:center;background:var(--surface2);border:1px solid var(--line2)}
+.picks .pick.on{border-color:var(--ember);outline:0}
+.picks .mc-prev{display:flex;align-items:center;justify-content:center;transform:scale(.85);max-width:100%;overflow:hidden}
+.filebtn{display:inline-flex;align-items:center;gap:8px;flex:1;min-width:0}
+.filebtn input{display:none}
+.filebtn .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--ink2)}
+.btnlink{display:inline-flex;align-items:center;background:var(--surface2);color:var(--ink);border:1px solid var(--line2);border-radius:var(--rs);padding:6px 12px;font:700 13px var(--disp);text-decoration:none;white-space:nowrap}
+.row>button{white-space:nowrap}
 .sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
 .sw button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;padding:0}
 .sw button.on{border-color:#fff}
@@ -33,13 +46,13 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 .em button{width:34px;height:34px;font-size:17px;padding:0;border-radius:9px}
 .em button.on{background:var(--surface3);border-color:var(--ember)}
 .gl{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
-.gl label{font:700 10px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px}
+.gl label{font:700 10px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px;white-space:nowrap}
 .gl input{width:100%;padding:8px}
 .dim{opacity:.55}
 .hint{font-size:12px;color:var(--ink3);margin-top:6px;line-height:1.45}
 .danger{border-color:#FF5D7355}
 .sec{scroll-margin-top:calc(var(--clkh,46px) + 70px)}
-.tabbar{position:sticky;top:calc(var(--clkh,46px) + 6px);z-index:5;margin:8px 0 4px}
+.tabbar{position:sticky;top:calc(var(--clkh,46px) + 16px);z-index:5;margin:8px 0 4px}
 .tabbar button{position:relative}
 .tabbar button.chg::after{content:'';position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:99px;background:var(--ember)}
 .tabpane>.sec:first-child h2{margin-top:14px}
@@ -101,10 +114,13 @@ ${pane('schedule')}
     <input id="layNew" placeholder="New layout name, e.g. weekend" style="flex:1;min-width:160px" onkeydown="if(event.key==='Enter')addLayout()">
     <button class="sm" onclick="addLayout()">＋ Add layout</button>
   </div>
+  <div id="layAssign">
   <label class="fld">Weekday overrides</label>
   <div id="byDow" class="row" style="flex-wrap:wrap;gap:6px"></div>
   <label class="fld">Low-load days use</label>
   <select id="lowSel" style="width:auto"></select>
+  </div>
+  <div class="hint" id="layHint"></div>
 </div></div>
 
 <div class="sec" id="sec-sides">${h2('sides', 'Side tasks')}
@@ -141,7 +157,7 @@ ${pane('today')}
 <div class="sec" id="sec-clock">${h2('clock', 'Day clock')}
 <div class="card">
   <label class="fld" style="margin-top:0">Design</label>
-  <div class="row" id="ckDesigns" style="flex-wrap:wrap;gap:10px"></div>
+  <div class="picks" id="ckDesigns"></div>
   <label class="fld" style="margin-top:16px">Size: <span id="ckSizeVal" class="num" style="color:var(--ember)"></span>px</label>
   <input id="ck-size" type="range" min="280" max="920" step="20" style="accent-color:var(--ember)">
   <label class="fld">Number size: <span id="ckFontVal" class="num" style="color:var(--ember)"></span></label>
@@ -157,7 +173,7 @@ ${pane('today')}
 <div class="sec" id="sec-mclock">${h2('mclock', 'Top-right clock')}
 <div class="card">
   <label class="fld" style="margin-top:0">Design</label>
-  <div class="row" id="mcDesigns" style="flex-wrap:wrap;gap:10px"></div>
+  <div class="picks" id="mcDesigns"></div>
   <label class="fld" style="margin-top:16px">Size: <span id="mcFontVal" class="num" style="color:var(--ember)"></span></label>
   <input id="mc-font" type="range" min="10" max="22" step="1" style="accent-color:var(--ember)">
   <label class="fld">Accent color</label>
@@ -198,7 +214,7 @@ ${pane('sharing')}
   <button class="sm" onclick="navigator.clipboard.writeText($('shareUrl').value);toast('Copied')">Copy</button></div>
   <div id="shareState" class="tiny" style="margin-top:8px"></div>
   <label class="fld">Share PIN</label>
-  <div class="row"><input id="sharePin" type="password" inputmode="numeric" placeholder="at least 4 characters">
+  <div class="row" style="flex-wrap:wrap"><input id="sharePin" type="password" inputmode="numeric" placeholder="at least 4 characters" style="flex:1;min-width:150px">
   <button class="pri sm" onclick="saveSharePin()">Set now</button>
   <button class="rose sm" id="shareOffBtn" onclick="shareOff()">Turn off</button></div>
   <p class="tiny" style="margin-top:6px">The PIN applies at once. Changing it signs every friend out.</p>
@@ -284,7 +300,7 @@ ${pane('account')}
 <div class="sec" id="sec-account">${h2('account', 'Account')}
 <div class="card">
   <div class="row"><div class="grow"><b id="accEmail"></b><div class="tiny">Handle: <span id="accHandle" class="num"></span></div></div>
-  <a class="sm" href="/api/export" style="text-decoration:none">⬇ Export my data</a></div>
+  <a class="btnlink" href="/api/export">⬇ Export my data</a></div>
   <label class="fld">Change password</label>
   <div class="fgrid">
     <div><input id="p-cur" type="password" autocomplete="current-password" placeholder="current"></div>
@@ -293,14 +309,17 @@ ${pane('account')}
   <button class="pri" style="margin-top:12px" onclick="changePw()">Change password</button>
   <div class="hint">Every other signed-in device is signed out.</div>
   <label class="fld">Import a LockIn export</label>
-  <div class="row" style="flex-wrap:wrap"><input type="file" id="impFile" accept="application/json,.json" style="flex:1;min-width:180px"><input id="p-imp" type="password" placeholder="your password" style="width:150px"><button class="rose sm" onclick="importFile()">Replace everything</button></div>
+  <div class="row" style="flex-wrap:wrap">
+    <label class="filebtn"><input type="file" id="impFile" accept="application/json,.json" onchange="$('impName').textContent=this.files[0]?this.files[0].name:'no file chosen'"><span class="btnlink" style="cursor:pointer">Choose file</span><span class="fname" id="impName">no file chosen</span></label>
+  </div>
+  <div class="row" style="flex-wrap:wrap;margin-top:8px"><input id="p-imp" type="password" placeholder="your password" style="flex:1;min-width:140px"><button class="rose sm" onclick="importFile()">Replace everything</button></div>
   <div class="hint">Replaces every table with the file. Export first if you are unsure. Keys and PINs are never in an export.</div>
   <div class="row" style="margin-top:18px"><button class="ghost sm" onclick="logout()">Sign out</button></div>
 </div>
 <div class="card danger">
   <b style="color:var(--rose)">Delete account</b>
   <p class="tiny" style="margin-top:4px">Removes your account and your entire database. There is no undo. Export first if you want a copy.</p>
-  <div class="row" style="margin-top:8px"><input id="p-del" type="password" placeholder="your password"><button class="rose sm" onclick="delAccount()">Delete everything</button></div>
+  <div class="row" style="margin-top:8px;flex-wrap:wrap"><input id="p-del" type="password" placeholder="your password" style="flex:1;min-width:140px"><button class="rose sm" onclick="delAccount()">Delete everything</button></div>
 </div></div>
 </div>
 
@@ -321,10 +340,12 @@ const SEC={time:['tz','clock24'],plan:['phases'],cats:['cats'],layouts:['sched']
 const TABOF={time:'plan',plan:'plan',cats:'plan',layouts:'schedule',sides:'schedule',modules:'today',today:'today',clock:'today',mclock:'today',booking:'sharing',share:'sharing',platforms:'api'};
 const TABN={plan:'Plan',schedule:'Schedule',today:'Today',sharing:'Sharing',api:'Integrations',account:'Account'};
 let TAB='plan';
+try{history.scrollRestoration='manual';}catch(e){}
 function showTab(t){if(!TABN[t])t='plan';TAB=t;
 document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.id==='tb-'+t));
 document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('on',p.id==='tab-'+t));
 if(location.hash!=='#'+t)history.replaceState(null,'','#'+t);
+const bar=$('tabs'),b=$('tb-'+t);bar.scrollTo({left:b.offsetLeft-(bar.clientWidth-b.offsetWidth)/2,behavior:'smooth'});
 window.scrollTo({top:0});}
 function gotoChanged(){const t=Object.keys(TABN).find(t=>$('tb-'+t).classList.contains('chg'));if(t)showTab(t);}
 function toggle(el,on){el.classList.toggle('on',on);el.setAttribute('aria-checked',on);}
@@ -435,9 +456,9 @@ function renderCats(){
 $('cats').innerHTML=D.cats.map((c,i)=>'<div class="ed'+(c.enabled?'':' dim')+'"><div class="row"><span style="font-size:20px">'+c.emoji+'</span>'
 +'<input class="nm" value="'+esc2(c.name)+'" oninput="D.cats['+i+'].name=this.value;mark()"'+(c.builtin?' readonly':'')+' placeholder="Category name">'
 +'<button class="sm '+(c.enabled?'':'pri')+'" onclick="tgCat('+i+')">'+(c.enabled?'Turn off':'Turn on')+'</button></div>'
-+'<div class="gl"><div><label>Weekday goal</label><input type="number" min="0" max="50" value="'+c.goal_wd+'" oninput="D.cats['+i+'].goal_wd=+this.value;mark()"></div>'
-+'<div><label>Weekend goal</label><input type="number" min="0" max="50" value="'+c.goal_we+'" oninput="D.cats['+i+'].goal_we=+this.value;mark()"></div>'
-+'<div><label>Low-load goal</label><input type="number" min="0" max="50" value="'+c.goal_low+'" oninput="D.cats['+i+'].goal_low=+this.value;mark()"></div></div>'
++'<div class="cklab">Daily goal</div><div class="gl" style="margin-top:4px"><div><label>Weekday</label><input type="number" min="0" max="50" value="'+c.goal_wd+'" oninput="D.cats['+i+'].goal_wd=+this.value;mark()"></div>'
++'<div><label>Weekend</label><input type="number" min="0" max="50" value="'+c.goal_we+'" oninput="D.cats['+i+'].goal_we=+this.value;mark()"></div>'
++'<div><label>Low load</label><input type="number" min="0" max="50" value="'+c.goal_low+'" oninput="D.cats['+i+'].goal_low=+this.value;mark()"></div></div>'
 +(c.builtin?'<div class="hint">Built in: '+(c.builtin==='leetcode'?'the LeetCode module.':'the Jobs tracker.')+'</div>'
 :'<div class="em">'+CEMO.map(e=>'<button class="'+(c.emoji===e?'on':'')+'" onclick="D.cats['+i+'].emoji=this.textContent;renderCats();mark()">'+e+'</button>').join('')+'</div>'
 +'<div class="sw">'+PAL.map(col=>'<button style="background:'+col+'" class="'+(c.color===col?'on':'')+'" onclick="D.cats['+i+'].color=\\''+col+'\\';renderCats();mark()"></button>').join('')+'</div>')
@@ -454,9 +475,11 @@ const names=Object.keys(LAY.layouts);
 $('layouts').innerHTML=names.map(n=>'<div class="ed"><div class="row"><b style="flex:1;text-transform:capitalize">'+esc2(n)+'</b>'
 +(n===LAY.default?'<span class="tiny">default</span>':'<button class="ghost sm" onclick="D.sched.default=\\''+q(n)+'\\';renderLayouts();mark()">make default</button>')
 +(names.length>1?'<button class="ghost sm" onclick="delLayout(\\''+q(n)+'\\')" aria-label="remove">\\u2715</button>':'')+'</div>'
-+LAY.layouts[n].map((b,i)=>'<div class="row" style="margin-top:6px"><span class="tiny" style="width:52px">Block '+(i+1)+'</span><input type="time" class="hm" value="'+b[0]+'" onchange="D.sched.layouts[\\''+q(n)+'\\']['+i+'][0]=this.value;mark()"><span class="tiny">to</span><input type="time" class="hm" value="'+b[1]+'" onchange="D.sched.layouts[\\''+q(n)+'\\']['+i+'][1]=this.value;mark()">'
-+(LAY.layouts[n].length>1?'<button class="ghost sm" onclick="D.sched.layouts[\\''+q(n)+'\\'].splice('+i+',1);renderLayouts();mark()" aria-label="remove">\\u2715</button>':'')+'</div>').join('')
++LAY.layouts[n].map((b,i)=>'<div class="rng"><span class="tiny" style="width:48px">Block '+(i+1)+'</span><input type="time" value="'+b[0]+'" onchange="D.sched.layouts[\\''+q(n)+'\\']['+i+'][0]=this.value;mark()"><span class="tiny">to</span><input type="time" value="'+b[1]+'" onchange="D.sched.layouts[\\''+q(n)+'\\']['+i+'][1]=this.value;mark()">'
++(LAY.layouts[n].length>1?'<button class="ghost sm" onclick="D.sched.layouts[\\''+q(n)+'\\'].splice('+i+',1);renderLayouts();mark()" aria-label="remove">\\u2715</button>':'<span style="width:34px"></span>')+'</div>').join('')
 +(LAY.layouts[n].length<4?'<button class="sm" style="margin-top:8px" onclick="D.sched.layouts[\\''+q(n)+'\\'].push([\\'19:00\\',\\'21:00\\']);renderLayouts();mark()">\\uFF0B block</button>':'')+'</div>').join('');
+const one=names.length<2;$('layAssign').style.display=one?'none':'';
+$('layHint').textContent=one?'One layout means every day uses it. Add a second one (a night-owl day, a weekend shape) to assign it to weekdays or to low-load days.':'Weekday overrides beat the default; low-load days always use their own pick.';
 $('byDow').innerHTML=DN.map((d,i)=>'<label class="tiny" style="display:flex;flex-direction:column;gap:3px">'+d+'<select onchange="if(this.value)D.sched.byDow['+i+']=this.value;else delete D.sched.byDow['+i+'];mark()" style="padding:6px"><option value="">default</option>'+names.map(n=>'<option value="'+esc2(n)+'"'+(LAY.byDow[i]===n?' selected':'')+'>'+esc2(n)+'</option>').join('')+'</select></label>').join('');
 $('lowSel').innerHTML=names.map(n=>'<option value="'+esc2(n)+'"'+(LAY.low===n?' selected':'')+'>'+esc2(n)+'</option>').join('');
 $('lowSel').onchange=()=>{D.sched.low=$('lowSel').value;mark();};}
@@ -472,8 +495,9 @@ $('sides').innerHTML=SD.length?SD.map((t,i)=>'<div class="ed'+(t.enabled?'':' di
 +'<button class="ghost sm" onclick="D.sides.splice('+i+',1);renderSides();mark()" aria-label="remove">\\u2715</button></div>'
 +'<div class="em">'+EM.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" onclick="D.sides['+i+'].emoji=this.textContent;renderSides();mark()">'+e+'</button>').join('')+'</div>'
 +'<div class="chips">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" onclick="tgDay('+i+','+di+')">'+d+'</button>').join('')+'</div>'
-+'<div class="row" style="margin-top:8px"><input type="time" class="hm" value="'+t.start+'" onchange="D.sides['+i+'].start=this.value;mark()"><span class="tiny">to</span><input type="time" class="hm" value="'+t.end+'" onchange="D.sides['+i+'].end=this.value;mark()"></div>'
-+'<div class="row" style="margin-top:8px"><span class="tiny">only between</span><input type="date" class="dt" value="'+(t.date_from||'')+'" onchange="D.sides['+i+'].date_from=this.value||null;mark()"><span class="tiny">and</span><input type="date" class="dt" value="'+(t.date_to||'')+'" onchange="D.sides['+i+'].date_to=this.value||null;mark()"></div>'
++'<div class="rng"><input type="time" value="'+t.start+'" onchange="D.sides['+i+'].start=this.value;mark()"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="D.sides['+i+'].end=this.value;mark()"></div>'
++'<div class="cklab">Only between (optional)</div>'
++'<div class="rng" style="margin-top:4px"><input type="date" value="'+(t.date_from||'')+'" onchange="D.sides['+i+'].date_from=this.value||null;mark()"><span class="tiny">and</span><input type="date" value="'+(t.date_to||'')+'" onchange="D.sides['+i+'].date_to=this.value||null;mark()"></div>'
 +'<div class="hint">Empty dates = every week.</div></div>').join('')
 :'<div class="skel">Nothing yet. Gym, a class, a shift: add what takes real time each week.</div>';}
 function tgDay(i,d){const t=D.sides[i];const k=t.days.indexOf(d);if(k<0)t.days.push(d);else t.days.splice(k,1);t.days.sort();renderSides();mark();}
@@ -481,7 +505,7 @@ function addSide(){D.sides.push({id:null,name:'',emoji:(S.sideEmoji||['\\uD83D\\
 const inputs=document.querySelectorAll('#sides input.nm');const last=inputs[inputs.length-1];if(last)last.focus();}
 
 // ---- booking windows ----
-function renderAvail(){const AVW=D.booking.avail;$('avail').innerHTML=AVW.map((a,i)=>'<div class="row" style="margin-top:6px"><input type="time" class="hm" value="'+a[0]+'" onchange="D.booking.avail['+i+'][0]=this.value;mark()"><span class="tiny">to</span><input type="time" class="hm" value="'+a[1]+'" onchange="D.booking.avail['+i+'][1]=this.value;mark()"><button class="ghost sm" onclick="D.booking.avail.splice('+i+',1);renderAvail();mark()" aria-label="remove">\\u2715</button></div>').join('')||'<div class="tiny">No windows: nothing is bookable.</div>';}
+function renderAvail(){const AVW=D.booking.avail;$('avail').innerHTML=AVW.map((a,i)=>'<div class="rng" style="margin-top:6px"><input type="time" value="'+a[0]+'" onchange="D.booking.avail['+i+'][0]=this.value;mark()"><span class="tiny">to</span><input type="time" value="'+a[1]+'" onchange="D.booking.avail['+i+'][1]=this.value;mark()"><button class="ghost sm" onclick="D.booking.avail.splice('+i+',1);renderAvail();mark()" aria-label="remove">\\u2715</button></div>').join('')||'<div class="tiny">No windows: nothing is bookable.</div>';}
 function addAvail(){if(D.booking.avail.length>=4)return toast('4 windows max');D.booking.avail.push(['12:00','15:00']);renderAvail();mark();}
 
 // ---- clocks (the top-right one previews live through window.__MCLOCK) ----
@@ -507,7 +531,7 @@ const MCNAMES={pill:'Pill',led:'LED',analog:'Analog',flip:'Flip',ring:'Day ring'
 let mcInt=null;
 function mcPreview(){window.__MCLOCK={design:D.mclock.design,font:D.mclock.font,accent:D.mclock.accent};}
 function renderMClockCtl(){const M=D.mclock;
-$('mcDesigns').innerHTML=Object.keys(MCNAMES).map(k=>'<button class="ghost pick'+(M.design===k?' on':'')+'" style="min-width:96px" onclick="D.mclock.design=\\''+k+'\\';renderMClockCtl();mark()"><span class="mc-prev" data-d="'+k+'"></span><span>'+MCNAMES[k]+'</span></button>').join('');
+$('mcDesigns').innerHTML=Object.keys(MCNAMES).map(k=>'<button class="ghost pick'+(M.design===k?' on':'')+'" onclick="D.mclock.design=\\''+k+'\\';renderMClockCtl();mark()"><span class="mc-prev" data-d="'+k+'"></span><span>'+MCNAMES[k]+'</span></button>').join('');
 const draw=()=>document.querySelectorAll('.mc-prev').forEach(el=>{el.innerHTML=window.mclockHTML({design:el.dataset.d,font:12,accent:D.mclock.accent},new Date());});
 draw();clearInterval(mcInt);mcInt=setInterval(draw,1000);
 $('mc-font').value=M.font;$('mcFontVal').textContent=M.font;
