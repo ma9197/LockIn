@@ -448,6 +448,7 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
 .tl2{display:flex;flex-direction:column;gap:22px}
 .tl2-item{display:grid;grid-template-columns:96px 1fr;gap:14px}
 .tl2-rail{display:flex;flex-direction:column;align-items:center;min-width:96px}
+.tl2-item.tl2-ov{margin-left:18px;padding-left:12px;border-left:2px dashed var(--line2);margin-top:-8px}
 .bub{background:var(--surface2);border:1px solid var(--line2);border-radius:99px;padding:3px 10px;
   font:700 12px var(--disp);font-variant-numeric:tabular-nums;white-space:nowrap;z-index:1}
 .tl2-line{flex:1;width:2px;background:var(--rk,#5C6779);min-height:34px;position:relative;margin:4px 0}

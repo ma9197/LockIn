@@ -125,6 +125,8 @@ document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x.d
 document.querySelectorAll('.tabpane').forEach(x=>x.classList.toggle('on',x.dataset.t===t));
 if(t==='stats')loadStats();}
 document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+// restore the last tab before anything is fetched, so Stats never flashes Solve first
+setTab(localStorage.getItem(TK)||'solve');
 document.querySelectorAll('#lcDiff button').forEach(b=>b.onclick=()=>{
 document.querySelectorAll('#lcDiff button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
 
@@ -512,8 +514,7 @@ $('tlen').value=def;}catch(e){}
 tRestore();
 const last=localStorage.getItem('lc_prob');
 if(last)await loadProblem(last,true);
-pkSuggest();
-setTab(localStorage.getItem(TK)||'solve');})();
+pkSuggest();})();
 setInterval(()=>{if(PROB)localStorage.setItem('lc_prob',PROB);},2000);
 // renderLinks lives in the shared runtime, so hook the count on after it paints
 const _rl=renderLinks;renderLinks=function(){_rl.apply(this,arguments);lkCount();};

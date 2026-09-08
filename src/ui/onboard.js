@@ -123,7 +123,7 @@ return '<div class="prev"><div class="pl">Your race bar</div><div class="race" s
 +'<div class="hint" style="margin-top:8px">'+ph.map(p=>'<span style="color:'+p.color+'">\\u25cf</span> '+esc2(p.name||'?')+' '+dayCount(p)+'d'+(p.low?' (low load)':'')).join(' \\u00b7 ')+'</div></div>';}
 function ringsPrev(){
 return '<div class="prev"><div class="pl">A weekday on your Today page</div><div class="rings">'+S.cats.map(c=>{
-return '<div class="r"><div class="ring"><svg width="60" height="60" viewBox="0 0 112 112"><circle cx="56" cy="56" r="46" fill="none" stroke="var(--surface2)" stroke-width="9"/><circle cx="56" cy="56" r="46" fill="none" stroke="'+c.color+'" stroke-width="9" stroke-linecap="round" stroke-dasharray="289" stroke-dashoffset="'+(c.wd>0?289*0.72:289)+'"/></svg><div class="val"><b class="num">0</b><span>OF '+(c.wd||0)+'</span></div></div><div class="nm">'+c.emoji+' '+esc2(c.name||'?')+'</div></div>';}).join('')+'</div></div>';}
+return '<div class="r"><div class="ring"><svg width="60" height="60" viewBox="0 0 112 112"><circle cx="56" cy="56" r="46" fill="none" stroke="'+c.color+'" stroke-width="9" opacity=".22"/></svg><div class="val"><b class="num">0</b><span>OF '+(c.wd||0)+'</span></div></div><div class="nm">'+c.emoji+' '+esc2(c.name||'?')+'</div></div>';}).join('')+'</div><div class="hint" style="text-align:center;margin-top:8px">Each ring fills as you log. Tap + on it, or let the LeetCode log and the Jobs tracker count for you.</div></div>';}
 function stripPrev(){const lay=S.layouts[S.def]||[];
 return '<div class="prev"><div class="pl">'+(S.side.length?'Your default day with side tasks':'Your default day')+'</div>'+strip(lay,S.side)
 +'<div class="hint" style="margin-top:6px"><span style="color:var(--ember)">\\u25a0</span> grind '+(lay.length?lay.map(b=>fmtH(b[0])+'\\u2013'+fmtH(b[1])).join(', '):'none yet')
@@ -131,18 +131,22 @@ return '<div class="prev"><div class="pl">'+(S.side.length?'Your default day wit
 function prev(){const el=$('prev');if(!el)return;el.innerHTML=step===2?racePrev():step===3?stripPrev():step===4?ringsPrev():step===5?stripPrev():'';}
 
 // ---- steps ----
-function render(){
+// render(true) = a new step: slide it in and scroll to the top.
+// render(false) = the same step after a click: swap the markup in place, no motion, no scroll.
+function render(anim){
 $('steps').innerHTML=Array.from({length:N},(_,i)=>'<i class="'+(i<step?'done':i===step?'on':'')+'"></i>').join('');
 $('stepCap').textContent='Step '+(step+1)+' of '+N+' \\u00b7 '+NAMES[step];
 $('err').textContent='';
 $('back').style.visibility=step?'visible':'hidden';
 $('next').textContent=step===N-1?'Finish setup \\uD83D\\uDD25':'Next \\u2192';
-const w=$('wiz');w.classList.remove('enter');void w.offsetWidth;
+const w=$('wiz');w.classList.remove('enter');
+if(anim!==false)void w.offsetWidth;
 w.innerHTML=[stIdentity,stTime,stPlan,stBlocks,stCats,stSide,stWrap][step]()+'<div id="prev"></div>';
-w.classList.add('enter');prev();
-window.scrollTo(0,0);
+if(anim!==false){w.classList.add('enter');window.scrollTo(0,0);}
+prev();
 if(step===0)checkHandle();if(step===1)tickClock();
 persist();}
+const rerender=()=>render(false);
 
 function stIdentity(){
 return '<h1>Welcome. Who is grinding?</h1><p class="lead">Your name shows on your shared progress page and your booking page. The handle is their address.</p>'
@@ -180,9 +184,9 @@ return '<h1>Your plan</h1><p class="lead">A plan is a few phases with dates. It 
 +'</div><button class="sm" style="margin-top:10px" data-a="addPhase">\\uFF0B Add phase</button>'
 +'<div class="hint">Phases run back to back. The first start and the last end are your plan window.</div>');}
 function addPhase(){const last=S.phases[S.phases.length-1];const start=last?plus(last.end,1):today;
-S.phases.push({name:'Phase '+(S.phases.length+1),start,end:plus(start,27),color:PAL[S.phases.length%PAL.length],low:false});S.noPlan=false;render();}
+S.phases.push({name:'Phase '+(S.phases.length+1),start,end:plus(start,27),color:PAL[S.phases.length%PAL.length],low:false});S.noPlan=false;rerender();}
 function template(){S.phases=[];S.noPlan=false;const add=(name,weeks,color,low)=>{const last=S.phases[S.phases.length-1];const start=last?plus(last.end,1):today;S.phases.push({name,start,end:plus(start,weeks*7-1),color,low});};
-add('Foundations',4,PAL[1],false);add('Interview prep',6,PAL[0],false);add('Finals',1,PAL[3],true);add('Application sprint',5,PAL[2],false);render();}
+add('Foundations',4,PAL[1],false);add('Interview prep',6,PAL[0],false);add('Finals',1,PAL[3],true);add('Application sprint',5,PAL[2],false);rerender();}
 
 function stBlocks(){
 const names=Object.keys(S.layouts);const hasLow=!S.noPlan&&S.phases.some(p=>p.low);
@@ -218,9 +222,10 @@ return '<h1>What else takes time?</h1><p class="lead">Recurring things that are 
 +'<div class="chips">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" data-a="sideDay" data-i="'+i+'" data-v="'+di+'">'+d+'</button>').join('')+'</div>'
 +'<div class="rng"><input type="time" value="'+t.start+'" onchange="S.side['+i+'].start=this.value;prev()"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="S.side['+i+'].end=this.value;prev()"></div>'
 +'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:4px"><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'" onchange="S.side['+i+'].to=this.value"></div>'
-+'<div class="hint">Leave the dates empty for every week.</div></div>').join('')+'</div>'
-+(S.side.length?'':'<div class="skel">Nothing yet. Add what takes real time each week, or skip.</div>')
-+'<button class="sm" style="margin-top:10px" data-a="addSide">\\uFF0B Add side task</button>';}
++'<div class="row" style="margin-top:8px"><span class="hint" style="margin:0">Leave the dates empty for every week.</span><span class="grow"></span><button class="ghost sm" data-a="sideClone" data-i="'+i+'" title="the same task at another time of day">\\uFF0B another time</button></div></div>').join('')+'</div>'
++(S.side.length
+?'<button class="sm" style="margin-top:10px" data-a="addSide">\\uFF0B Add side task</button>'
+:'<div style="text-align:center;padding:26px 0 8px"><button class="pri" style="padding:14px 28px;font:800 16px var(--disp);border-radius:14px" data-a="addSide">\\uFF0B Add a side task</button><div class="hint" style="margin-top:10px">Nothing yet. Add what takes real time each week, or press Next to skip.</div></div>');}
 
 function stWrap(){
 const T=(k,label,sub)=>'<div class="tog"><div><b>'+label+'</b><div class="tiny">'+sub+'</div></div><div class="toggle'+(S.modules[k]?' on':'')+'" role="switch" data-a="mod" data-v="'+k+'"></div></div>';
@@ -285,27 +290,29 @@ location.href='/';}catch(err){$('err').textContent='network error, try again';$(
 document.addEventListener('click',e=>{const t=e.target.closest('[data-a]');if(!t)return;
 const a=t.dataset.a,i=+t.dataset.i,v=t.dataset.v;
 if(a==='back')return go(-1);if(a==='next')return go(1);
-if(a==='clock'){S.clock24=v==='1';render();return;}
+if(a==='clock'){S.clock24=v==='1';rerender();return;}
 if(a==='template')return template();
-if(a==='noplan'){S.noPlan=!S.noPlan;render();return;}
+if(a==='noplan'){S.noPlan=!S.noPlan;rerender();return;}
 if(a==='addPhase')return addPhase();
-if(a==='delPhase'){S.phases.splice(i,1);render();return;}
-if(a==='lowPhase'){S.phases[i].low=!S.phases[i].low;render();return;}
-if(a==='phaseColor'){S.phases[i].color=v;render();return;}
-if(a==='layoutDef'){S.def=v;render();return;}
-if(a==='layoutDel'){delete S.layouts[v];if(S.def===v)S.def=Object.keys(S.layouts).filter(n=>n!=='low')[0]||Object.keys(S.layouts)[0];render();return;}
-if(a==='blockDel'){S.layouts[v].splice(i,1);render();return;}
-if(a==='blockAdd'){S.layouts[v].push(['19:00','21:00']);render();return;}
-if(a==='addNight'){S.layouts.night=[['15:00','18:00'],['22:00','01:00']];render();return;}
-if(a==='catDel'){S.cats.splice(i,1);render();return;}
-if(a==='catEmoji'){S.cats[i].emoji=v;render();return;}
-if(a==='catColor'){S.cats[i].color=v;render();return;}
-if(a==='addCat'){S.cats.push({key:'',name:'',emoji:CEMO[2],color:PAL[S.cats.length%PAL.length],wd:1,we:0,low:0});render();const ins=document.querySelectorAll('#wiz input.nm');const last=ins[ins.length-1];if(last)last.focus();return;}
-if(a==='sideDel'){S.side.splice(i,1);render();return;}
-if(a==='sideEmoji'){S.side[i].emoji=v;render();return;}
-if(a==='sideDay'){const t2=S.side[i];const k=t2.days.indexOf(+v);if(k<0)t2.days.push(+v);else t2.days.splice(k,1);t2.days.sort();render();return;}
-if(a==='addSide'){S.side.push({name:'',emoji:SEMO[0],days:[1,3,5],start:'19:00',end:'20:30',from:'',to:''});render();const ins=document.querySelectorAll('#wiz input.nm');const last=ins[ins.length-1];if(last)last.focus();return;}
-if(a==='mod'){S.modules[v]=!S.modules[v];render();return;}});
+if(a==='delPhase'){S.phases.splice(i,1);rerender();return;}
+if(a==='lowPhase'){S.phases[i].low=!S.phases[i].low;rerender();return;}
+if(a==='phaseColor'){S.phases[i].color=v;rerender();return;}
+if(a==='layoutDef'){S.def=v;rerender();return;}
+if(a==='layoutDel'){delete S.layouts[v];if(S.def===v)S.def=Object.keys(S.layouts).filter(n=>n!=='low')[0]||Object.keys(S.layouts)[0];rerender();return;}
+if(a==='blockDel'){S.layouts[v].splice(i,1);rerender();return;}
+if(a==='blockAdd'){S.layouts[v].push(['19:00','21:00']);rerender();return;}
+if(a==='addNight'){S.layouts.night=[['15:00','18:00'],['22:00','01:00']];rerender();return;}
+if(a==='catDel'){S.cats.splice(i,1);rerender();return;}
+if(a==='catEmoji'){S.cats[i].emoji=v;rerender();return;}
+if(a==='catColor'){S.cats[i].color=v;rerender();return;}
+if(a==='addCat'){S.cats.push({key:'',name:'',emoji:CEMO[2],color:PAL[S.cats.length%PAL.length],wd:1,we:0,low:0});rerender();const ins=document.querySelectorAll('#wiz input.nm');const last=ins[ins.length-1];if(last)last.focus();return;}
+if(a==='sideDel'){S.side.splice(i,1);rerender();return;}
+if(a==='sideEmoji'){S.side[i].emoji=v;rerender();return;}
+if(a==='sideDay'){const t2=S.side[i];const k=t2.days.indexOf(+v);if(k<0)t2.days.push(+v);else t2.days.splice(k,1);t2.days.sort();rerender();return;}
+if(a==='addSide'){S.side.push({name:'',emoji:SEMO[0],days:[1,3,5],start:'19:00',end:'20:30',from:'',to:''});rerender();const ins=document.querySelectorAll('#wiz input.nm');const last=ins[ins.length-1];if(last)last.focus();return;}
+if(a==='sideClone'){const t2=S.side[i];const [h,m]=t2.end.split(':').map(Number);const p=n=>String(Math.min(23,n)).padStart(2,'0')+':'+String(m).padStart(2,'0');
+S.side.splice(i+1,0,{name:t2.name,emoji:t2.emoji,days:[...t2.days],start:p(h+1),end:p(h+2),from:t2.from,to:t2.to});rerender();return;}
+if(a==='mod'){S.modules[v]=!S.modules[v];rerender();return;}});
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.tagName==='INPUT'&&e.target.type!=='date'&&e.target.type!=='time'){e.preventDefault();go(1);}});
 render();
 </script>`, { public: true });

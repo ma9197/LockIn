@@ -52,7 +52,9 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 .hint{font-size:12px;color:var(--ink3);margin-top:6px;line-height:1.45}
 .danger{border-color:#FF5D7355}
 .sec{scroll-margin-top:calc(var(--clkh,46px) + 70px)}
-.tabbar{position:sticky;top:calc(var(--clkh,46px) + 16px);z-index:5;margin:8px 0 4px}
+.tabwrap{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -16px;padding:calc(var(--clkh,46px) + 10px) 16px 10px;border-bottom:1px solid var(--line)}
+@media(min-width:900px){.tabwrap{margin:0 -34px;padding-left:34px;padding-right:34px}}
+.tabbar{margin:0}
 .tabbar button{position:relative}
 .tabbar button.chg::after{content:'';position:absolute;top:5px;right:5px;width:6px;height:6px;border-radius:99px;background:var(--ember)}
 .tabpane>.sec:first-child h2{margin-top:14px}
@@ -72,8 +74,8 @@ body.dirty .refresh-fab{display:none}
 .pick.on span{color:var(--ember)}
 </style>
 <h1>Settings</h1>
-<div class="tabbar" id="tabs">${TABS.map(([id, l]) => `<button id="tb-${id}" onclick="showTab('${id}')">${l}</button>`).join('')}</div>
-<p class="tiny" style="margin:6px 0 0">Nothing is applied until you press the save bar, which appears as soon as something differs from what is stored.</p>
+<div class="tabwrap"><div class="tabbar" id="tabs">${TABS.map(([id, l]) => `<button id="tb-${id}" onclick="showTab('${id}')">${l}</button>`).join('')}</div></div>
+<p class="tiny" style="margin:10px 0 0">Nothing is applied until you press the save bar, which appears as soon as something differs from what is stored.</p>
 
 ${pane('plan', true)}
 <div class="sec" id="sec-time">${h2('time', 'Time')}
@@ -441,9 +443,9 @@ b.onclick=()=>{document.querySelectorAll('#'+id+' button').forEach(x=>x.classLis
 function renderPhases(){const PH=D.phases;
 $('phases').innerHTML=PH.length?PH.map((p,i)=>'<div class="ed"><div class="row"><input class="nm" value="'+esc2(p.name)+'" oninput="D.phases['+i+'].name=this.value;mark()" placeholder="Phase name">'
 +'<button class="ghost sm" onclick="D.phases.splice('+i+',1);renderPhases();mark()" aria-label="remove">\\u2715</button></div>'
-+'<div class="row" style="margin-top:6px"><input type="date" class="dt" value="'+p.start_date+'" onchange="D.phases['+i+'].start_date=this.value;mark()"><span class="tiny">to</span><input type="date" class="dt" value="'+p.end_date+'" onchange="D.phases['+i+'].end_date=this.value;mark()">'
-+'<button class="sm '+(p.low_load?'on':'')+'" onclick="D.phases['+i+'].low_load=D.phases['+i+'].low_load?0:1;renderPhases();mark()">'+(p.low_load?'\\uD83E\\uDEAB low load':'normal')+'</button></div>'
-+'<div class="sw">'+PAL.map(c=>'<button style="background:'+c+'" class="'+(p.color===c?'on':'')+'" onclick="D.phases['+i+'].color=\\''+c+'\\';renderPhases();mark()"></button>').join('')+'</div></div>').join('')
++'<div class="rng"><input type="date" value="'+p.start_date+'" onchange="D.phases['+i+'].start_date=this.value;mark()"><span class="tiny">to</span><input type="date" value="'+p.end_date+'" onchange="D.phases['+i+'].end_date=this.value;mark()"></div>'
++'<div class="row" style="margin-top:8px;flex-wrap:wrap"><button class="sm '+(p.low_load?'on':'')+'" onclick="D.phases['+i+'].low_load=D.phases['+i+'].low_load?0:1;renderPhases();mark()">'+(p.low_load?'\\uD83E\\uDEAB low load':'normal load')+'</button><span class="grow"></span>'
++'<div class="sw" style="margin:0">'+PAL.map(c=>'<button style="background:'+c+'" class="'+(p.color===c?'on':'')+'" onclick="D.phases['+i+'].color=\\''+c+'\\';renderPhases();mark()" aria-label="colour"></button>').join('')+'</div></div></div>').join('')
 :'<div class="skel">No plan yet. Add a phase to get the progress bar, pace and forecast.</div>';}
 function addPhase(){const PH=D.phases;const last=PH[PH.length-1];const d=new Date((last?last.end_date:new Date().toISOString().slice(0,10))+'T12:00:00Z');if(last)d.setUTCDate(d.getUTCDate()+1);
 const s=d.toISOString().slice(0,10);const e=new Date(d);e.setUTCDate(e.getUTCDate()+27);
@@ -498,8 +500,11 @@ $('sides').innerHTML=SD.length?SD.map((t,i)=>'<div class="ed'+(t.enabled?'':' di
 +'<div class="rng"><input type="time" value="'+t.start+'" onchange="D.sides['+i+'].start=this.value;mark()"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="D.sides['+i+'].end=this.value;mark()"></div>'
 +'<div class="cklab">Only between (optional)</div>'
 +'<div class="rng" style="margin-top:4px"><input type="date" value="'+(t.date_from||'')+'" onchange="D.sides['+i+'].date_from=this.value||null;mark()"><span class="tiny">and</span><input type="date" value="'+(t.date_to||'')+'" onchange="D.sides['+i+'].date_to=this.value||null;mark()"></div>'
-+'<div class="hint">Empty dates = every week.</div></div>').join('')
++'<div class="row" style="margin-top:8px"><span class="hint" style="margin:0">Empty dates = every week.</span><span class="grow"></span><button class="ghost sm" onclick="cloneSide('+i+')" title="the same task at another time of day">\\uFF0B another time</button></div></div>').join('')
 :'<div class="skel">Nothing yet. Gym, a class, a shift: add what takes real time each week.</div>';}
+// gym twice a day: a second row with the same name and days, so both show on the timeline
+function cloneSide(i){const t=D.sides[i];const [h,m]=t.end.split(':').map(Number);const s=String(Math.min(23,h+1)).padStart(2,'0')+':'+String(m).padStart(2,'0');const e=String(Math.min(23,h+2)).padStart(2,'0')+':'+String(m).padStart(2,'0');
+D.sides.splice(i+1,0,{id:null,name:t.name,emoji:t.emoji,days:[...t.days],start:s,end:e,date_from:t.date_from,date_to:t.date_to,enabled:1});renderSides();mark();}
 function tgDay(i,d){const t=D.sides[i];const k=t.days.indexOf(d);if(k<0)t.days.push(d);else t.days.splice(k,1);t.days.sort();renderSides();mark();}
 function addSide(){D.sides.push({id:null,name:'',emoji:(S.sideEmoji||['\\uD83D\\uDCCC'])[0],days:[1,3,5],start:'19:00',end:'20:30',date_from:null,date_to:null,enabled:1});renderSides();mark();
 const inputs=document.querySelectorAll('#sides input.nm');const last=inputs[inputs.length-1];if(last)last.focus();}

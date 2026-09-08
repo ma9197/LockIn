@@ -204,12 +204,17 @@ detail='<div class="tl2-detail"><div class="blockpanel" onclick="event.stopPropa
 const mods2=scaleMods(modulesFor(gIdx),dur);
 sub='<div class="tl2-sub">'+mods2.map(m=>MOD[m.t].e+' '+fmtDur(m.m)).join(' · ')+'</div>';
 }
-return '<div class="tl2-item'+(openBlocks[i]?' open':'')+'" id="blk-'+i+'">'
+// a solid block that starts inside an earlier solid block is shown nested under it
+const abs=x=>{const s=hmMin(x.start);return [s,hmMin(x.end)+((x.endNextDay||hmMin(x.end)<s)?1440:0)];};
+const [bs,be]=abs(b);
+const over=b.kind==='free'?null:J.blocks.slice(0,i).find(o=>{if(o.kind==='free')return false;const [os,oe]=abs(o);return bs<oe&&be>os;});
+return '<div class="tl2-item'+(openBlocks[i]?' open':'')+(over?' tl2-ov':'')+'" id="blk-'+i+'">'
 +'<div class="tl2-rail"><span class="bub">'+fmtT(b.start)+'</span>'
 +'<div class="tl2-line" style="--rk:'+RAIL[b.kind]+'"><span class="tl2-dur">'+fmtDur(dur)+'</span></div>'
 +'<span class="bub">'+fmtT(b.end)+(b.endNextDay?' ⁺¹':'')+'</span></div>'
 +'<div class="tl2-body"><div class="tl2-head" '+(expandable?'onclick="toggleBlk('+i+')"':'')+'>'
 +'<span>'+(b.emoji||BLK_IC[b.kind])+'</span><span class="lab">'+esc(b.label)+'</span>'
++(over?'<span class="pill" style="background:#3DDC9722;color:var(--mint)" title="at the same time as '+esc(over.label)+'">⧉ with '+esc(over.label)+'</span>':'')
 +(b.moved?'<span class="pill" style="background:#FFB34722;color:var(--ember2)">moved</span>':'')
 +(expandable?'<span class="tl2-x">›</span>':'')+'</div>'
 +sub+detail+'</div></div>';}).join('')||'<div class="skel">Free day</div>';}
@@ -478,7 +483,10 @@ for(let h=1;h<=12;h++){const[nx,ny]=pol(C,C,118,h*30);
 svg+='<text x="'+nx+'" y="'+(ny+CK.font*0.36)+'" text-anchor="middle" font-size="'+CK.font+'" font-weight="800" fill="'+DS.num+'" font-family="'+DS.numFont+'">'+h+'</text>';}
 const g0=DS.glow?' filter="url(#ckglow)"':'';
 const arc=(r,w,op,color,p)=>svg+='<path d="'+arcPath(C,C,r,dialDeg(p[0]),dialDeg(p[1]))+'" stroke="'+color+'" stroke-width="'+w+'" fill="none" stroke-linecap="butt" opacity="'+op+'"'+g0+'/>';
-for(const it of items){
+// two things at the same time: the one nearer to "now" keeps the main band, the other
+// moves to its own thinner ring closer to the centre, so both stay readable
+const IR=R-W*0.9,IW=W*0.4;
+for(const it of items){it.demoted=0;
 for(const piece of it.pieces){
 const overlaps=[];
 for(const other of items){
@@ -489,10 +497,17 @@ if(iv)overlaps.push({iv,other});}}
 for(const p of ivSubtract(piece,overlaps.map(o=>o.iv)))arc(R,W,.9,it.color,p);
 for(const o of overlaps){
 const win=it.d<o.other.d||(it.d===o.other.d&&it.i<o.other.i);
-if(win)arc(R+W*0.15,W*0.7,.95,it.color,o.iv);
-else arc(R-W*0.35,W*0.3,.45,it.color,o.iv);}}}
+if(win)arc(R,W,.95,it.color,o.iv);
+else{arc(IR,IW,.9,it.color,o.iv);it.demoted+=o.iv[1]-o.iv[0];}}}}
 for(const it of items){
 const midDeg=dialDeg(((it.s+it.e)/2)%720);
+const inner=it.demoted>=(it.e-it.s)*0.5;
+if(inner){
+const[ex,ey]=pol(C,C,IR,midDeg-5);
+svg+='<text x="'+ex+'" y="'+(ey+4)+'" text-anchor="middle" font-size="10">'+it.emoji+'</text>';
+if(it.e-it.s>=60){const[dx,dy]=pol(C,C,IR,midDeg+9);
+svg+='<text x="'+dx+'" y="'+(dy+3)+'" text-anchor="middle" font-size="7.5" font-weight="700" fill="'+DS.txt+'" font-family="Archivo">'+fmtDur(it.e-it.s)+'</text>';}
+continue;}
 const[ex,ey]=pol(C,C,R,midDeg);
 svg+='<text x="'+ex+'" y="'+(ey+5)+'" text-anchor="middle" font-size="14">'+it.emoji+'</text>';
 if(it.e-it.s>=75){const[dx,dy]=pol(C,C,R-20,midDeg);
