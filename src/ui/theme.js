@@ -4,6 +4,7 @@
 export const CSS = `
 :root{
   --bg:#0B0E14;--surface:#131824;--surface2:#1B2231;--surface3:#232C3E;--line:#263045;--line2:#313D57;
+  --well:#0E121B;
   --ink:#EDF1F7;--ink2:#97A3B6;--ink3:#5C6779;
   --ember:#FF6B35;--ember2:#FFB347;--ice:#5EA2FF;--mint:#3DDC97;--rose:#FF5D73;--violet:#9B6EF3;
   --grad:linear-gradient(135deg,#FF6B35,#FFB347);
