@@ -211,6 +211,9 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
 .cell .done-ic{position:absolute;top:5px;right:6px;color:var(--mint);font:800 12px var(--disp)}
 .cell .tchip{display:none}
 .cell .dots{display:flex;gap:3px;margin-top:5px;flex-wrap:wrap}
+.cell .gh{font:800 10px var(--disp);color:var(--ember);margin-top:4px;white-space:nowrap}
+.cell .gh .ghf{display:none}
+@media(min-width:900px){.cell .gh{position:absolute;bottom:5px;right:6px;margin:0;font-size:11px}.cell .gh .ghf{display:inline}}
 .cell .dot{width:6px;height:6px;border-radius:99px}
 .leg{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
 
@@ -254,6 +257,9 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
 .prow>.hd{display:flex;align-items:center;gap:8px;padding:9px 2px;font-size:13px;cursor:pointer}
 .prow>.hd:hover{background:var(--surface2)}
 .prow>.hd .cx{color:var(--ink3);font:700 11px var(--disp);transition:transform .2s;flex:none;width:12px}
+.prow>.hd .pn{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.prow.open>.hd .pn{white-space:normal}
+.prow>.hd>.tiny,.prow>.hd>.outb,.prow>.hd>.diff{flex:none}
 .prow.open>.hd .cx{transform:rotate(90deg)}
 .ppanel{display:none;padding:4px 2px 14px 20px}
 .prow.open .ppanel{display:block}
@@ -561,7 +567,12 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
 .status-pill{font:700 11px var(--disp);border-radius:99px;padding:3px 10px;display:inline-block}
 @media(max-width:700px){
   .jwrap table{display:none}
-  .jcard{display:block;border:1px solid var(--line);border-radius:var(--r);padding:13px;margin:10px 0;background:var(--surface)}
+  .jcard{display:block;border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;background:var(--surface)}
+  .jcard .jt{display:block;font:700 15px/1.3 var(--body)}
+  .jcard .jm{font-size:13px;margin-top:3px}
+  .jcard .jrow{margin-top:12px;gap:8px}
+  .jcard .jrow select{flex:1;min-width:0;width:auto;padding:8px 10px;font-size:13px}
+  .jcard .jrow .tiny{white-space:nowrap}
 }
 
 /* ---------- settings: grind block rows (fit 375px, no shift) ---------- */

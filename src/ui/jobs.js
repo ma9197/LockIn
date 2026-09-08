@@ -92,11 +92,11 @@ $('list').innerHTML='<table class="jtable"><thead><tr><th>Date</th><th>Job title
 +'<td>'+statusSel(j)+'</td>'
 +'<td><button class="ghost sm" onclick="delJob('+j.id+')" aria-label="delete">✕</button></td>'
 +'</tr>').join('')+'</tbody></table>'
-+jobs.map(j=>'<div class="jcard"><div class="row"><b>'+esc(j.title)+'</b>'+(j.source==='agent'?' 🤖':'')+'<span class="grow"></span>'+statusSel(j)+'</div>'
-+'<div class="muted">'+esc(j.company)+(j.platform?' · '+esc(j.platform):'')+(j.location?' · '+esc(j.location):'')+(j.salary?' · '+esc(j.salary):'')+'</div>'
-+'<div class="row" style="margin-top:6px"><span class="tiny num">'+fmtD(j.date)+'</span><span class="grow"></span>'
++jobs.map(j=>'<div class="jcard"><b class="jt">'+esc(j.title)+(j.source==='agent'?' <span title="logged by your agent">🤖</span>':'')+'</b>'
++'<div class="muted jm">'+esc(j.company)+(j.platform?' · '+esc(j.platform):'')+(j.location?' · '+esc(j.location):'')+(j.salary?' · '+esc(j.salary):'')+'</div>'
++'<div class="row jrow">'+statusSel(j)+'<span class="tiny num">'+fmtD(j.date)+'</span>'
 +(j.url?'<a class="tiny" href="'+esc(j.url)+'" target="_blank" rel="noopener">posting ↗</a>':'')
-+'<button class="ghost sm" onclick="delJob('+j.id+')">✕</button></div></div>').join('');}
++'<button class="ghost sm" onclick="delJob('+j.id+')" aria-label="delete">✕</button></div></div>').join('');}
 async function load(){
 const j=await api('/api/jobs');
 $('todayChip').innerHTML='📨 today: <b class="num">'+j.todayGoal.done+'</b>/'+j.todayGoal.goal;

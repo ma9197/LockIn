@@ -15,8 +15,7 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
   <div class="full">
   <div class="card acc" id="lkAcc" style="margin-top:14px">
     <div class="acc-h" id="lkHead">
-      <b>🔗 My LeetCode tabs</b>
-      <span class="tiny grow" id="lkCount">the sites you open every session</span>
+      <div class="grow" style="min-width:0"><b>🔗 My LeetCode tabs</b><div class="tiny" id="lkCount" style="margin-top:2px">the sites you open every session</div></div>
       <span class="tl2-x">›</span>
     </div>
     <div class="acc-b" style="margin-top:14px">
@@ -389,7 +388,7 @@ function prow(p){
 return '<div class="prow" data-p="'+esc(p.name)+'">'
 +'<div class="hd"><span class="cx">▸</span>'
 +'<span class="diff '+p.difficulty+'">'+p.difficulty.toUpperCase()+'</span>'
-+'<span class="grow" style="min-width:0"><b>'+esc(p.name)+'</b></span>'
++'<span class="grow pn"><b>'+esc(p.name)+'</b></span>'
 +(p.hasNote?'<span class="tiny" title="has notes">📝</span>':'')
 +'<span class="tiny num">×'+p.tries+'</span>'
 +'<span class="tiny">'+(p.daysSince<=0?'today':p.daysSince+'d')+'</span>'

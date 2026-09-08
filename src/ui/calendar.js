@@ -39,7 +39,7 @@ h+='<div class="cell'+(ds===TODAY?' today':'')+'" onclick="location.href=\\'/?da
 +(info.off?'<div class="tint" style="--ph:#5C6779;opacity:.22"></div>':'')
 +'<div class="dn num">'+d+(info.off?' 💤':'')+'</div>'
 +(allDone?'<div class="done-ic">✓</div>':'')
-+(info.grindH?'<div class="tiny" style="position:absolute;bottom:4px;right:6px;color:var(--ember);font-weight:800">'+info.grindH+'h🔥</div>':'')
++(info.grindH?'<div class="gh">'+info.grindH+'h<span class="ghf">🔥</span></div>':'')
 +(cp?'<div style="position:absolute;top:5px;right:6px">🚩</div>':(mock&&!allDone?'<div style="position:absolute;top:5px;right:6px">🎙️</div>':''))
 +((g.leetcode&&g.leetcode.goal)||(g.apps&&g.apps.goal)?
 '<div class="tchip" style="color:'+(goalsOk&&ds<=TODAY?'var(--mint)':'var(--ink2)')+'">'
