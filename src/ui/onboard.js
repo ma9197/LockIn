@@ -3,55 +3,56 @@ import { shell } from './theme.js';
 // The setup wizard. Seven screens, one final POST to /api/onboarding. Every screen shows a live
 // preview of what its answer builds (the race bar, the day strip, the goal rings), the draft
 // survives a refresh (sessionStorage), and the last screen is a summary before the single write.
+// Same language as Settings: .item rows with a colour accent, well inputs, .addbtn, .togrow.
 // Page-script rules: no backticks, no ${ } in the client code, and no quotes inside inline
 // handlers: every button carries data-a / data-i / data-v and one delegated listener routes it.
 
 export const onboardPage = (user) => shell('LockIn · Setup', null, `
 <style>
-.wiz{max-width:600px;margin:0 auto;padding-bottom:40px}
+.liveclock,.refresh-fab{display:none}
+.wrap{padding-top:18px}
+.wiz{max-width:620px;margin:0 auto;padding-bottom:40px}
 .wiz-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
-.wiz-cap{font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember);white-space:nowrap}
 .wiz-top .logo{white-space:nowrap}
+.wiz-cap{font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember);white-space:nowrap}
 .steps{display:flex;gap:4px;margin:14px 0 18px}
 .steps i{flex:1;height:5px;border-radius:3px;background:var(--surface3);transition:background .3s}
 .steps i.done{background:var(--ember2);opacity:.6}
 .steps i.on{background:var(--ember);box-shadow:0 0 10px #FF6B3588}
+.wiz-body{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 18px;box-shadow:0 30px 80px #0006}
+@media(min-width:600px){.wiz-body{padding:28px 26px}}
 .wiz h1{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}
-.wiz .lead{color:var(--ink2);margin:0 0 6px;line-height:1.55;font-size:15px}
-.wiz label.fld{margin-top:14px}
-.wiz-body{animation:none}
-.wiz-body.enter{animation:wizin .32s cubic-bezier(.2,.8,.2,1) both}
+.wiz .lead{color:var(--ink2);margin:0 0 4px;line-height:1.55;font-size:14.5px}
+.wiz .fg{margin-top:18px}
+.wiz-body.enter{animation:wizin .32s cubic-bezier(.2,.8,.2,1) backwards}
 @keyframes wizin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-.lst{display:flex;flex-direction:column;gap:10px;margin-top:10px}
-.li{background:var(--surface2);border:1px solid var(--line);border-radius:14px;padding:12px}
-.li .row{gap:8px;flex-wrap:wrap}
-.li input,.li select{padding:9px 10px;font-size:14px}
-.li input.nm{flex:1;min-width:120px}
-.rng{display:flex;align-items:center;gap:8px;margin-top:8px}
-.rng input{flex:1;min-width:0;width:auto;padding:9px 10px;font-size:14px}
+.lst{margin-top:16px}
+.item.first{margin-top:0}
+.rng{display:flex;align-items:center;gap:8px}
+.rng input{flex:1;min-width:0;width:auto;padding:9px 10px;font-size:14px;font-variant-numeric:tabular-nums}
 .rng .tiny{flex:none}
-.chips{display:flex;gap:5px;margin-top:8px}
-.chips button{flex:1;min-width:0;padding:7px 0;font-size:12px}
+.rng .lbl{flex:none;width:56px;font:700 11px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
+.rng+.rng{margin-top:8px}
+@media(max-width:560px){.rng.blk{flex-wrap:wrap;gap:6px}.rng.blk .lbl{width:100%;margin-bottom:-2px}.rng.blk .xbtn{width:30px}.rng input[type=time]{font-size:13px;padding:9px 4px}}
+.chips{display:flex;gap:5px}
+.chips button{flex:1;min-width:0;padding:8px 0;font-size:12px}
 .chips button.on{background:var(--ember);color:#0B0E14;border-color:var(--ember)}
-.sw{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
-.sw button{width:28px;height:28px;border-radius:8px;border:2px solid transparent;padding:0}
-.sw button.on{border-color:#fff}
-.em{display:flex;gap:4px;flex-wrap:wrap;margin-top:8px}
-.em button{width:34px;height:34px;font-size:17px;padding:0;border-radius:9px}
+.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;flex:1;min-width:0;max-width:300px}
+.sw button{width:100%;aspect-ratio:1;height:auto;min-height:28px;border-radius:9px;border:2px solid transparent;padding:0}
+.sw button.on{border-color:#fff;box-shadow:0 0 0 2px var(--surface2)}
+.em{display:flex;gap:5px;flex-wrap:wrap}
+.em button{width:36px;height:36px;font-size:18px;padding:0;border-radius:10px;background:var(--well)}
 .em button.on{background:var(--surface3);border-color:var(--ember)}
-.nav2{display:flex;gap:10px;margin-top:20px}
+.gl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.gl label{font:700 10.5px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;white-space:nowrap}
+.gl input{width:100%;padding:9px 10px}
+.lowbtn.on{background:#9B6EF322;border-color:#9B6EF388;color:var(--violet)}
+.defpill{background:#FF6B3522;color:var(--ember)}
+.nav2{display:flex;gap:10px;margin-top:18px}
 .nav2 button{flex:1;padding:14px;font:800 15px var(--disp);border-radius:14px}
-.hint{font-size:12.5px;color:var(--ink3);margin-top:8px;line-height:1.5}
 .ok{color:var(--mint)}.bad{color:var(--rose)}
-.tog{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
-.tog:last-child{border-bottom:0}
-.tog b{font-size:14px}.tog .tiny{margin-top:2px}
-.cklab{font:700 10px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;margin-top:10px}
-.gl{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:4px}
-.gl label{font:700 10px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:3px;white-space:nowrap}
-.gl input{width:100%;padding:8px}
-.prev{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px;margin-top:14px}
-.prev .pl{font:700 10px var(--disp);color:var(--ink3);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.prev{background:var(--surface2);border:1px solid var(--line2);border-radius:14px;padding:14px;margin-top:18px}
+.prev .pl{font:700 10px var(--disp);color:var(--ink2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
 .strip{position:relative;height:24px;background:var(--surface3);border-radius:6px;overflow:hidden}
 .strip i{position:absolute;top:0;bottom:0;border-radius:3px;opacity:.92}
 .strip-ax{display:flex;justify-content:space-between;font:700 9.5px var(--disp);color:var(--ink3);margin-top:4px}
@@ -67,19 +68,24 @@ export const onboardPage = (user) => shell('LockIn · Setup', null, `
 .big .e{font-size:22px;flex:none}
 .big b{display:block;font:800 15px var(--disp)}
 .big .tiny{margin-top:2px}
-.sum{display:grid;gap:8px;margin-top:8px}
-.sum div{display:flex;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:14px}
+.sum{display:grid;gap:0;margin-top:8px}
+.sum div{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
 .sum div:last-child{border-bottom:0}
 .sum span:first-child{flex:none;width:96px;font:700 11px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding-top:2px}
 .sum span:last-child{color:var(--ink2);min-width:0}
 .sum b{color:var(--ink)}
 .tzclock{font:800 28px var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.idrow{display:flex;align-items:center;gap:12px}
+.idrow .who{flex:1;min-width:0}
+.emptybig{text-align:center;padding:26px 0 8px}
+.emptybig .hint{margin-top:10px}
 </style>
+<div class="bgfx" aria-hidden="true"><i></i></div>
 <div class="wiz">
   <div class="wiz-top"><div class="logo" style="font-size:22px">LOCK<em>IN</em> 🔥</div><span class="wiz-cap" id="stepCap"></span></div>
   <div class="steps" id="steps"></div>
   <div class="wiz-body" id="wiz"></div>
-  <p class="tiny" id="err" style="color:var(--rose);min-height:16px;margin:10px 0 0"></p>
+  <p class="ferr" id="err" role="alert" aria-live="polite"></p>
   <div class="nav2"><button class="ghost" id="back" data-a="back">← Back</button><button class="pri" id="next" data-a="next">Next →</button></div>
 </div>`, `<script>
 const PAL=['#FF6B35','#5EA2FF','#3DDC97','#9B6EF3','#FFB347','#FF5D73','#4f8ef7','#f3a33c'];
@@ -87,6 +93,7 @@ const CEMO=['\\uD83E\\uDDE9','\\uD83D\\uDCE8','\\uD83D\\uDCDA','\\uD83D\\uDDC4\\
 const SEMO=['\\uD83C\\uDFCB\\uFE0F','\\uD83C\\uDF93','\\uD83D\\uDCBC','\\uD83C\\uDFC3','\\uD83C\\uDFBE','\\u26BD','\\uD83C\\uDFCA','\\uD83E\\uDDD8','\\uD83D\\uDE8C','\\uD83C\\uDF7D\\uFE0F','\\uD83D\\uDC68\\u200D\\uD83D\\uDC69\\u200D\\uD83D\\uDC67','\\uD83C\\uDFAE','\\uD83D\\uDCCC'];
 const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const NAMES=['You','Time zone','Plan','Grind blocks','Categories','Side tasks','Wrap up'];
+const LAYEMO={morning:'\\uD83C\\uDF05',night:'\\uD83C\\uDF19',low:'\\uD83E\\uDEAB',weekend:'\\uD83C\\uDFD6\\uFE0F'};
 const guessTz=(()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(e){return 'UTC'}})();
 let S={name:${JSON.stringify(user.display_name || '')},handle:${JSON.stringify(user.handle || '')},tz:guessTz,clock24:false,
 noPlan:false,phases:[],
@@ -106,6 +113,7 @@ const esc2=s=>String(s==null?'':s).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;'
 const cap=ds=>new Date(ds+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'}).toUpperCase();
 const mn=v=>{const[a,b]=v.split(':').map(Number);return a*60+b;};
 const fmtH=v=>{let[h,m]=v.split(':').map(Number);if(S.clock24)return v;const ap=h>=12?'PM':'AM';h=h%12||12;return h+(m?':'+String(m).padStart(2,'0'):'')+' '+ap;};
+const first=i=>i===0?' first':'';
 
 // ---- previews ----
 function strip(blocks,sides){
@@ -150,9 +158,9 @@ const rerender=()=>render(false);
 
 function stIdentity(){
 return '<h1>Welcome. Who is grinding?</h1><p class="lead">Your name shows on your shared progress page and your booking page. The handle is their address.</p>'
-+'<div class="row" style="gap:12px;margin-top:14px"><span id="avPrev">'+avatar(S.name||'?')+'</span><div class="grow"><label class="fld" style="margin-top:0">Display name</label><input id="name" maxlength="40" value="'+esc2(S.name)+'" placeholder="e.g. Alex" oninput="S.name=this.value;avPrev()"></div></div>'
-+'<label class="fld">Handle</label><input id="handle" maxlength="30" value="'+esc2(S.handle)+'" placeholder="alex" oninput="S.handle=this.value;checkHandle()" autocapitalize="none" autocorrect="off" spellcheck="false">'
-+'<div class="hint" id="hh">3 to 30 characters: letters, numbers, dashes.</div>';}
++'<div class="fg"><label class="fld" for="name">Display name</label><div class="idrow"><span id="avPrev">'+avatar(S.name||'?')+'</span><div class="who"><input id="name" maxlength="40" value="'+esc2(S.name)+'" placeholder="e.g. Alex" oninput="S.name=this.value;avPrev()"></div></div></div>'
++'<div class="fg"><label class="fld" for="handle">Handle</label><input id="handle" maxlength="30" value="'+esc2(S.handle)+'" placeholder="alex" oninput="S.handle=this.value;checkHandle()" autocapitalize="none" autocorrect="off" spellcheck="false">'
++'<div class="hint" id="hh">3 to 30 characters: letters, numbers, dashes.</div></div>';}
 function avPrev(){const el=$('avPrev');if(el)el.innerHTML=avatar(S.name||'?');}
 let hT;
 function checkHandle(){clearTimeout(hT);const h=(val('handle')||'').toLowerCase().trim();const el=$('hh');if(!el)return;
@@ -168,23 +176,24 @@ function stTime(){
 let zones=[];try{zones=Intl.supportedValuesOf('timeZone')}catch(e){zones=['UTC','America/New_York','America/Chicago','America/Denver','America/Los_Angeles','Europe/London','Europe/Berlin','Asia/Tokyo','Asia/Kolkata','Australia/Sydney']}
 if(!zones.includes(S.tz))zones.unshift(S.tz);
 return '<h1>Where are you?</h1><p class="lead">Every day, streak and deadline is counted in your own local time. We guessed from your browser.</p>'
-+'<label class="fld">Time zone</label><select id="tz" onchange="S.tz=this.value;tickClock()">'+zones.map(z=>'<option value="'+z+'"'+(z===S.tz?' selected':'')+'>'+z.replace(/_/g,' ')+'</option>').join('')+'</select>'
-+'<label class="fld">Clock</label><div class="seg-ctl"><button class="'+(S.clock24?'':'on')+'" data-a="clock" data-v="0">12-hour \\u00b7 9:30 PM</button><button class="'+(S.clock24?'on':'')+'" data-a="clock" data-v="1">24-hour \\u00b7 21:30</button></div>'
++'<div class="fg"><label class="fld" for="tz">Time zone</label><select id="tz" onchange="S.tz=this.value;tickClock()">'+zones.map(z=>'<option value="'+z+'"'+(z===S.tz?' selected':'')+'>'+z.replace(/_/g,' ')+'</option>').join('')+'</select></div>'
++'<div class="fg"><label class="fld">Clock</label><div class="seg-ctl"><button class="'+(S.clock24?'':'on')+'" data-a="clock" data-v="0">12-hour \\u00b7 9:30 PM</button><button class="'+(S.clock24?'on':'')+'" data-a="clock" data-v="1">24-hour \\u00b7 21:30</button></div></div>'
 +'<div class="prev"><div class="pl">Right now, for you</div><div class="tzclock" id="tzNow"></div><div class="hint" style="margin-top:2px">If that is wrong, pick another zone above.</div></div>';}
 
 function stPlan(){
 return '<h1>Your plan</h1><p class="lead">A plan is a few phases with dates. It powers the race bar, the pace tracking and the finish-line forecast. Mark a phase <b>low load</b> for exams, travel or guests: goals drop and a lighter schedule applies.</p>'
-+'<div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><button class="big" style="flex:1;min-width:200px" data-a="template"><span class="e">\\u26A1</span><span><b>Start from a template</b><span class="tiny">Foundations \\u00b7 Interview prep \\u00b7 Finals (low load) \\u00b7 Sprint</span></span></button>'
++'<div class="row" style="gap:8px;margin-top:16px;flex-wrap:wrap"><button class="big" style="flex:1;min-width:200px" data-a="template"><span class="e">\\u26A1</span><span><b>Start from a template</b><span class="tiny">Foundations \\u00b7 Interview prep \\u00b7 Finals (low load) \\u00b7 Sprint</span></span></button>'
 +'<button class="big'+(S.noPlan?' on':'')+'" style="flex:1;min-width:200px" data-a="noplan"><span class="e">\\uD83E\\uDD37</span><span><b>No plan yet</b><span class="tiny">Skip for now, add phases later in Settings.</span></span></button></div>'
-+(S.noPlan?'':'<div class="lst" id="phl">'+S.phases.map((p,i)=>'<div class="li"><div class="row"><input class="nm" placeholder="Phase name" value="'+esc2(p.name)+'" oninput="S.phases['+i+'].name=this.value;prev()">'
-+'<button class="ghost sm" data-a="delPhase" data-i="'+i+'" aria-label="remove">\\u2715</button></div>'
-+'<div class="rng"><input type="date" value="'+p.start+'" onchange="S.phases['+i+'].start=this.value;prev()"><span class="tiny">to</span><input type="date" value="'+p.end+'" onchange="S.phases['+i+'].end=this.value;prev()"></div>'
-+'<div class="row" style="margin-top:8px"><button class="sm '+(p.low?'on':'')+'" data-a="lowPhase" data-i="'+i+'">'+(p.low?'\\uD83E\\uDEAB low load':'normal load')+'</button><span class="grow"></span>'
-+'<div class="sw" style="margin:0">'+PAL.map(c=>'<button style="background:'+c+'" class="'+(p.color===c?'on':'')+'" data-a="phaseColor" data-i="'+i+'" data-v="'+c+'" aria-label="colour"></button>').join('')+'</div></div></div>').join('')
-+'</div><button class="sm" style="margin-top:10px" data-a="addPhase">\\uFF0B Add phase</button>'
++(S.noPlan?'':'<div class="lst" id="phl">'+S.phases.map((p,i)=>'<div class="item'+first(i)+'" style="--ac:'+p.color+'"><div class="ihead"><input class="nm" placeholder="Phase name" value="'+esc2(p.name)+'" oninput="S.phases['+i+'].name=this.value;prev()" aria-label="Phase name">'
++'<button class="sm lowbtn '+(p.low?'on':'')+'" data-a="lowPhase" data-i="'+i+'">'+(p.low?'\\uD83E\\uDEAB Low load':'Normal')+'</button>'
++'<button class="xbtn" data-a="delPhase" data-i="'+i+'" aria-label="Remove phase">\\u2715</button></div>'
++'<div class="ibody"><div class="rng"><input type="date" value="'+p.start+'" onchange="S.phases['+i+'].start=this.value;prev()" aria-label="start"><span class="tiny">to</span><input type="date" value="'+p.end+'" onchange="S.phases['+i+'].end=this.value;prev()" aria-label="end"></div></div>'
++'<div class="ifoot"><span class="cklab" style="margin:0;flex:none">Colour</span><div class="sw">'+PAL.map(c=>'<button style="background:'+c+'" class="'+(p.color===c?'on':'')+'" data-a="phaseColor" data-i="'+i+'" data-v="'+c+'" aria-label="colour"></button>').join('')+'</div></div></div>').join('')
++'</div><button class="addbtn" data-a="addPhase">\\uFF0B Add phase</button>'
 +'<div class="hint">Phases run back to back. The first start and the last end are your plan window.</div>');}
 function addPhase(){const last=S.phases[S.phases.length-1];const start=last?plus(last.end,1):today;
-S.phases.push({name:'Phase '+(S.phases.length+1),start,end:plus(start,27),color:PAL[S.phases.length%PAL.length],low:false});S.noPlan=false;rerender();}
+S.phases.push({name:'Phase '+(S.phases.length+1),start,end:plus(start,27),color:PAL[S.phases.length%PAL.length],low:false});S.noPlan=false;rerender();
+const ins=document.querySelectorAll('#phl input.nm');const l=ins[ins.length-1];if(l){l.focus();l.select();}}
 function template(){S.phases=[];S.noPlan=false;const add=(name,weeks,color,low)=>{const last=S.phases[S.phases.length-1];const start=last?plus(last.end,1):today;S.phases.push({name,start,end:plus(start,weeks*7-1),color,low});};
 add('Foundations',4,PAL[1],false);add('Interview prep',6,PAL[0],false);add('Finals',1,PAL[3],true);add('Application sprint',5,PAL[2],false);rerender();}
 
@@ -192,56 +201,54 @@ function stBlocks(){
 const names=Object.keys(S.layouts);const hasLow=!S.noPlan&&S.phases.some(p=>p.low);
 if(hasLow&&!S.layouts.low)S.layouts.low=[['11:00','13:00']];
 return '<h1>When do you grind?</h1><p class="lead">A layout is up to four blocks. Make a second one (Night owl, say) and switch between them from the Today page whenever you like. Blocks step around your side tasks automatically.</p>'
-+names.map(n=>'<div class="li" style="margin-top:10px"><div class="row"><b style="flex:1;text-transform:capitalize;font:800 15px var(--disp)">'+(n==='low'?'\\uD83E\\uDEAB Low-load days':n)+'</b>'
-+(n===S.def?'<span class="pill" style="background:#FF6B3522;color:var(--ember)">default</span>':(n==='low'?'':'<button class="ghost sm" data-a="layoutDef" data-v="'+n+'">make default</button>'))
-+(names.length>1&&n!=='low'?'<button class="ghost sm" data-a="layoutDel" data-v="'+n+'" aria-label="remove">\\u2715</button>':'')+'</div>'
-+S.layouts[n].map((b,i)=>'<div class="rng"><span class="tiny" style="width:48px">Block '+(i+1)+'</span><input type="time" value="'+b[0]+'" onchange="S.layouts[this.dataset.n][this.dataset.i][0]=this.value;prev()" data-n="'+n+'" data-i="'+i+'"><span class="tiny">to</span><input type="time" value="'+b[1]+'" onchange="S.layouts[this.dataset.n][this.dataset.i][1]=this.value;prev()" data-n="'+n+'" data-i="'+i+'">'
-+(S.layouts[n].length>1?'<button class="ghost sm" data-a="blockDel" data-v="'+n+'" data-i="'+i+'" aria-label="remove">\\u2715</button>':'<span style="width:34px"></span>')+'</div>').join('')
-+(S.layouts[n].length<4?'<button class="sm" style="margin-top:8px" data-a="blockAdd" data-v="'+n+'">\\uFF0B block</button>':'')+'</div>').join('')
-+(S.layouts.night?'':'<button class="sm" style="margin-top:10px" data-a="addNight">\\uD83C\\uDF19 Add a Night owl layout</button>')
++'<div class="lst">'+names.map((n,ni)=>'<div class="item'+first(ni)+'" style="--ac:'+(n===S.def?'var(--ember)':n==='low'?'var(--violet)':'var(--line2)')+'"><div class="ihead"><span class="tile">'+(LAYEMO[n]||'\\uD83D\\uDDD3\\uFE0F')+'</span><b class="nm">'+(n==='low'?'Low-load days':esc2(n))+'</b>'
++(n===S.def?'<span class="pill defpill">default</span>':(n==='low'?'':'<button class="ghost sm" data-a="layoutDef" data-v="'+n+'">Make default</button>'))
++(names.length>1&&n!=='low'?'<button class="xbtn" data-a="layoutDel" data-v="'+n+'" aria-label="Remove layout">\\u2715</button>':'')+'</div>'
++'<div class="ibody">'+S.layouts[n].map((b,i)=>'<div class="rng blk"><span class="lbl">Block '+(i+1)+'</span><input type="time" value="'+b[0]+'" onchange="S.layouts[this.dataset.n][this.dataset.i][0]=this.value;prev()" data-n="'+n+'" data-i="'+i+'" aria-label="start"><span class="tiny">to</span><input type="time" value="'+b[1]+'" onchange="S.layouts[this.dataset.n][this.dataset.i][1]=this.value;prev()" data-n="'+n+'" data-i="'+i+'" aria-label="end">'
++(S.layouts[n].length>1?'<button class="xbtn" data-a="blockDel" data-v="'+n+'" data-i="'+i+'" aria-label="Remove block">\\u2715</button>':'<span style="width:38px;flex:none"></span>')+'</div>').join('')+'</div>'
++(S.layouts[n].length<4?'<div class="ifoot"><button class="sm" data-a="blockAdd" data-v="'+n+'">\\uFF0B Add block</button><span class="tiny">up to four</span></div>':'')+'</div>').join('')+'</div>'
++(S.layouts.night?'':'<button class="addbtn" data-a="addNight">\\uD83C\\uDF19 Add a Night owl layout</button>')
 +'<div class="hint">A block ending after midnight is fine, it just runs into the next day.</div>';}
 
 function stCats(){
 return '<h1>What are you grinding?</h1><p class="lead">Each category gets a daily goal for weekdays, weekends and low-load days. LeetCode and Applications bring their own tools. Add your own: system design, a course, reading.</p>'
-+'<div class="lst">'+S.cats.map((c,i)=>'<div class="li"><div class="row"><span style="font-size:22px">'+c.emoji+'</span><input class="nm" value="'+esc2(c.name)+'" oninput="S.cats['+i+'].name=this.value;prev()" placeholder="Name"'+(c.builtin?' readonly':'')+'>'
-+'<button class="ghost sm" data-a="catDel" data-i="'+i+'" aria-label="remove">\\u2715</button></div>'
-+'<div class="cklab">Daily goal</div><div class="gl"><div><label>Weekday</label><input type="number" min="0" max="50" value="'+c.wd+'" oninput="S.cats['+i+'].wd=+this.value;prev()"></div>'
++'<div class="lst">'+S.cats.map((c,i)=>'<div class="item'+first(i)+'" style="--ac:'+c.color+'"><div class="ihead"><span class="tile">'+c.emoji+'</span><input class="nm" value="'+esc2(c.name)+'" oninput="S.cats['+i+'].name=this.value;prev()" placeholder="Name"'+(c.builtin?' readonly':'')+' aria-label="Category name">'
++'<button class="xbtn" data-a="catDel" data-i="'+i+'" aria-label="Remove category">\\u2715</button></div>'
++'<div class="ibody"><div class="cklab">Daily goal</div><div class="gl"><div><label>Weekday</label><input type="number" min="0" max="50" value="'+c.wd+'" oninput="S.cats['+i+'].wd=+this.value;prev()"></div>'
 +'<div><label>Weekend</label><input type="number" min="0" max="50" value="'+c.we+'" oninput="S.cats['+i+'].we=+this.value"></div>'
 +'<div><label>Low load</label><input type="number" min="0" max="50" value="'+c.low+'" oninput="S.cats['+i+'].low=+this.value"></div></div>'
-+(c.builtin?'<div class="hint">Built in: '+(c.builtin==='leetcode'?'unlocks the LeetCode tab, timer records and problem notes.':'wired to the Jobs tracker, every logged application counts here.')+'</div>'
-:'<div class="em">'+CEMO.map(e=>'<button class="'+(c.emoji===e?'on':'')+'" data-a="catEmoji" data-i="'+i+'" data-v="'+e+'">'+e+'</button>').join('')+'</div>'
-+'<div class="sw">'+PAL.map(col=>'<button style="background:'+col+'" class="'+(c.color===col?'on':'')+'" data-a="catColor" data-i="'+i+'" data-v="'+col+'" aria-label="colour"></button>').join('')+'</div>')+'</div>').join('')+'</div>'
-+'<button class="sm" style="margin-top:10px" data-a="addCat">\\uFF0B Add category</button>'
++(c.builtin?'<div class="hint">Built in: '+(c.builtin==='leetcode'?'unlocks the LeetCode tab, timer records and problem notes.':'wired to the Jobs tracker, every logged application counts here.')+'</div>':'')+'</div>'
++(c.builtin?'':'<div class="ifoot"><div class="em">'+CEMO.map(e=>'<button class="'+(c.emoji===e?'on':'')+'" data-a="catEmoji" data-i="'+i+'" data-v="'+e+'" aria-label="emoji">'+e+'</button>').join('')+'</div><span class="grow"></span><div class="sw">'+PAL.map(col=>'<button style="background:'+col+'" class="'+(c.color===col?'on':'')+'" data-a="catColor" data-i="'+i+'" data-v="'+col+'" aria-label="colour"></button>').join('')+'</div></div>')+'</div>').join('')+'</div>'
++'<button class="addbtn" data-a="addCat">\\uFF0B Add category</button>'
 +'<div class="hint">A goal of 0 means nothing is expected that day. Categories can change later; history is never lost.</div>';}
 
 function stSide(){
 return '<h1>What else takes time?</h1><p class="lead">Recurring things that are not grind: gym, a class, a shift, a commute. They show on the timeline and the grind blocks step out of their way.</p>'
-+'<div class="lst">'+S.side.map((t,i)=>'<div class="li"><div class="row"><span style="font-size:22px">'+t.emoji+'</span><input class="nm" value="'+esc2(t.name)+'" oninput="S.side['+i+'].name=this.value;prev()" placeholder="Gym, Algorithms class, Shift\\u2026">'
-+'<button class="ghost sm" data-a="sideDel" data-i="'+i+'" aria-label="remove">\\u2715</button></div>'
-+'<div class="em">'+SEMO.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" data-a="sideEmoji" data-i="'+i+'" data-v="'+e+'">'+e+'</button>').join('')+'</div>'
-+'<div class="chips">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" data-a="sideDay" data-i="'+i+'" data-v="'+di+'">'+d+'</button>').join('')+'</div>'
-+'<div class="rng"><input type="time" value="'+t.start+'" onchange="S.side['+i+'].start=this.value;prev()"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="S.side['+i+'].end=this.value;prev()"></div>'
-+'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:4px"><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'" onchange="S.side['+i+'].to=this.value"></div>'
-+'<div class="row" style="margin-top:8px"><span class="hint" style="margin:0">Leave the dates empty for every week.</span><span class="grow"></span><button class="ghost sm" data-a="sideClone" data-i="'+i+'" title="the same task at another time of day">\\uFF0B another time</button></div></div>').join('')+'</div>'
-+(S.side.length
-?'<button class="sm" style="margin-top:10px" data-a="addSide">\\uFF0B Add side task</button>'
-:'<div style="text-align:center;padding:26px 0 8px"><button class="pri" style="padding:14px 28px;font:800 16px var(--disp);border-radius:14px" data-a="addSide">\\uFF0B Add a side task</button><div class="hint" style="margin-top:10px">Nothing yet. Add what takes real time each week, or press Next to skip.</div></div>');}
++(S.side.length?'<div class="lst">'+S.side.map((t,i)=>'<div class="item'+first(i)+'" style="--ac:var(--mint)"><div class="ihead"><span class="tile">'+t.emoji+'</span><input class="nm" value="'+esc2(t.name)+'" oninput="S.side['+i+'].name=this.value;prev()" placeholder="Gym, Algorithms class, Shift\\u2026" aria-label="Side task name">'
++'<button class="xbtn" data-a="sideDel" data-i="'+i+'" aria-label="Remove side task">\\u2715</button></div>'
++'<div class="ibody"><div class="cklab">Days</div><div class="chips" style="margin-top:6px">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" data-a="sideDay" data-i="'+i+'" data-v="'+di+'">'+d+'</button>').join('')+'</div>'
++'<div class="cklab">Time</div><div class="rng" style="margin-top:6px"><input type="time" value="'+t.start+'" onchange="S.side['+i+'].start=this.value;prev()" aria-label="start"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="S.side['+i+'].end=this.value;prev()" aria-label="end"></div>'
++'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:6px"><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value" aria-label="from"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'" onchange="S.side['+i+'].to=this.value" aria-label="to"></div>'
++'<div class="hint" style="margin-top:6px">Leave the dates empty for every week.</div></div>'
++'<div class="ifoot"><div class="em">'+SEMO.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" data-a="sideEmoji" data-i="'+i+'" data-v="'+e+'" aria-label="emoji">'+e+'</button>').join('')+'</div><span class="grow"></span><button class="sm" data-a="sideClone" data-i="'+i+'" title="the same task at another time of day">\\uFF0B Another time</button></div></div>').join('')+'</div>'
++'<button class="addbtn" data-a="addSide">\\uFF0B Add side task</button>'
+:'<div class="emptybig"><button class="pri" style="padding:14px 28px;font:800 16px var(--disp);border-radius:14px" data-a="addSide">\\uFF0B Add a side task</button><div class="hint">Nothing yet. Add what takes real time each week, or press Next to skip.</div></div>');}
 
 function stWrap(){
-const T=(k,label,sub)=>'<div class="tog"><div><b>'+label+'</b><div class="tiny">'+sub+'</div></div><div class="toggle'+(S.modules[k]?' on':'')+'" role="switch" data-a="mod" data-v="'+k+'"></div></div>';
+const T=(k,label,sub)=>'<div class="togrow"><div class="grow"><b>'+label+'</b><div class="tiny">'+sub+'</div></div><div class="toggle'+(S.modules[k]?' on':'')+'" role="switch" tabindex="0" aria-checked="'+(!!S.modules[k])+'" aria-label="'+label+'" data-a="mod" data-v="'+k+'"></div></div>';
 const hasLc=S.cats.some(c=>c.builtin==='leetcode'),hasJobs=S.cats.some(c=>c.builtin==='applications');
 if(!hasLc)S.modules.leetcode=false;if(!hasJobs)S.modules.jobs=false;
 const ph=S.noPlan?[]:S.phases;const tot=ph.reduce((a,p)=>a+(ymd(p.start)&&ymd(p.end)?dayCount(p):0),0);
-return '<h1>Last one: what is on</h1><p class="lead">Turn off what you will not use. Everything can be switched back in Settings.</p><div class="card" style="padding:4px 14px;margin-top:12px">'
+return '<h1>Last one: what is on</h1><p class="lead">Turn off what you will not use. Everything can be switched back in Settings.</p><div class="prev" style="padding:6px 14px">'
 +(hasLc?T('leetcode','\\uD83E\\uDDE9 LeetCode tab','Problem log, notes, array visualizer, solve-time stats.'):'')
 +(hasJobs?T('jobs','\\uD83D\\uDCE8 Jobs tab','Application tracker with funnel and platform stats.'):'')
 +T('copy','\\uD83D\\uDCCB Quick Copy','Snippets for speed-filling application forms.')
 +T('clock','\\uD83D\\uDD52 Day clock','A 12-hour dial of your day on the Today page.')
 +T('friends','\\uD83C\\uDFAE Friends booking','A public page where friends grab your free slots. Off for most people.')
 +'</div>'
-+'<label class="fld">Daily grind target (hours)</label><input id="target" type="number" min="1" max="16" step="0.5" value="'+S.target+'" style="width:120px" oninput="S.target=+this.value||6">'
-+'<div class="hint">Drives the heat map and the "target hit" stats. 6 is a full day of focus.</div>'
-+(S.modules.friends?'<label class="fld">Bookable window</label><div class="rng" style="margin-top:0"><input type="time" id="av0" value="'+S.avail[0][0]+'"><span class="tiny">to</span><input type="time" id="av1" value="'+S.avail[0][1]+'"></div><div class="hint">Whatever is left of this window after grind and side tasks is what friends can book.</div>':'')
++'<div class="fg"><label class="fld" for="target">Daily grind target (hours)</label><input id="target" type="number" min="1" max="16" step="0.5" value="'+S.target+'" style="width:140px" oninput="S.target=+this.value||6">'
++'<div class="hint">Drives the heat map and the "target hit" stats. 6 is a full day of focus.</div></div>'
++(S.modules.friends?'<div class="fg"><label class="fld">Bookable window</label><div class="rng"><input type="time" id="av0" value="'+S.avail[0][0]+'" aria-label="from"><span class="tiny">to</span><input type="time" id="av1" value="'+S.avail[0][1]+'" aria-label="to"></div><div class="hint">Whatever is left of this window after grind and side tasks is what friends can book.</div></div>':'')
 +'<div class="prev"><div class="pl">Ready to build</div><div class="sum">'
 +'<div><span>You</span><span><b>'+esc2(S.name||'?')+'</b> \\u00b7 '+location.host+'/u/'+esc2(S.handle||'?')+'/</span></div>'
 +'<div><span>Time</span><span>'+esc2(S.tz.replace(/_/g,' '))+' \\u00b7 '+(S.clock24?'24-hour':'12-hour')+'</span></div>'

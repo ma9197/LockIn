@@ -21,7 +21,8 @@ const pane = (id, first) => `${first ? '' : '</div>'}<div class="tabpane" id="ta
 export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 <style>
 .stg-h1{margin:0;font-size:22px;line-height:1.2}
-.tabwrap{position:sticky;top:0;z-index:5;background:var(--bg);margin:0 -16px;padding:12px 16px 10px;border-bottom:1px solid var(--line)}
+.tabwrap{position:sticky;top:0;z-index:5;background:transparent;margin:0 -16px;padding:12px 16px 12px;border-bottom:1px solid transparent;transition:background .25s,border-color .25s}
+.tabwrap.stuck{background:rgba(11,14,20,.74);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom-color:rgba(38,48,69,.6)}
 @media(min-width:900px){.tabwrap{margin:0 -34px;padding-left:34px;padding-right:34px}}
 .tabbar{margin:10px 0 0}
 .regrow{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:14px}
@@ -100,7 +101,8 @@ body.dirty{padding-bottom:calc(74px + 70px + env(safe-area-inset-bottom))}
 body.dirty .refresh-fab{display:none}
 @media(min-width:900px){.savebar{left:216px;bottom:0;padding:14px 34px}body.dirty{padding-bottom:84px}}
 </style>
-<div class="tabwrap"><h1 class="stg-h1">Settings</h1><div class="tabbar" id="tabs">${TABS.map(([id, l]) => `<button id="tb-${id}" onclick="showTab('${id}')">${l}</button>`).join('')}</div></div>
+<div id="tabSentinel" style="height:1px"></div>
+<div class="tabwrap" id="tabwrap"><h1 class="stg-h1">Settings</h1><div class="tabbar" id="tabs">${TABS.map(([id, l]) => `<button id="tb-${id}" onclick="showTab('${id}')">${l}</button>`).join('')}</div></div>
 
 ${pane('plan', true)}
 ${sec('time', 'Time zone and clock', 'Every day, streak and deadline is counted in this zone.', `
@@ -259,6 +261,9 @@ function renderBg(){$('bgPicks').innerHTML=BGS.map(([k,n,d])=>'<button class="pi
 const TABN={plan:'Plan',schedule:'Schedule',today:'Today',sharing:'Sharing',api:'Integrations',account:'Account'};
 let TAB='plan';
 try{history.scrollRestoration='manual';}catch(e){}
+// the page header only gets its frosted band once it is actually stuck to the top
+function tabStick(){const w=$('tabwrap');if(w)w.classList.toggle('stuck',w.getBoundingClientRect().top<=0.5&&window.scrollY>4);}
+document.addEventListener('scroll',tabStick,{passive:true,capture:true});window.addEventListener('resize',tabStick);setInterval(tabStick,300);tabStick();
 function showTab(t){if(!TABN[t])t='plan';TAB=t;
 document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',b.id==='tb-'+t));
 document.querySelectorAll('.tabpane').forEach(p=>p.classList.toggle('on',p.id==='tab-'+t));
