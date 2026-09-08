@@ -104,7 +104,7 @@ ${SH ? '<p class="tiny" style="text-align:center;margin:26px 0 8px">read only ·
 <div class="chart-tip" id="tip"></div>
 `, `<script>
 const SHARE=${SH ? 'true' : 'false'};
-const API=SHARE?'/api/share/progress':'/api/progress';
+const API=SHARE?((window.__U&&window.__U.base)||'')+'/api/share/progress':'/api/progress';
 const fmtD=ds=>new Date(ds+'T12:00:00Z').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});
 const shortD=ds=>new Date(ds+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
 const mins=m=>m?(m>=60?fmtDur(Math.round(m)):(Math.round(m*10)/10)+'m'):'–';

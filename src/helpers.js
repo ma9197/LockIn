@@ -41,7 +41,8 @@ export function isAuthed(c, token, cookieName) {
 }
 // the share cookie is derived from the share PIN hash, so changing or clearing
 // that PIN signs every friend out with no extra bookkeeping
-export const shareToken = async sharePinHash => sha256hex('share:' + sharePinHash);
+// salted with the user id, so two users with the same PIN never share a cookie value
+export const shareToken = async (userId, sharePinHash) => sha256hex('share:' + userId + ':' + sharePinHash);
 
 // ---------- time zones ----------
 // Every date in the app is the USER's local wall time, YYYY-MM-DD / YYYY-MM-DDTHH:MM, no zone.

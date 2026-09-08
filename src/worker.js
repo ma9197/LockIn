@@ -7,6 +7,7 @@
 import { Hono } from 'hono';
 import { landingPage, signupPage, loginPage } from './ui/auth.js';
 import { onboardPage } from './ui/onboard.js';
+import { sha256hex } from './helpers.js';
 import {
   normEmail, validEmail, newPasswordHash, verifyPassword, randomHex,
   createSession, sessionUser, destroySession, destroyAllSessions, sessionCookie, clearSessionCookie,
@@ -19,12 +20,15 @@ const json = (c, o, s = 200) => c.json(o, s);
 
 // Only the Worker can construct a stub, so a user id being derivable is not an exposure.
 const userStub = (env, userId) => env.USER_DO.get(env.USER_DO.idFromName(userId));
-const withCtx = (req, ctx, path) => {
+// The body is buffered, not streamed: a Durable Object that answers before reading the stream
+// (every 401) would otherwise trip "can't read from request stream after response has been sent".
+const withCtx = async (req, ctx, path) => {
   const u = new URL(req.url);
   if (path) u.pathname = path;
   const h = new Headers(req.headers);
   h.set('X-LockIn-Ctx', JSON.stringify(ctx));
-  return new Request(u.toString(), { method: req.method, headers: h, body: req.body, redirect: 'manual' });
+  const body = (req.method === 'GET' || req.method === 'HEAD') ? undefined : await req.arrayBuffer();
+  return new Request(u.toString(), { method: req.method, headers: h, body, redirect: 'manual' });
 };
 const ownerCtx = u => ({ role: 'owner', userId: u.id, handle: u.handle || '', displayName: u.display_name || '', email: u.email, base: '' });
 
@@ -45,7 +49,7 @@ app.get('/manifest.json', c => c.json({
 // ---------- health ----------
 app.get('/healthz', async c => {
   const central = await c.env.CENTRAL.prepare('SELECT COUNT(*) n FROM users').first().catch(e => ({ error: String(e) }));
-  const r = await userStub(c.env, 'healthz-probe').fetch(withCtx(c.req.raw, { role: 'internal' }, '/__internal/health'));
+  const r = await userStub(c.env, 'healthz-probe').fetch(await withCtx(c.req.raw, { role: 'internal' }, '/__internal/health'));
   const dob = await r.json().catch(() => ({ ok: false, status: r.status }));
   const ok = !!dob.ok && central && !central.error;
   return json(c, { ok, central, userDO: dob }, ok ? 200 : 500);
@@ -215,11 +219,40 @@ app.post('/admin/import', async c => {
   return json(c, { ok: true, user: u.email, counts: j.counts });
 });
 
+// ---------- public per-user pages: /u/<handle>/... ----------
+// Only this allow-list is forwarded. Anything else under /u/ never reaches a user's database.
+const PUBLIC_PATHS = new Set(['/share', '/book', '/calendar.ics', '/api/share/login', '/api/share/progress', '/api/book/slots', '/api/book']);
+app.get('/u/:handle', c => c.redirect('/u/' + c.req.param('handle') + '/share'));
+app.all('/u/:handle/*', async c => {
+  const handle = String(c.req.param('handle') || '').toLowerCase();
+  const rest = '/' + new URL(c.req.url).pathname.split('/').slice(3).join('/');
+  if (!HANDLE_RE.test(handle) || !PUBLIC_PATHS.has(rest)) return c.text('not found', 404);
+  const u = await c.env.CENTRAL.prepare('SELECT id, handle, display_name FROM users WHERE handle=? AND onboarded=1').bind(handle).first();
+  if (!u) return c.text('not found', 404);
+  const ctx = { role: 'public', userId: u.id, handle: u.handle, displayName: u.display_name, base: '/u/' + u.handle };
+  const r = await userStub(c.env, u.id).fetch(await withCtx(c.req.raw, ctx, rest));
+  const h = new Headers(r.headers);
+  h.set('X-Robots-Tag', 'noindex, nofollow');
+  return new Response(r.body, { status: r.status, headers: h });
+});
+
 // ---------- everything else belongs to the signed-in user ----------
 app.all('*', async c => {
   const req = c.req.raw;
   const path = new URL(req.url).pathname;
   const isApi = path.startsWith('/api/');
+  // API keys: a Bearer header anywhere, or ?key= on the read-only endpoints only (browser
+  // chat cannot set headers). The hash is looked up centrally; the kind decides the role.
+  const bearer = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+  const qkey = (req.method === 'GET' && /^\/api\/read\/(leetcode|jobs|progress)$/.test(path)) ? (new URL(req.url).searchParams.get('key') || '') : '';
+  const presented = bearer || qkey;
+  if (presented) {
+    const row = await c.env.CENTRAL.prepare('SELECT k.kind, u.id, u.handle, u.display_name FROM api_keys k JOIN users u ON u.id=k.user_id WHERE k.key_hash=?')
+      .bind(await sha256hex('key:' + presented)).first();
+    if (!row) return json(c, { error: 'bad key' }, 401);
+    const role = row.kind === 'agent' ? 'agent' : 'read';
+    return userStub(c.env, row.id).fetch(await withCtx(req, { role, userId: row.id, handle: row.handle || '', displayName: row.display_name || '', base: '' }));
+  }
   const user = await sessionUser(c.env.CENTRAL, req);
   if (!user) {
     if (isApi) return json(c, { error: 'unauthorized' }, 401);
@@ -230,7 +263,7 @@ app.all('*', async c => {
     return isApi ? json(c, { error: 'finish setup first' }, 403) : c.redirect('/welcome');
   }
   if (req.method !== 'GET' && req.method !== 'HEAD' && !sameOrigin(req)) return json(c, { error: 'bad origin' }, 403);
-  return userStub(c.env, user.id).fetch(withCtx(req, ownerCtx(user)));
+  return userStub(c.env, user.id).fetch(await withCtx(req, ownerCtx(user)));
 });
 
 export default app;

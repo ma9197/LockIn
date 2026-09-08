@@ -43,7 +43,8 @@ export class UserDO {
     // the app sees the adapter as its database and the context as a binding. The zone is read
     // here (one local row) so every handler can say todayIn(c.env.TZ) without loading config.
     const tzRow = this.ctx.storage.sql.exec("SELECT value FROM settings WHERE key='timezone'").toArray()[0];
-    return this.app.fetch(req, { DB: this.db, CTX: c, STORAGE: this.ctx.storage, TZ: tzRow ? tzRow.value : 'UTC' });
+    // CENTRAL is handed through only so key hashes can be kept in sync for the Worker's lookup
+    return this.app.fetch(req, { DB: this.db, CTX: c, STORAGE: this.ctx.storage, TZ: tzRow ? tzRow.value : 'UTC', CENTRAL: this.env.CENTRAL });
   }
 
   // The setup wizard's one write. Validates everything, then in ONE transaction: settings,

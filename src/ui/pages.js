@@ -23,7 +23,7 @@ export const copy = cfg => copyPage(cfg);
 export const friends = cfg => friendsPage(cfg);
 export const settings = cfg => settingsPage(cfg);
 export const book = cfg => bookPage(cfg);
-export const sharePin = cfg => sharePinPage(cfg.share.title, '');
+export const sharePin = cfg => sharePinPage(cfg, '');
 export const shareOff = () => shareOffPage();
 export const landing = () => landingPage();
 export const signup = () => signupPage();

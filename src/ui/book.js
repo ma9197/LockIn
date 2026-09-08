@@ -13,11 +13,14 @@ export const bookPage = (cfg) => { const who = (cfg && cfg.user && cfg.user.disp
 </div>
 <div id="days"><div class="skel card">Loading…</div></div>
 `, `<script>
+const B=(window.__U&&window.__U.base)||'';
+const OTZ=(window.__U&&window.__U.tz)||'UTC';
+const OTZA=(()=>{try{return new Intl.DateTimeFormat('en-US',{timeZone:OTZ,timeZoneName:'short'}).formatToParts(new Date()).find(p=>p.type==='timeZoneName').value}catch(e){return OTZ}})();
 $('nm').value=localStorage.getItem('lockin_name')||'';
 $('nm').oninput=()=>localStorage.setItem('lockin_name',$('nm').value);
 let MINE=null;
 async function load(){
-const j=await api('/api/book/slots');
+const j=await api(B+'/api/book/slots');
 MINE=j.mine||null;
 if(j.disabled||!j.days.some(d=>d.windows.length)){
 $('days').innerHTML='<div class="card skel">No open windows right now. Check back later. 🔒</div>';return;}
@@ -26,7 +29,7 @@ const skewNote=Math.abs(skewMin)>=5?'<div class="card row" style="border-color:#
 const banner=skewNote+(MINE?'<div class="banner" style="cursor:default"><span style="font-size:20px">🔒</span><div class="grow">'
 +'<b>You already have a booking'+(MINE.name?', '+esc(MINE.name):'')+'</b>'
 +'<div class="tiny">'+(ACT[MINE.activity]||'')+' '+new Date(MINE.start_ts).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'})
-+' · '+fmtR(MINE.start_ts.slice(11,16),MINE.end_ts.slice(11,16))+' ET · '+MINE.status
++' · '+fmtR(MINE.start_ts.slice(11,16),MINE.end_ts.slice(11,16))+' '+OTZA+' · '+MINE.status
 +'. One at a time. Book again after it passes.</div></div></div>':'');
 $('days').innerHTML=banner+j.days.map(d=>{
 if(!d.windows.length)return '';
@@ -39,7 +42,7 @@ const q=w.queue.map((r,ri)=>'<div class="qrow"><span class="rank">#'+(ri+1)+'</s
 +'<b>'+esc(r.name)+'</b><span class="tiny">'+(ACT[r.activity]||'')+' '+esc(r.activity)+'</span>'
 +(r.dur?'<span class="chip" style="padding:2px 9px;font-size:11px">⏱ '+fmtDur(r.dur)+'</span>':'')+'</div>').join('');
 const TZ=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'';
-const isNY=TZ==='America/New_York';
+const isNY=TZ===OTZ;
 const lt=ts=>new Date(ts).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
 const lday=ts=>new Date(ts).toLocaleDateString(undefined,{weekday:'short'});
 const sameDay=new Date(w.startUtc).toLocaleDateString('en-CA')===d.date;
@@ -48,7 +51,7 @@ const timeMain=isNY?fmtR(w.start,w.end):(sameDay?'':lday(w.startUtc)+' ')+lt(w.s
 return '<div class="win">'
 +'<div class="row" style="flex-wrap:wrap">'
 +'<b class="num" style="font:800 16px var(--disp)">'+timeMain+'</b>'
-+'<span class="tiny">'+(isNY?'ET · New York':'your time · '+esc(tzLabel)+' <span style="opacity:.7">('+fmtR(w.start,w.end)+' ET)</span>')+'</span>'
++'<span class="tiny">'+(isNY?OTZA+' · '+esc(OTZ.split('/').pop().replace(/_/g,' ')):'your time · '+esc(tzLabel)+' <span style="opacity:.7">('+fmtR(w.start,w.end)+' '+OTZA+')</span>')+'</span>'
 +'</div>'
 +'<div class="row" style="margin-top:10px;align-items:center">'
 +'<div style="display:flex;flex-direction:column;gap:8px">'
@@ -73,7 +76,7 @@ if(!name){toast('Type your name first 👆');$('nm').focus();return;}
 const wh=document.getElementById(wid);
 const duration=wh?+wh.value:undefined;
 try{
-const j=await api('/api/book',{body:{date,start,end,name,duration,activity:document.getElementById(sid).value}});
+const j=await api(B+'/api/book',{body:{date,start,end,name,duration,activity:document.getElementById(sid).value}});
 toast(j.position===1?'🔥 Booked! You are first in this slot':'Requested. You are #'+j.position+' in line');
 load();}
 catch(e){toast(String(e))}}

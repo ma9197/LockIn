@@ -5,10 +5,10 @@
 //
 // Derived from the single-user index.js by scripts/port-app.mjs.
 import { Hono } from 'hono';
-import { sha256hex, pinHash, setSetting, todayIn, nowIn, localEpoch, isAuthed, loadCfg, normSched, validTz, isLowLoad, SIDE_EMOJI, nextDay, shiftDays, modeForDate, blocksFor, bookableWindows, buildICS, dayBlocks, movesFor, canonName, shareToken } from './helpers.js';
-import { GUIDES, toMarkdown } from './readapi.js';
+import { sha256hex, pinHash, setSetting, todayIn, nowIn, localEpoch, isAuthed, loadCfg, normSched, validTz, isLowLoad, SIDE_EMOJI, nextDay, shiftDays, modeForDate, blocksFor, bookableWindows, buildICS, dayBlocks, movesFor, canonName, shareToken, keyEq } from './helpers.js';
+import { guides, toMarkdown } from './readapi.js';
 import { jobsPage } from './ui/jobs.js';
-import { pinPage, sharePinPage, shareOffPage } from './ui/pin.js';
+import { sharePinPage, shareOffPage } from './ui/pin.js';
 import { dashboardPage } from './ui/dashboard.js';
 import { calendarPage } from './ui/calendar.js';
 import { progressPage } from './ui/progress.js';
@@ -53,15 +53,16 @@ app.get('/book', c => {
 });
 // ---- shared read-only Progress ----
 const shareAuthed = async (c, cfg) =>
-  !!cfg.share.pinHash && isAuthed(c, await shareToken(cfg.share.pinHash), 'lockin_share');
+  !!cfg.share.pinHash && isAuthed(c, await shareToken(c.env.CTX.userId, cfg.share.pinHash), 'lockin_share');
 app.get('/share', async c => {
   const cfg = await loadCfg(c.env.DB);
+  cfg.user = c.env.CTX;
   if (!cfg.share.pinHash) return c.html(shareOffPage());
   if (!getDevice(c)) {
     const id = [...crypto.getRandomValues(new Uint8Array(12))].map(x => x.toString(16).padStart(2, '0')).join('');
     c.header('Set-Cookie', `lockin_dev=${id}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000`);
   }
-  if (!(await shareAuthed(c, cfg))) return c.html(sharePinPage(cfg.share.title, ''));
+  if (!(await shareAuthed(c, cfg))) return c.html(sharePinPage(cfg, ''));
   return c.html(progressPage(cfg, { share: true }));
 });
 app.get('/manifest.json', c => c.json({
@@ -116,7 +117,7 @@ app.post('/api/share/login', async c => {
     return json(c, { error: `Too many attempts. Try again in ${mins} min.` }, 429);
   }
   const { pin } = await c.req.json().catch(() => ({}));
-  if (!pin || (await pinHash(String(pin))) !== cfg.share.pinHash) {
+  if (!pin || (await pinHash(c.env.CTX.userId + ':' + String(pin))) !== cfg.share.pinHash) {
     const fails = ((gate && gate.until ? 0 : (gate ? gate.fails : 0)) || 0) + 1;
     const until = fails >= 5 ? new Date(now + 15 * 60000).toISOString() : null;
     await db.prepare(`INSERT INTO share_gate (device,fails,until) VALUES (?,?,?)
@@ -124,8 +125,8 @@ app.post('/api/share/login', async c => {
     return json(c, { error: until ? 'Too many attempts. Try again in 15 min.' : 'wrong pin' }, until ? 429 : 401);
   }
   await db.prepare('DELETE FROM share_gate WHERE device=?').bind(dev).run();
-  const tok = await shareToken(cfg.share.pinHash);
-  c.header('Set-Cookie', `lockin_share=${tok}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=15552000`);
+  const tok = await shareToken(c.env.CTX.userId, cfg.share.pinHash);
+  c.header('Set-Cookie', `lockin_share=${tok}; Path=${c.env.CTX.base || '/'}; HttpOnly; Secure; SameSite=Lax; Max-Age=15552000`);
   return json(c, { ok: true });
 });
 // hidden blocks are stripped server side, so they never reach the browser at all
@@ -646,6 +647,7 @@ app.delete('/api/jobs/:id', async c => {
 app.post('/api/apikey/regen', async c => {
   const key = 'lockin_' + [...crypto.getRandomValues(new Uint8Array(18))].map(x => x.toString(16).padStart(2, '0')).join('');
   await setSetting(c.env.DB, 'api_key', key);
+  await syncKey(c, 'agent', key);
   return json(c, { ok: true, apiKey: key });
 });
 
@@ -1100,6 +1102,12 @@ app.delete('/api/sessions/:id', async c => {
 });
 
 // ---- settings ----
+// central lookup row for a key: the Worker maps sha256('key:'+presented) -> user + kind
+const syncKey = async (c, kind, key) => {
+  if (!c.env.CENTRAL || !key) return;
+  await c.env.CENTRAL.prepare('INSERT INTO api_keys (user_id, kind, key_hash) VALUES (?,?,?) ON CONFLICT(user_id, kind) DO UPDATE SET key_hash=excluded.key_hash')
+    .bind(c.env.CTX.userId, kind, await sha256hex('key:' + key)).run();
+};
 app.get('/api/settings', async c => {
   const cfg = c.get('cfg');
   const host = new URL(c.req.url).origin;
@@ -1112,6 +1120,8 @@ app.get('/api/settings', async c => {
   const apiKey = await mint('api_key', cfg.apiKey, 'lockin_', 18);
   const readKey = await mint('read_key', cfg.readKey, 'lockin_read_', 18);
   const icsToken = await mint('ics_token', cfg.icsToken, '', 12);
+  await syncKey(c, 'agent', apiKey); await syncKey(c, 'read', readKey);
+  const pub = host + '/u/' + (cfg.user && cfg.user.handle || '');
   const readUrl = n => `${host}/api/read/${n}?key=${readKey}`;
   const sideTasks = (await c.env.DB.prepare('SELECT * FROM side_tasks ORDER BY sort, id').all()).results;
   return json(c, {
@@ -1126,8 +1136,8 @@ app.get('/api/settings', async c => {
     timerDefault: cfg.timerDefault, timerOptions: cfg.timerOptions, streakCategory: cfg.streakCategory,
     categories: cfg.allCategories, sideTasks, phases: cfg.phases, sideEmoji: SIDE_EMOJI,
     clock: cfg.clock, mclock: cfg.mclock, jobPlatforms: cfg.jobPlatforms, todayLayout: cfg.todayLayout,
-    icsUrl: `${host}/calendar.ics?token=${icsToken}`,
-    shareUrl: `${host}/share`, share: { ...cfg.share, pinHash: undefined, isOn: !!cfg.share.pinHash },
+    icsUrl: pub + '/calendar.ics?token=' + icsToken,
+    shareUrl: pub + '/share', bookUrl: pub + '/book', share: { ...cfg.share, pinHash: undefined, isOn: !!cfg.share.pinHash },
   });
 });
 app.post('/api/settings', async c => {
@@ -1154,7 +1164,7 @@ app.post('/api/settings', async c => {
     // an empty PIN turns sharing off; either way the derived cookie changes, so friends re-enter it
     if (!b.sharePin) await setSetting(db, 'share_pin_hash', '');
     else if (String(b.sharePin).length < 4) return json(c, { error: 'share PIN must be at least 4 characters' }, 400);
-    else await setSetting(db, 'share_pin_hash', await pinHash(String(b.sharePin)));
+    else await setSetting(db, 'share_pin_hash', await pinHash(c.env.CTX.userId + ':' + String(b.sharePin)));
   }
   if (b.shareTitle !== undefined) await setSetting(db, 'share_title', String(b.shareTitle).trim().slice(0, 60) || 'My grind');
   for (const [k, key] of [['shareOverview', 'share_overview'], ['shareLc', 'share_lc'], ['shareGrind', 'share_grind'],
@@ -1201,6 +1211,7 @@ app.post('/api/settings', async c => {
 app.post('/api/readkey/regen', async c => {
   const key = 'lockin_read_' + [...crypto.getRandomValues(new Uint8Array(18))].map(x => x.toString(16).padStart(2, '0')).join('');
   await setSetting(c.env.DB, 'read_key', key);
+  await syncKey(c, 'read', key);
   const host = new URL(c.req.url).origin;
   return json(c, { ok: true, readKey: key,
     readEndpoints: { leetcode: `${host}/api/read/leetcode?key=${key}`, jobs: `${host}/api/read/jobs?key=${key}`, progress: `${host}/api/read/progress?key=${key}` } });
@@ -1209,7 +1220,7 @@ app.post('/api/ics/regen', async c => {
   const tok = [...crypto.getRandomValues(new Uint8Array(12))].map(x => x.toString(16).padStart(2, '0')).join('');
   await setSetting(c.env.DB, 'ics_token', tok);
   const host = new URL(c.req.url).origin;
-  return json(c, { ok: true, icsUrl: `${host}/calendar.ics?token=${tok}` });
+  return json(c, { ok: true, icsUrl: `${host}/u/${c.env.CTX.handle}/calendar.ics?token=${tok}` });
 });
 
 // ---- public booking ----
@@ -1278,10 +1289,10 @@ app.post('/api/book', async c => {
     WHERE device_id=? AND status IN ('requested','confirmed') AND end_ts >= ?`).bind(dev, nowTs).first();
   if (activeMine) return json(c, { error: 'one booking at a time. You can book again after your current one passes' }, 429);
   const attempts = await db.prepare(`SELECT COUNT(*) n FROM sessions WHERE device_id=? AND date(created_at) = date('now')`).bind(dev).first();
-  if (attempts.n >= 2) return json(c, { error: 'too many requests today from this phone. Try tomorrow' }, 429);
+  if (attempts.n >= cfg.bookingPerDevice) return json(c, { error: 'too many requests today from this phone. Try tomorrow' }, 429);
   const qlen = await db.prepare(`SELECT COUNT(*) n FROM sessions WHERE date(start_ts)=? AND time(start_ts)=? AND status IN ('requested','confirmed')`)
     .bind(b.date, b.start + ':00').first();
-  if (qlen.n >= 4) return json(c, { error: 'this slot queue is full' }, 429);
+  if (qlen.n >= cfg.bookingPerSlot) return json(c, { error: 'this slot queue is full' }, 429);
   const dup = await db.prepare(`SELECT s.id FROM sessions s JOIN session_friends f ON f.session_id=s.id
     WHERE date(s.start_ts)=? AND time(s.start_ts)=? AND f.friend_name=? AND s.status IN ('requested','confirmed')`)
     .bind(b.date, b.start + ':00', name).first();
@@ -1289,7 +1300,7 @@ app.post('/api/book', async c => {
   // requested duration: 30 / 60 / 120 / 180 min, capped by the window length
   const hm2min = hm => { const [x, y] = hm.split(':').map(Number); return x * 60 + y; };
   const winLen = hm2min(b.end) - hm2min(b.start);
-  const dur = [30, 60, 120, 180].includes(+b.duration) ? Math.min(+b.duration, winLen) : winLen;
+  const dur = cfg.bookingDurations.includes(+b.duration) ? Math.min(+b.duration, winLen) : winLen;
   const endMin = hm2min(b.start) + dur;
   const endHM = String(Math.floor(endMin / 60)).padStart(2, '0') + ':' + String(endMin % 60).padStart(2, '0');
   const r = await db.prepare('INSERT INTO sessions (start_ts,end_ts,activity,note,status,created_by,device_id) VALUES (?,?,?,?,?,?,?)')
@@ -1360,7 +1371,7 @@ app.get('/api/read/leetcode', async c => {
   const p = await buildProgress(db, c.get('cfg'));
   const { problems: _drop1, days: _drop2, ...totals } = p.lc;
   return readRes(c, {
-    guide: GUIDES.leetcode,
+    guide: guides(c.get('cfg')).leetcode,
     meta: readMeta('leetcode', today, p.plan, P, c.get('cfg').tz),
     total, returned: rows.length,
     stats: {
@@ -1393,7 +1404,7 @@ app.get('/api/read/jobs', async c => {
     .bind(...vals, P.limit === null ? -1 : P.limit, P.offset).all()).results;
   const p = await buildProgress(db, c.get('cfg'));
   return readRes(c, {
-    guide: GUIDES.jobs,
+    guide: guides(c.get('cfg')).jobs,
     meta: { ...readMeta('jobs', today, p.plan, P, c.get('cfg').tz),
       filters: { status: st || null, company: q('company') || null, q: q('q') || null, date: q('date') || null } },
     total, returned: rows.length,
@@ -1437,7 +1448,7 @@ app.get('/api/read/progress', async c => {
   const total = (await db.prepare("SELECT COUNT(DISTINCT date) n FROM daily_goals WHERE date>=? AND date<=?"
     + (P.since ? ' AND date>=?' : '')).bind(p.plan ? p.plan.start : '0001-01-01', today, ...(P.since ? [P.since] : [])).first()).n;
   return readRes(c, {
-    guide: GUIDES.progress,
+    guide: guides(c.get('cfg')).progress,
     meta: { ...readMeta('progress', today, p.plan, P, c.get('cfg').tz), clipped },
     total, returned: (stats.history.leetcode || []).length + (stats.history.apps || []).length,
     stats,
@@ -1600,7 +1611,7 @@ app.delete('/api/task/:id', async c => {
 app.get('/calendar.ics', async c => {
   const db = c.env.DB;
   const cfg = await loadCfg(db);
-  if (!cfg.icsToken || c.req.query('token') !== cfg.icsToken) return c.text('forbidden', 403);
+  if (!cfg.icsToken || !(await keyEq(c.req.query('token') || '', cfg.icsToken))) return c.text('forbidden', 403);
   const ics = await buildICS(db, cfg);
   return c.body(ics, 200, { 'Content-Type': 'text/calendar; charset=utf-8', 'Content-Disposition': 'attachment; filename="lockin.ics"' });
 });

@@ -27,7 +27,7 @@ export const friendsPage = (cfg) => shell('LockIn · Friends', '/friends', `
 <div id="hist"></div>
 `, `<script>
 $('m-date').value=todayU();
-$('copyLink').onclick=()=>{navigator.clipboard.writeText(location.origin+'/book');toast('Link copied');};
+$('copyLink').onclick=()=>{navigator.clipboard.writeText(location.origin+'/u/'+((window.__U&&window.__U.handle)||'')+'/book');toast('Link copied');};
 let SES=[];
 const fmtD=ds=>new Date(ds+'T12:00:00Z').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});
 const avatars=names=>(names||'').split(',').map(s=>s.trim()).filter(Boolean).map(avatar).join('');

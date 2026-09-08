@@ -17,17 +17,24 @@ const SHARED_PARAMS = {
 
 const SHARED_ENVELOPE = {
   guide: 'This object. Static, it never changes between requests.',
-  meta: 'Which endpoint answered, today\'s date in New York, the plan window, and the params that were applied.',
+  meta: 'Which endpoint answered, today\'s date in the user\'s zone, the plan window, and the params that were applied.',
   total: 'Row count computed in SQL with the same since filter, ignoring limit and offset. This is the true size of the dataset.',
   returned: 'How many rows are actually in the rows array. If returned is less than total you are looking at a slice, so say so rather than reporting the slice as the whole picture.',
   stats: 'Pre-computed numbers, produced by the exact same code that renders the site. Prefer these over recomputing from rows.',
   rows: 'The raw records.',
 };
 
-const TZ = 'America/New_York. Every date is New York local wall time in YYYY-MM-DD form. Do not convert to UTC, and do not assume the reader is in another zone.';
-const PLAN = 'The grind plan runs 2026-08-26 to 2026-12-15. Anything before Aug 26 is seed data and should be ignored.';
-
-export const GUIDES = {
+// Built per request from the user's config, so the prose never contradicts the data.
+export const guides = cfg => {
+  const tz = (cfg && cfg.tz) || 'UTC';
+  const TZ = tz + '. Every date is local wall time in that zone, YYYY-MM-DD form. Do not convert to UTC, and do not assume the reader is in another zone.';
+  const plan = cfg && cfg.plan;
+  const START = plan ? plan.start : 'the start';
+  const END = plan ? plan.end : 'the end of the plan';
+  const PLAN = plan ? ('The grind plan runs ' + plan.start + ' to ' + plan.end + '. Days before the start are outside the plan.')
+    : 'No plan window is set. pace, plan and consistency fields are null and "since the plan started" filters cover all history.';
+  const CATS = ((cfg && cfg.categories) || []).map(c => c.key + ' = ' + c.name).join(', ') || 'none configured';
+  return {
   leetcode: {
     about: 'Read-only snapshot of this user\'s LeetCode practice log: every timed attempt, one rollup per problem, and the same headline numbers the LockIn Progress tab shows. Nothing here can be written to.',
     timezone: TZ,
@@ -49,7 +56,7 @@ export const GUIDES = {
       'Off days zero that day\'s goal, which makes them neutral for the streak, because the streak only walks rows where goal > 0.',
       'The streak skips today when today\'s goal is not met yet, so it never reads as broken in the middle of a day.',
       'stats.consistency stops at yesterday. A day still in progress is not a miss.',
-      'stats.plan is a FORECAST for 2026-12-15, not a debt owed today. It carries the rate so far forward. stats.pace is the card that answers where things stand today.',
+      'stats.plan is a FORECAST for ' + END + ', not a debt owed today. It carries the rate so far forward. stats.pace is the card that answers where things stand today.',
     ],
     fields: {
       'total': 'Number of attempt ROWS, not problems.',
@@ -63,8 +70,8 @@ export const GUIDES = {
       'stats.totals.total': 'Attempt rows that reached an answer (solved or slow). This is the sample size behind the averages, NOT a problem count.',
       'stats.totals.attempts': 'Attempt rows that were abandoned.',
       'stats.totals.avgNow / avgPrev': 'Average solve minutes over the last 7 days versus the 7 before that. Lower is better.',
-      'stats.pace': 'done vs target since Aug 26. diff negative means behind.',
-      'stats.plan': 'elapsed and left are days. lc is the total problems the whole plan asks for by Dec 15.',
+      'stats.pace': 'done vs target since ' + START + '. diff negative means behind.',
+      'stats.plan': 'elapsed and left are days. lc is the total problems the whole plan asks for by ' + END + '.',
       'stats.consistency': 'days = days that had a goal, hit = days the goal was met.',
       'stats.daily[]': 'The day counter per date: g = goal, v = attempts logged that day.',
       'stats.last30[]': 'Last 30 days: v = attempts logged, g = that day\'s goal, hit = whether the goal was met.',
@@ -95,7 +102,7 @@ export const GUIDES = {
       'funnel.heardBack is the total minus the rows still sitting at status "applied". The response rate is heardBack / applied.',
       'There are three job counts and they can disagree. total is SQL COUNT of the jobs table. jobsMeta.total is the same number. stats.pace.done comes from the daily counter and can be HIGHER, because deleting a job on a day whose counter is already 0 cannot go negative. Trust total for "how many applications exist".',
       'stats.consistency stops at yesterday. A day still in progress is not a miss.',
-      'stats.plan is a FORECAST for 2026-12-15 at the current rate, not a debt owed today.',
+      'stats.plan is a FORECAST for ' + END + ' at the current rate, not a debt owed today.',
     ],
     fields: {
       'total': 'Number of job rows matching the filters.',
@@ -104,8 +111,8 @@ export const GUIDES = {
       'rows[].url': 'The posting link. Often dead for older rows, postings expire.',
       'stats.funnel': 'applied / oa / interview / offer / rejected / heardBack. See the counting rules, the stages are cumulative.',
       'stats.byPlatform[]': 'p = platform name, n = applications sent there.',
-      'stats.pace': 'done vs target since Aug 26. diff positive means ahead of plan.',
-      'stats.plan': 'apps is the total applications the whole plan asks for by Dec 15.',
+      'stats.pace': 'done vs target since ' + START + '. diff positive means ahead of plan.',
+      'stats.plan': 'apps is the total applications the whole plan asks for by ' + END + '.',
       'stats.jobsMeta.lastDate': 'Date of the most recent application. Use it against meta.today to say how many days it has been.',
       'stats.history[]': 'Applications per day: g = goal, v = sent.',
       'stats.last30[]': 'Last 30 days, same shape.',
@@ -116,13 +123,13 @@ export const GUIDES = {
   },
 
   progress: {
-    about: 'Read-only snapshot of the whole LockIn progress dataset: grind hours, streak, pace against the plan, the Dec 15 forecast, weekday patterns, records and off days. This is byte-for-byte what the Progress tab renders, so any number here can be quoted back with confidence. Nothing here can be written to.',
+    about: 'Read-only snapshot of the whole LockIn progress dataset: grind hours, streak, pace against the plan, the ' + END + ' forecast, weekday patterns, records and off days. This is byte-for-byte what the Progress tab renders, so any number here can be quoted back with confidence. Nothing here can be written to.',
     timezone: TZ,
     planWindow: PLAN,
     envelope: { ...SHARED_ENVELOPE, rows: 'Not used by this endpoint. The data is entirely in stats.' },
     params: SHARED_PARAMS,
     enums: {
-      'grind task': 'apps, leetcode, course or other. These are the modules a grind block gets split across.',
+      'grind task': 'A category key. This user\'s categories: ' + CATS + '. These are what a grind block gets split across.',
       'grind.dow[].w': '0 = Sunday through 6 = Saturday.',
     },
     countingRules: [
@@ -130,7 +137,7 @@ export const GUIDES = {
       'Overtime is time worked BEYOND the block that was planned, with pause already excluded. It is not the same as total hours.',
       'The streak walks leetcode goal rows newest first, skipping today when today\'s goal is not met yet, and stops at the first miss. Off days have their goal zeroed so they are skipped, not counted as misses.',
       'pace.leetcode.done counts DISTINCT PROBLEMS whose latest attempt was a clean solve. It is not a count of attempt rows. totalLC uses the same rule, so the two agree.',
-      'plan is a FORECAST for 2026-12-15 carrying the current rate forward. plan.lc and plan.apps are what the whole plan asks for by then, not what is owed today. pace is the card that answers today.',
+      'plan is a FORECAST for ' + END + ' carrying the current rate forward. plan.lc and plan.apps are what the whole plan asks for by then, not what is owed today. pace is the card that answers today.',
       'consistency stops at yesterday. A day still in progress is not a miss.',
       'grind.targetDays counts days that reached the 6 hour target, out of grind.days checked in.',
     ],
@@ -158,6 +165,7 @@ export const GUIDES = {
       'There is no write endpoint on this key.',
     ],
   },
+  };
 };
 
 // ---------- plain-text renderer ----------
