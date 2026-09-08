@@ -239,7 +239,7 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
 .nav a.on{color:var(--ember)}
 .nav svg{display:block;margin:0 auto 3px}
 .side{display:none}
-.logo{font:900 20px var(--disp);letter-spacing:-.02em}
+.logo,a.logo{font:900 20px var(--disp);letter-spacing:-.02em;color:var(--ink)}
 .logo em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
 
 /* ---------- tasks ---------- */

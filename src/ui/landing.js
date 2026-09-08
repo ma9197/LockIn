@@ -212,9 +212,21 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .ld-fc .n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--grad);color:#1A0D05;font:900 15px var(--disp);margin-bottom:14px}
 .ld-fc b{display:block;font:800 17px var(--disp);margin-bottom:6px}
 .ld-fc p{color:var(--ink2);font-size:14px;line-height:1.55}
-.ld-steps{display:grid;gap:0;margin-top:14px;border-top:1px solid var(--line)}
-.ld-steps span{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font:600 13px var(--body);color:var(--ink2)}
-.ld-steps span b{flex:none;width:22px;height:22px;border-radius:7px;background:var(--surface2);border:1px solid var(--line2);color:var(--ember);font:800 11px var(--disp);display:inline-flex;align-items:center;justify-content:center}
+/* the seven wizard screens as a path that snakes under the three cards */
+.snake{list-style:none;display:grid;grid-template-columns:1fr;gap:30px 26px;margin:34px 0 0;padding:0}
+.snake li{position:relative;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 16px;font:700 14px var(--body);color:var(--ink)}
+.snake li b{flex:none;width:28px;height:28px;border-radius:9px;background:var(--grad);color:#1A0D05;font:900 13px var(--disp);display:inline-flex;align-items:center;justify-content:center}
+.snake li::after{position:absolute;color:var(--ember);font:900 18px var(--disp);line-height:1}
+.snake li:not(:last-child)::after{content:'↓';left:50%;bottom:-26px;transform:translateX(-50%)}
+@media(min-width:700px){
+  .snake{grid-template-columns:repeat(4,1fr)}
+  .snake .s1{grid-area:1/1}.snake .s2{grid-area:1/2}.snake .s3{grid-area:1/3}.snake .s4{grid-area:1/4}
+  .snake .s5{grid-area:2/4}.snake .s6{grid-area:2/3}.snake .s7{grid-area:2/2}
+  .snake li.s1::after,.snake li.s2::after,.snake li.s3::after{content:'→';left:auto;right:-23px;bottom:auto;top:50%;transform:translateY(-50%)}
+  .snake li.s4::after{content:'↓';left:50%;right:auto;bottom:-26px;top:auto;transform:translateX(-50%)}
+  .snake li.s5::after,.snake li.s6::after{content:'←';left:-23px;right:auto;bottom:auto;top:50%;transform:translateY(-50%)}
+  .snake li.s7::after{content:none}
+}
 .ld-shape{display:grid;gap:12px;margin-top:28px}
 @media(min-width:700px){.ld-shape{grid-template-columns:repeat(3,1fr);gap:16px}}
 .ld-sh{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start}
@@ -247,7 +259,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 
 <section class="ld-hero">
   <span class="ld-eyebrow">🎓 For CS students on the job hunt</span>
-  <h1 class="ld-h1">Lock in. Track the grind. <em>Land the offer.</em></h1>
+  <h1 class="ld-h1">Lock in. Track the grind. <em>Land your Goal.</em></h1>
   <p class="ld-lead">Daily goals for every category you grind, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, schedule blocks that step around your gym and classes, streaks, pace against your plan and a finish-line forecast. <b>Phone first, laptop ready.</b></p>
   <div class="ld-cta"><a class="ld-btn pri big" href="/signup">Create your account</a><a class="ld-btn big" href="#tour">See every tab ↓</a></div>
   <div class="ld-trust"><span><i></i>Free</span><span><i></i>Open source, MIT</span><span><i></i>Your own private database</span><span><i></i>Set up in three minutes</span></div>
@@ -302,7 +314,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   <div class="tabpane on ld-panel" id="ldp-lc">
     <div class="ld-two">
       <div>
-        <div class="row" style="margin-bottom:12px"><b style="font:800 17px var(--disp)" class="grow">Attempts</b><button class="pri sm" data-act="log">＋ Log attempt</button></div>
+        <div class="row" style="margin-bottom:12px"><b style="font:800 17px var(--disp)" class="grow">Attempts</b><span class="tiny">newest first</span></div>
         <div class="tiny" style="margin-bottom:8px">Come back to these</div>
         <div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:14px"><span class="chip">${outb(2)} Coin Change <span class="tiny">×2 · 48m</span></span><span class="chip">${outb(0)} LRU Cache <span class="tiny">×1 · 25m</span></span></div>
         <div id="ldLcRows">${LC.map(lcRow).join('')}</div>
@@ -415,9 +427,10 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
   <p class="ld-sub">Nothing is seeded and nothing is assumed. The wizard builds your plan, your categories and your schedule, and every answer can be changed later in Settings.</p>
   <div class="ld-feat rv">
     <div class="ld-fc"><span class="n">1</span><b>Create an account</b><p>Email and password. No social sign-in, no tracking, no newsletter.</p></div>
-    <div class="ld-fc"><span class="n">2</span><b>Set up in seven steps</b><p>Each one is a single screen with a live preview.</p><div class="ld-steps">${STEP_NAMES.map((s, i) => `<span><b>${i + 1}</b>${s}</span>`).join('')}</div></div>
+    <div class="ld-fc"><span class="n">2</span><b>Set up in seven steps</b><p>Each one is a single screen with a live preview. The seven screens run in the order shown below.</p></div>
     <div class="ld-fc"><span class="n">3</span><b>Open Today</b><p>Your goals, your blocks, your timer. Log a problem, press + on a ring, check in to a block. The streak starts counting.</p></div>
   </div>
+  <ol class="snake rv" aria-label="the seven setup screens, in order">${STEP_NAMES.map((s, i) => `<li class="s${i + 1}"><b>${i + 1}</b><span>${s}</span></li>`).join('')}</ol>
 </section>
 
 <section class="ld-sec">
