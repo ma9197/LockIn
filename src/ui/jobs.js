@@ -17,17 +17,17 @@ export const jobsPage = (cfg) => shell('LockIn · Jobs', '/jobs', `
   <div class="disc" id="addDisc" onclick="document.getElementById('addForm').classList.toggle('hide');this.querySelector('.tl2-x').classList.toggle('open')">
     <span class="tile">➕</span><div class="who"><b>Add application</b><div class="tiny">Title and company are enough. Counts toward today's goal.</div></div><span class="tl2-x">›</span>
   </div>
-  <div id="addForm" class="hide" style="margin-top:18px">
+  <div id="addForm" class="hide" style="margin-top:20px">
     <div class="fgrid">
       <div><label class="fld">Job title *</label><input id="j-title" placeholder="Software Engineer, New Grad"></div>
       <div><label class="fld">Company *</label><input id="j-company" placeholder="Stripe"></div>
       <div><label class="fld">Salary</label><input id="j-salary" placeholder="$120k or range"></div>
       <div><label class="fld">Location</label><input id="j-location" placeholder="NYC / Remote"></div>
       <div><label class="fld">Platform</label><select id="j-platform" onchange="platChange()"></select>
-      <input id="j-platform-other" placeholder="Where from?" style="display:none;margin-top:6px"></div>
+      <input id="j-platform-other" placeholder="Where from?" style="display:none;margin-top:8px"></div>
       <div><label class="fld">Applied date</label><input id="j-date" type="date"></div>
     </div>
-    <div class="fg" style="margin-top:14px"><label class="fld">Link to posting</label><input id="j-url" placeholder="https://…"></div>
+    <div class="fg" style="margin-top:16px"><label class="fld">Link to posting</label><input id="j-url" placeholder="https://…"></div>
     <button class="pri" style="width:100%;margin-top:16px" onclick="addJob()">Add · +1 to counter</button>
   </div>
 </div>
@@ -35,11 +35,11 @@ export const jobsPage = (cfg) => shell('LockIn · Jobs', '/jobs', `
   <h2>Applications</h2>
   <span class="tiny num" id="jCount"></span>
 </div>
-<div class="row" style="margin-bottom:10px;gap:8px">
+<div class="row" style="margin-bottom:12px;gap:8px">
   <input id="jSearch" class="grow" autocomplete="off" placeholder="🔍 Search job title or company">
   <button class="ghost sm" id="jClear" style="display:none">✕ Clear</button>
 </div>
-<div class="row" id="jFilters" style="flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
+<div class="row" id="jFilters" style="flex-wrap:wrap;gap:8px;margin-bottom:12px"></div>
 <div class="card jwrap" id="list"><div class="skel">Loading…</div></div>
 <p class="hint">🤖 An agent can log applications here for you. The key is in <a href="/settings#api">Settings → Integrations</a>.</p>
 <div id="modalHost"></div>

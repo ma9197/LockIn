@@ -8,8 +8,8 @@ export const calendarPage = (cfg) => shell('LockIn · Calendar', '/calendar', `
   <button class="dh-btn" onclick="nav(1)" aria-label="Next month">›</button></div>
 </div>
 <div class="race" id="race"></div>
-<div class="cal-grid" style="margin-top:18px" id="dows"></div>
-<div class="cal-grid" id="grid" style="margin-top:5px"><div class="skel" style="grid-column:1/-1">Loading…</div></div>
+<div class="cal-grid" style="margin-top:20px" id="dows"></div>
+<div class="cal-grid" id="grid" style="margin-top:4px"><div class="skel" style="grid-column:1/-1">Loading…</div></div>
 <div class="leg" id="legend"></div>
 `, `<script>
 const TODAY=todayU();

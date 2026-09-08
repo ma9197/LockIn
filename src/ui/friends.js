@@ -4,7 +4,7 @@ export const friendsPage = (cfg) => shell('LockIn · Friends', '/friends', `
 <div class="ph">
   <div class="ph-t"><h1>Friends</h1><p class="ph-d">Requests from your booking page, the sessions you confirmed, and a log of who you spent time with.</p></div>
 </div>
-<div class="card" style="margin-top:14px">
+<div class="card" style="margin-top:16px">
   <div class="ihead"><span class="tile">🔗</span><div class="who"><b>Booking link</b><div class="tiny">Send it to friends. They grab your free windows there.</div></div><button class="sm" id="copyLink">Copy link</button></div>
 </div>
 <div class="sech"><h2>Requests</h2><span id="reqN" class="pill" style="background:var(--rose);color:#fff;display:none"></span></div>
@@ -19,7 +19,7 @@ export const friendsPage = (cfg) => shell('LockIn · Friends', '/friends', `
     <div><label class="fld">Start</label><input id="m-start" type="time" value="12:00"></div>
     <div><label class="fld">End</label><input id="m-end" type="time" value="15:00"></div>
   </div>
-  <div class="fg" style="margin-top:14px"><label class="fld">Who (comma separated)</label><input id="m-names" placeholder="Alex, Sam"></div>
+  <div class="fg" style="margin-top:16px"><label class="fld">Who (comma separated)</label><input id="m-names" placeholder="Alex, Sam"></div>
   <div class="fg"><label class="fld">Note</label><input id="m-note" placeholder="optional"></div>
   <button class="pri" style="width:100%;margin-top:16px" onclick="logManual()">Log session as done</button>
 </div>
@@ -72,7 +72,7 @@ el.innerHTML='<div class="editor"><div class="fgrid">'
 +'<label class="fld">Who (comma separated)</label><input id="e-names-'+id+'" value="'+esc(s.names||'')+'">'
 +'<label class="fld">Status</label><select id="e-status-'+id+'">'
 +['requested','confirmed','done','declined'].map(a=>'<option '+(s.status===a?'selected':'')+'>'+a+'</option>').join('')+'</select>'
-+'<div class="row" style="margin-top:14px">'
++'<div class="row" style="margin-top:16px">'
 +'<button class="pri grow" onclick="saveEd('+id+')">Save</button>'
 +'<button onclick="openEd('+id+')">Cancel</button>'
 +'<button class="rose" onclick="delSes('+id+')">Delete</button></div></div>';}

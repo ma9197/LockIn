@@ -1,19 +1,19 @@
 import { shell } from './theme.js';
 
 export const bookPage = (cfg) => { const who = (cfg && cfg.user && cfg.user.displayName) || 'me'; return shell('Book time with ' + who, null, `
-<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:18px}
-.win{background:var(--surface2);border:1px solid var(--line2);border-left:4px solid var(--ice);border-radius:14px;padding:14px;margin:12px 0}
+<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:20px}
+.win{background:var(--surface2);border:1px solid var(--line2);border-left:4px solid var(--ice);border-radius:12px;padding:16px;margin:12px 0}
 .win select{background:var(--well)}</style>
 <div class="bgfx" aria-hidden="true"><i></i></div>
 <div class="pub">
   <div class="pub-hd">
-    <a class="logo" href="/" style="display:block;font-size:22px;margin-bottom:14px">LOCK<em>IN</em> 🔥</a>
+    <a class="logo" href="/" style="display:block;font-size:24px;margin-bottom:16px">LOCK<em>IN</em> 🔥</a>
     <span class="tile">🎮</span>
     <h1>Book time with ${who}</h1>
     <p>These are the free windows in a busy schedule. First come, first served: you can still join a taken slot, you are just next in line.</p>
   </div>
-  <div class="card" style="margin-top:18px">
-    <div class="ihead"><span class="tile">👤</span><div class="who"><label class="fld" for="nm" style="margin:0 0 6px">Your name</label><input id="nm" placeholder="So they know who booked" aria-label="Your name"></div></div>
+  <div class="card" style="margin-top:20px">
+    <div class="ihead"><span class="tile">👤</span><div class="who"><label class="fld" for="nm" style="margin:0 0 8px">Your name</label><input id="nm" placeholder="So they know who booked" aria-label="Your name"></div></div>
   </div>
   <div id="days"><div class="skel">Loading…</div></div>
   <p class="foot"><a href="/">Made with LockIn</a> · a grind tracker for CS students</p>
@@ -29,7 +29,7 @@ async function load(){
 const j=await api(B+'/api/book/slots');
 MINE=j.mine||null;
 if(j.disabled||!j.days.some(d=>d.windows.length)){
-$('days').innerHTML='<div class="empty" style="margin-top:14px"><b>No open windows right now</b>Everything bookable is taken or the calendar is closed for a while. Check back later.</div>';return;}
+$('days').innerHTML='<div class="empty" style="margin-top:16px"><b>No open windows right now</b>Everything bookable is taken or the calendar is closed for a while. Check back later.</div>';return;}
 const skewMin=j.serverNow?Math.round((Date.now()-j.serverNow)/60000):0;
 const skewNote=Math.abs(skewMin)>=5?'<div class="card row" style="border-color:#FFB34755"><span>⏰</span><div class="tiny grow">Heads up: your device clock looks off by about '+Math.abs(skewMin)+' minutes. Slot times shown are still correct, they follow your time zone, not your clock.</div></div>':'';
 const banner=skewNote+(MINE?'<div class="banner" style="cursor:default"><span style="font-size:20px">🔒</span><div class="grow">'
@@ -46,7 +46,7 @@ const winLen=hmMin(w.end)-hmMin(w.start)+(w.end<w.start?1440:0);
 const opts=[30,60,120,180].filter(m=>m<=winLen);
 const q=w.queue.map((r,ri)=>'<div class="qrow"><span class="rank">#'+(ri+1)+'</span>'+avatar(r.name)
 +'<b>'+esc(r.name)+'</b><span class="tiny">'+(ACT[r.activity]||'')+' '+esc(r.activity)+'</span>'
-+(r.dur?'<span class="chip" style="padding:2px 9px;font-size:11px">⏱ '+fmtDur(r.dur)+'</span>':'')+'</div>').join('');
++(r.dur?'<span class="chip" style="padding:2px 8px;font-size:11px">⏱ '+fmtDur(r.dur)+'</span>':'')+'</div>').join('');
 const TZ=(Intl.DateTimeFormat().resolvedOptions().timeZone)||'';
 const isNY=TZ===OTZ;
 const lt=ts=>new Date(ts).toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
@@ -59,7 +59,7 @@ return '<div class="win">'
 +'<b class="num" style="font:800 16px var(--disp)">'+timeMain+'</b>'
 +'<span class="tiny">'+(isNY?OTZA+' · '+esc(OTZ.split('/').pop().replace(/_/g,' ')):'your time · '+esc(tzLabel)+' <span style="opacity:.7">('+fmtR(w.start,w.end)+' '+OTZA+')</span>')+'</span>'
 +'</div>'
-+'<div class="row" style="margin-top:10px;align-items:center">'
++'<div class="row" style="margin-top:12px;align-items:center">'
 +'<div style="display:flex;flex-direction:column;gap:8px">'
 +'<select id="'+sid+'" style="width:auto" aria-label="activity">'
 +'<option value="game">🎮 game</option><option value="talk">💬 talk</option><option value="task">📋 task</option><option value="other">✨ other</option></select>'
@@ -69,7 +69,7 @@ return '<div class="win">'
 +'</div>'
 +'<span class="grow"></span>'
 +(MINE?'':'<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">'
-+'<span class="tiny" style="font:700 10px var(--disp);letter-spacing:.1em">DURATION</span>'
++'<span class="tiny" style="font:700 11px var(--disp);letter-spacing:.1em">DURATION</span>'
 +'<select id="'+wid+'" style="width:auto" aria-label="session length">'
 +opts.map(m=>'<option value="'+m+'"'+(m===60||(opts.length&&!opts.includes(60)&&m===opts[opts.length-1])?' selected':'')+'>⏱ '+fmtDur(m)+'</option>').join('')
 +'</select></div>')

@@ -13,12 +13,12 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
 <section class="tabpane on" data-t="solve">
  <div class="lcgrid">
   <div class="full">
-  <div class="card acc" id="lkAcc" style="margin-top:14px">
+  <div class="card acc" id="lkAcc" style="margin-top:16px">
     <div class="acc-h" id="lkHead">
       <div class="grow" style="min-width:0"><b>🔗 My LeetCode tabs</b><div class="tiny" id="lkCount" style="margin-top:2px">the sites you open every session</div></div>
       <span class="tl2-x">›</span>
     </div>
-    <div class="acc-b" style="margin-top:14px">
+    <div class="acc-b" style="margin-top:16px">
       <div class="row" style="justify-content:flex-end">
         <button class="sm" onclick="openLink()">＋ Link</button>
         <button class="pri sm" id="openAllBtn" onclick="openAll()" style="display:none">🚀 Open all</button>
@@ -29,7 +29,7 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
   <h2>Problem</h2>
   <div class="card">
     <input id="pkName" autocomplete="off" placeholder="Type the problem name, matches appear below">
-    <div id="pkMatch" class="tiny" style="margin-top:6px;min-height:16px"></div>
+    <div id="pkMatch" class="tiny" style="margin-top:8px;min-height:16px"></div>
     <div id="pkSug"></div>
     <div id="probHead"></div>
   </div>
@@ -69,7 +69,7 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
   </div>
 
   <div class="full">
-  <p class="hint" id="noteHelp" style="margin-top:6px">Enter = next point · Tab = sub-point · Shift+Tab = back out · Shift+Enter = new line in the same point · \`\`\` = code box</p>
+  <p class="hint" id="noteHelp" style="margin-top:8px">Enter = next point · Tab = sub-point · Shift+Tab = back out · Shift+Enter = new line in the same point · \`\`\` = code box</p>
 
   <h2>Array visualizer</h2>
   <div class="card">
@@ -85,14 +85,14 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
 </section>
 
 <section class="tabpane" data-t="stats">
-  <div class="statgrid" style="margin-top:14px">
+  <div class="statgrid" style="margin-top:16px">
     <div class="stat"><b class="num" id="stSolved" style="color:var(--mint)">–</b><span>problems solved</span></div>
     <div class="stat"><b class="num" id="stOpen" style="color:var(--ember2)">–</b><span>still unsolved</span></div>
     <div class="stat"><b class="num" id="stSlow" style="color:var(--violet)">–</b><span>solved, slow</span></div>
     <div class="stat"><b class="num" id="stTries">–</b><span>tries logged</span></div>
   </div>
   <div class="stgrid">
-    <div><h2>Toughest problems</h2><p class="hint" id="stAvg" style="margin:-6px 0 10px"></p>
+    <div><h2>Toughest problems</h2><p class="hint" id="stAvg" style="margin:-8px 0 12px"></p>
     <div class="card" id="stTough"><div class="skel">Loading…</div></div></div>
     <div><h2>Come back to these</h2>
     <div class="card" id="stOpenList"><div class="skel">Loading…</div></div></div>
@@ -100,7 +100,7 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
   <h2>All problems</h2>
   <div class="card">
     <input id="stSearch" placeholder="🔍 Search names and note text" autocomplete="off">
-    <div id="stAll" style="margin-top:10px"><div class="skel">Loading…</div></div>
+    <div id="stAll" style="margin-top:12px"><div class="skel">Loading…</div></div>
   </div>
 </section>
 
@@ -165,10 +165,10 @@ $('pkName').value=j.name;$('pkSug').innerHTML='';$('pkMatch').innerHTML='';
 document.querySelectorAll('#lcDiff button').forEach(x=>x.classList.toggle('on',x.dataset.d===j.difficulty));
 $('probHead').innerHTML='<div class="probhead">'
 +'<span class="diff '+j.difficulty+'">'+j.difficulty.toUpperCase()+'</span>'
-+'<b style="font-size:17px">'+esc(j.name)+'</b>'
++'<b style="font-size:18px">'+esc(j.name)+'</b>'
 +outBadge(j.latest,true)
 +'</div>'
-+'<div class="row" style="gap:14px;flex-wrap:wrap;margin-top:8px">'
++'<div class="row" style="gap:16px;flex-wrap:wrap;margin-top:8px">'
 +'<span class="tiny"><b class="num">×'+j.tries+'</b> tr'+(j.tries===1?'y':'ies')+'</span>'
 +'<span class="tiny"><b class="num">'+mins(j.totalMin)+'</b> total</span>'
 +(j.last?'<span class="tiny">last '+fmtD(j.last)+'</span>':'')
@@ -317,7 +317,7 @@ ARR.push({label:($('arLabel').value.trim()||('nums'+(ARR.length?ARR.length+1:'')
 $('arVals').value='';$('arLabel').value='';renderArrays();scheduleSave();};
 function renderArrays(){
 const host=$('arrHost');
-if(!ARR.length){host.innerHTML='<div class="skel" style="margin-top:10px">No arrays yet. Paste one above and the indices appear under it.</div>';return;}
+if(!ARR.length){host.innerHTML='<div class="skel" style="margin-top:12px">No arrays yet. Paste one above and the indices appear under it.</div>';return;}
 host.innerHTML=ARR.map((a,k)=>'<div class="arrcard">'
 +'<div class="arrhead"><span class="nm">'+esc(a.label)+'</span>'
 +'<span class="tiny num">len '+a.values.length+'</span><span class="grow"></span>'
@@ -438,7 +438,7 @@ let RNFROM='',RNTRIES=0,RNNEAR=null,PKNEAR=null;
 function openRename(name,diff,tries){
 RNFROM=name;RNTRIES=tries||0;
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
-+'<h1 style="font-size:19px">✎ Rename problem</h1>'
++'<h1 style="font-size:20px">✎ Rename problem</h1>'
 +'<p class="muted" style="margin-top:4px">Fixing a typo? Type the correct name. If another problem already has that name, the two are merged into one.</p>'
 +'<label class="fld">Currently</label>'
 +'<div class="row"><span class="diff '+diff+'">'+diff.toUpperCase()+'</span><b>'+esc(name)+'</b>'
@@ -446,7 +446,7 @@ $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<label class="fld">New name</label>'
 +'<input id="rnName" autocomplete="off" value="'+esc(name)+'" oninput="rnSuggest()" onfocus="rnSuggest()">'
 +'<div id="rnMsg" class="tiny" style="margin-top:8px;min-height:18px"></div><div id="rnSug"></div>'
-+'<div class="row" style="margin-top:18px">'
++'<div class="row" style="margin-top:20px">'
 +'<button class="pri grow" id="rnGo" onclick="doRename()">Rename</button>'
 +'<button onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button></div></div></div>';
 setTimeout(()=>{const i=$('rnName');i.focus();i.select();},80);

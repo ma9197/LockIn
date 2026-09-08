@@ -10,66 +10,66 @@ import { shell } from './theme.js';
 export const onboardPage = (user) => shell('LockIn · Setup', null, `
 <style>
 .liveclock,.refresh-fab{display:none}
-.wrap{padding-top:18px}
+.wrap{padding-top:20px}
 .wiz{max-width:620px;margin:0 auto;padding-bottom:40px}
-.wiz-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:6px}
+.wiz-top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px}
 .wiz-top .logo{white-space:nowrap}
 .wiz-cap{font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember);white-space:nowrap}
-.steps{display:flex;gap:4px;margin:14px 0 18px}
+.steps{display:flex;gap:4px;margin:16px 0 20px}
 .steps i{flex:1;height:5px;border-radius:3px;background:var(--surface3);transition:background .3s}
 .steps i.done{background:var(--ember2);opacity:.6}
 .steps i.on{background:var(--ember);box-shadow:0 0 10px #FF6B3588}
-.wiz-body{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 18px;box-shadow:0 30px 80px #0006}
-@media(min-width:600px){.wiz-body{padding:28px 26px}}
-.wiz h1{font-size:24px;margin:0 0 6px;letter-spacing:-.02em}
-.wiz .lead{color:var(--ink2);margin:0 0 4px;line-height:1.55;font-size:14.5px}
-.wiz .fg{margin-top:18px}
+.wiz-body{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px 20px;box-shadow:0 30px 80px #0006}
+@media(min-width:600px){.wiz-body{padding:28px 28px}}
+.wiz h1{font-size:24px;margin:0 0 8px;letter-spacing:-.02em}
+.wiz .lead{color:var(--ink2);margin:0 0 4px;line-height:1.55;font-size:15px}
+.wiz .fg{margin-top:20px}
 .wiz-body.enter{animation:wizin .32s cubic-bezier(.2,.8,.2,1) backwards}
 @keyframes wizin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .lst{margin-top:16px}
 .item.first{margin-top:0}
 .rng{display:flex;align-items:center;gap:8px}
-.rng input{flex:1;min-width:0;width:auto;padding:9px 10px;font-size:14px;font-variant-numeric:tabular-nums}
+.rng input{flex:1;min-width:0;width:auto;padding:8px 12px;font-size:14px;font-variant-numeric:tabular-nums}
 .rng .tiny{flex:none}
 .rng .lbl{flex:none;width:56px;font:700 11px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
 .rng+.rng{margin-top:8px}
-@media(max-width:560px){.rng.blk{flex-wrap:wrap;gap:6px}.rng.blk .lbl{width:100%;margin-bottom:-2px}.rng.blk .xbtn{width:30px}.rng input[type=time]{font-size:13px;padding:9px 4px}}
-.chips{display:flex;gap:5px}
+@media(max-width:560px){.rng.blk{flex-wrap:wrap;gap:8px}.rng.blk .lbl{width:100%;margin-bottom:-2px}.rng.blk .xbtn{width:30px}.rng input[type=time]{font-size:13px;padding:8px 4px}}
+.chips{display:flex;gap:4px}
 .chips button{flex:1;min-width:0;padding:8px 0;font-size:12px}
 .chips button.on{background:var(--ember);color:#0B0E14;border-color:var(--ember)}
-.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;flex:1;min-width:0;max-width:300px}
-.sw button{width:100%;aspect-ratio:1;height:auto;min-height:28px;border-radius:9px;border:2px solid transparent;padding:0}
+.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;flex:1;min-width:0;max-width:300px}
+.sw button{width:100%;aspect-ratio:1;height:auto;min-height:28px;border-radius:8px;border:2px solid transparent;padding:0}
 .sw button.on{border-color:#fff;box-shadow:0 0 0 2px var(--surface2)}
-.em{display:flex;gap:5px;flex-wrap:wrap}
-.em button{width:36px;height:36px;font-size:18px;padding:0;border-radius:10px;background:var(--well)}
+.em{display:flex;gap:4px;flex-wrap:wrap}
+.em button{width:36px;height:36px;font-size:18px;padding:0;border-radius:12px;background:var(--well)}
 .em button.on{background:var(--surface3);border-color:var(--ember)}
-.gl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
-.gl label{font:700 10.5px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;white-space:nowrap}
-.gl input{width:100%;padding:9px 10px}
+.gl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.gl label{font:700 11px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;white-space:nowrap}
+.gl input{width:100%;padding:8px 12px}
 .lowbtn.on{background:#9B6EF322;border-color:#9B6EF388;color:var(--violet)}
 .defpill{background:#FF6B3522;color:var(--ember)}
-.nav2{display:flex;gap:10px;margin-top:18px}
-.nav2 button{flex:1;padding:14px;font:800 15px var(--disp);border-radius:14px}
+.nav2{display:flex;gap:12px;margin-top:20px}
+.nav2 button{flex:1;padding:16px;font:800 15px var(--disp);border-radius:12px}
 .ok{color:var(--mint)}.bad{color:var(--rose)}
-.prev{background:var(--surface2);border:1px solid var(--line2);border-radius:14px;padding:14px;margin-top:18px}
-.prev .pl{font:700 10px var(--disp);color:var(--ink2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
+.prev{background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:16px;margin-top:20px}
+.prev .pl{font:700 11px var(--disp);color:var(--ink2);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px}
 .strip{position:relative;height:24px;background:var(--surface3);border-radius:6px;overflow:hidden}
 .strip i{position:absolute;top:0;bottom:0;border-radius:3px;opacity:.92}
-.strip-ax{display:flex;justify-content:space-between;font:700 9.5px var(--disp);color:var(--ink3);margin-top:4px}
+.strip-ax{display:flex;justify-content:space-between;font:700 11px var(--disp);color:var(--ink3);margin-top:4px}
 .race-seg.lowp{background-image:repeating-linear-gradient(135deg,#0000 0 4px,#00000066 4px 8px)}
-.rings{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.rings{display:flex;gap:12px;flex-wrap:wrap;justify-content:center}
 .rings .r{width:74px;text-align:center}
 .rings .r .ring{width:60px;height:60px}
 .rings .r .ring .val b{font-size:16px}
-.rings .r .ring .val span{font-size:8px;letter-spacing:.04em}
-.rings .r .nm{font:700 10px var(--disp);color:var(--ink2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.big{background:var(--surface2);border:1px solid var(--line2);border-radius:14px;padding:12px 14px;display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;text-align:left;font:inherit}
+.rings .r .ring .val span{font-size:11px;letter-spacing:.04em}
+.rings .r .nm{font:700 11px var(--disp);color:var(--ink2);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.big{background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;cursor:pointer;width:100%;text-align:left;font:inherit}
 .big.on{border-color:var(--ember);background:#FF6B3514}
-.big .e{font-size:22px;flex:none}
+.big .e{font-size:24px;flex:none}
 .big b{display:block;font:800 15px var(--disp)}
 .big .tiny{margin-top:2px}
 .sum{display:grid;gap:0;margin-top:8px}
-.sum div{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);font-size:14px}
+.sum div{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
 .sum div:last-child{border-bottom:0}
 .sum span:first-child{flex:none;width:96px;font:700 11px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding-top:2px}
 .sum span:last-child{color:var(--ink2);min-width:0}
@@ -77,12 +77,12 @@ export const onboardPage = (user) => shell('LockIn · Setup', null, `
 .tzclock{font:800 28px var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .idrow{display:flex;align-items:center;gap:12px}
 .idrow .who{flex:1;min-width:0}
-.emptybig{text-align:center;padding:26px 0 8px}
-.emptybig .hint{margin-top:10px}
+.emptybig{text-align:center;padding:28px 0 8px}
+.emptybig .hint{margin-top:12px}
 </style>
 <div class="bgfx" aria-hidden="true"><i></i></div>
 <div class="wiz">
-  <div class="wiz-top"><div class="logo" style="font-size:22px">LOCK<em>IN</em> 🔥</div><span class="wiz-cap" id="stepCap"></span></div>
+  <div class="wiz-top"><div class="logo" style="font-size:24px">LOCK<em>IN</em> 🔥</div><span class="wiz-cap" id="stepCap"></span></div>
   <div class="steps" id="steps"></div>
   <div class="wiz-body" id="wiz"></div>
   <p class="ferr" id="err" role="alert" aria-live="polite"></p>
@@ -134,7 +134,7 @@ return '<div class="prev"><div class="pl">A weekday on your Today page</div><div
 return '<div class="r"><div class="ring"><svg width="60" height="60" viewBox="0 0 112 112"><circle cx="56" cy="56" r="46" fill="none" stroke="'+c.color+'" stroke-width="9" opacity=".22"/></svg><div class="val"><b class="num">0</b><span>OF '+(c.wd||0)+'</span></div></div><div class="nm">'+c.emoji+' '+esc2(c.name||'?')+'</div></div>';}).join('')+'</div><div class="hint" style="text-align:center;margin-top:8px">Each ring fills as you log. Tap + on it, or let the LeetCode log and the Jobs tracker count for you.</div></div>';}
 function stripPrev(){const lay=S.layouts[S.def]||[];
 return '<div class="prev"><div class="pl">'+(S.side.length?'Your default day with side tasks':'Your default day')+'</div>'+strip(lay,S.side)
-+'<div class="hint" style="margin-top:6px"><span style="color:var(--ember)">\\u25a0</span> grind '+(lay.length?lay.map(b=>fmtH(b[0])+'\\u2013'+fmtH(b[1])).join(', '):'none yet')
++'<div class="hint" style="margin-top:8px"><span style="color:var(--ember)">\\u25a0</span> grind '+(lay.length?lay.map(b=>fmtH(b[0])+'\\u2013'+fmtH(b[1])).join(', '):'none yet')
 +(S.side.length?' \\u00a0 <span style="color:var(--mint)">\\u25a0</span> side tasks':'')+'</div></div>';}
 function prev(){const el=$('prev');if(!el)return;el.innerHTML=step===2?racePrev():step===3?stripPrev():step===4?ringsPrev():step===5?stripPrev():'';}
 
@@ -226,20 +226,20 @@ function stSide(){
 return '<h1>What else takes time?</h1><p class="lead">Recurring things that are not grind: gym, a class, a shift, a commute. They show on the timeline and the grind blocks step out of their way.</p>'
 +(S.side.length?'<div class="lst">'+S.side.map((t,i)=>'<div class="item'+first(i)+'" style="--ac:var(--mint)"><div class="ihead"><span class="tile">'+t.emoji+'</span><input class="nm" value="'+esc2(t.name)+'" oninput="S.side['+i+'].name=this.value;prev()" placeholder="Gym, Algorithms class, Shift\\u2026" aria-label="Side task name">'
 +'<button class="xbtn" data-a="sideDel" data-i="'+i+'" aria-label="Remove side task">\\u2715</button></div>'
-+'<div class="ibody"><div class="cklab">Days</div><div class="chips" style="margin-top:6px">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" data-a="sideDay" data-i="'+i+'" data-v="'+di+'">'+d+'</button>').join('')+'</div>'
-+'<div class="cklab">Time</div><div class="rng" style="margin-top:6px"><input type="time" value="'+t.start+'" onchange="S.side['+i+'].start=this.value;prev()" aria-label="start"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="S.side['+i+'].end=this.value;prev()" aria-label="end"></div>'
-+'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:6px"><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value" aria-label="from"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'" onchange="S.side['+i+'].to=this.value" aria-label="to"></div>'
-+'<div class="hint" style="margin-top:6px">Leave the dates empty for every week.</div></div>'
++'<div class="ibody"><div class="cklab">Days</div><div class="chips" style="margin-top:8px">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" data-a="sideDay" data-i="'+i+'" data-v="'+di+'">'+d+'</button>').join('')+'</div>'
++'<div class="cklab">Time</div><div class="rng" style="margin-top:8px"><input type="time" value="'+t.start+'" onchange="S.side['+i+'].start=this.value;prev()" aria-label="start"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="S.side['+i+'].end=this.value;prev()" aria-label="end"></div>'
++'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:8px"><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value" aria-label="from"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'" onchange="S.side['+i+'].to=this.value" aria-label="to"></div>'
++'<div class="hint" style="margin-top:8px">Leave the dates empty for every week.</div></div>'
 +'<div class="ifoot"><div class="em">'+SEMO.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" data-a="sideEmoji" data-i="'+i+'" data-v="'+e+'" aria-label="emoji">'+e+'</button>').join('')+'</div><span class="grow"></span><button class="sm" data-a="sideClone" data-i="'+i+'" title="the same task at another time of day">\\uFF0B Another time</button></div></div>').join('')+'</div>'
 +'<button class="addbtn" data-a="addSide">\\uFF0B Add side task</button>'
-:'<div class="emptybig"><button class="pri" style="padding:14px 28px;font:800 16px var(--disp);border-radius:14px" data-a="addSide">\\uFF0B Add a side task</button><div class="hint">Nothing yet. Add what takes real time each week, or press Next to skip.</div></div>');}
+:'<div class="emptybig"><button class="pri" style="padding:16px 28px;font:800 16px var(--disp);border-radius:12px" data-a="addSide">\\uFF0B Add a side task</button><div class="hint">Nothing yet. Add what takes real time each week, or press Next to skip.</div></div>');}
 
 function stWrap(){
 const T=(k,label,sub)=>'<div class="togrow"><div class="grow"><b>'+label+'</b><div class="tiny">'+sub+'</div></div><div class="toggle'+(S.modules[k]?' on':'')+'" role="switch" tabindex="0" aria-checked="'+(!!S.modules[k])+'" aria-label="'+label+'" data-a="mod" data-v="'+k+'"></div></div>';
 const hasLc=S.cats.some(c=>c.builtin==='leetcode'),hasJobs=S.cats.some(c=>c.builtin==='applications');
 if(!hasLc)S.modules.leetcode=false;if(!hasJobs)S.modules.jobs=false;
 const ph=S.noPlan?[]:S.phases;const tot=ph.reduce((a,p)=>a+(ymd(p.start)&&ymd(p.end)?dayCount(p):0),0);
-return '<h1>Last one: what is on</h1><p class="lead">Turn off what you will not use. Everything can be switched back in Settings.</p><div class="prev" style="padding:6px 14px">'
+return '<h1>Last one: what is on</h1><p class="lead">Turn off what you will not use. Everything can be switched back in Settings.</p><div class="prev" style="padding:8px 16px">'
 +(hasLc?T('leetcode','\\uD83E\\uDDE9 LeetCode tab','Problem log, notes, array visualizer, solve-time stats.'):'')
 +(hasJobs?T('jobs','\\uD83D\\uDCE8 Jobs tab','Application tracker with funnel and platform stats.'):'')
 +T('copy','\\uD83D\\uDCCB Quick Copy','Snippets for speed-filling application forms.')

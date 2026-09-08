@@ -28,7 +28,7 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
       <div class="lg-txt">
         <b id="lgTitle">Grinding</b>
         <div class="tiny" id="lgSub"></div>
-        <div class="row" style="gap:6px;margin-top:6px;flex-wrap:wrap">
+        <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
           <span class="pill" id="lgTask"></span><span class="tiny" id="lgSegs"></span>
         </div>
       </div>
@@ -48,22 +48,22 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
 </div>
 
 <div id="offStrip" class="banner" style="display:none;cursor:default;border-color:#5C677955;background:linear-gradient(135deg,#5C677918,#5C677908)">
-  <span style="font-size:22px">💤</span>
+  <span style="font-size:24px">💤</span>
   <div class="grow"><b>Off day</b><div class="tiny" id="offReasonTxt"></div></div>
   <button class="sm ghost" onclick="undoOffDay()">Undo</button>
 </div>
 <div id="backlogBanner" class="banner" style="display:none;cursor:default;border-color:#FFB34755">
-  <span style="font-size:22px">🎒</span>
+  <span style="font-size:24px">🎒</span>
   <div class="grow"><b id="backlogTxt"></b><div class="tiny">Bring them into today, or park them on hold.</div></div>
   <button class="pri sm" onclick="bulkBacklog('today')">Bring to today</button>
   <button class="sm" onclick="bulkBacklog('hold')">Hold</button>
 </div>
 <div id="notifBanner" class="banner" style="display:none" onclick="location.href='/friends'">
-  <span style="font-size:22px">👋</span><div class="grow"><b id="notifTxt"></b>
+  <span style="font-size:24px">👋</span><div class="grow"><b id="notifTxt"></b>
   <div class="tiny">Tap to review requests</div></div><span style="color:var(--ember);font-weight:800">→</span>
 </div>
 <div id="shift" class="banner" style="display:none;border-color:#3DDC9755;background:linear-gradient(135deg,#3DDC9714,#3DDC9708)">
-  <span style="font-size:22px">🔥</span><div class="grow"><b>All course tasks done</b>
+  <span style="font-size:24px">🔥</span><div class="grow"><b>All course tasks done</b>
   <div class="tiny">Pull the whole future plan 1 day forward?</div></div>
   <button class="mint sm" onclick="event.stopPropagation();doShift()">Shift ↑</button>
 </div>
@@ -166,7 +166,7 @@ return '<div class="task '+(done?'done':'')+'"><div class="box">✓</div>'
 +'<div class="d">'+(type==='leetcode'
 ?'Attempts count here too'+(openN?' · '+openN+' unsolved tr'+(openN>1?'ies':'y'):'')
 :'Auto-checks when the counter hits '+g.goal)+(g.done>g.goal?' · +'+(g.done-g.goal)+' extra 💪':'')+'</div></div>'
-+'<div class="row" style="gap:6px">'
++'<div class="row" style="gap:8px">'
 +'<button class="sm" onclick="event.stopPropagation();bump(\\''+type+'\\',-1)">−</button>'
 +'<b class="num" style="min-width:44px;text-align:center">'+g.done+'/'+g.goal+'</b>'
 +'<button class="sm pri" onclick="event.stopPropagation();bump(\\''+type+'\\',1)">+</button></div></div>';}
@@ -203,7 +203,7 @@ detail='<div class="tl2-detail"><div class="blockpanel" onclick="event.stopPropa
 +'<div class="bp-sec"><div class="bp-actions">'
 +(D===TODAY&&!J.active?'<button class="pri sm" onclick="startGrind('+i+')">🔥 Check in</button>':'')
 +'<div class="bp-move"><span class="bp-label" style="margin:0">Move to</span>'
-+'<input type="time" id="mv-'+i+'" value="'+b.start+'" style="width:auto;padding:6px 8px">'
++'<input type="time" id="mv-'+i+'" value="'+b.start+'" style="width:auto;padding:8px 8px">'
 +'<button class="sm" onclick="moveBlk('+i+')">Move ↷</button>'
 +(b.moved?'<button class="ghost sm" onclick="unmoveBlk('+i+')">reset</button>':'')
 +'</div></div></div>'
@@ -246,7 +246,7 @@ const plan=Math.max(1,Math.round((new Date(g.planned_end)-new Date(g.planned_sta
 return Math.max(0,gMin(g)-plan);};
 function taskPicker(title,cb){
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
-+'<h1 style="font-size:19px">'+title+'</h1>'
++'<h1 style="font-size:20px">'+title+'</h1>'
 +'<p class="muted" style="margin-top:4px">Time counts toward this until you switch.</p>'
 +'<div class="taskgrid">'+Object.entries(MOD).map(([k,m])=>
 '<button class="taskbtn" data-t="'+k+'" style="--tc:'+m.c+'">'
@@ -329,14 +329,14 @@ let LOGSEGS=[];
 function openGrindLog(){
 LOGSEGS=[{t:FIRSTCAT,m:''}];
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
-+'<h1 style="font-size:19px">✍️ Log a grind you forgot to record</h1>'
++'<h1 style="font-size:20px">✍️ Log a grind you forgot to record</h1>'
 +'<p class="muted" style="margin-top:4px">For '+(D===TODAY?'today':D)+'.</p>'
 +'<label class="fld">Start time</label>'
 +'<input id="logStart" type="time" oninput="logSummary()">'
 +'<label class="fld">What you did</label>'
 +'<div id="logSegs"></div>'
 +'<button class="sm" style="margin-top:8px" onclick="LOGSEGS.push({t:FIRSTCAT,m:\\'\\'});renderLogSegs()">＋ task</button>'
-+'<div class="card" id="logSum" style="margin:14px 0 0;padding:12px;background:var(--surface2)"></div>'
++'<div class="card" id="logSum" style="margin:16px 0 0;padding:12px;background:var(--surface2)"></div>'
 +'<div class="row" style="margin-top:16px">'
 +'<button class="pri grow" onclick="saveGrindLog()">Record it</button>'
 +'<button onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button></div></div></div>';
@@ -572,8 +572,8 @@ if(t.status==='hold')return '<div class="task hold">'
 return '<div class="task '+(t.status==='done'?'done':'')+'" onclick="toggle('+t.id+')" role="checkbox" aria-checked="'+(t.status==='done')+'" tabindex="0">'
 +'<div class="box">✓</div><div class="grow"><div class="t"><span class="track-ic">'+(TRACK[t.track]||'📖')+'</span>'+esc(t.title)+'</div>'
 +(t.detail?'<div class="d">'+esc(t.detail)+'</div>':'')+'</div>'
-+(t.shiftable?'':'<span class="tiny" title="pinned date">📌</span>')+'<button class="ghost sm" style="padding:0 6px" onclick="event.stopPropagation();delTask('+t.id+')" aria-label="delete task">\u2715</button></div>';}).join('');
-$('tasks').innerHTML=(rows||'<div class="skel">Nothing planned for this day. Anything you log still counts.</div>')+'<div id="ntask" class="row" style="margin-top:10px"><button class="sm" onclick="addTaskUI()">\uFF0B Add task</button></div>';
++(t.shiftable?'':'<span class="tiny" title="pinned date">📌</span>')+'<button class="ghost sm" style="padding:0 8px" onclick="event.stopPropagation();delTask('+t.id+')" aria-label="delete task">\u2715</button></div>';}).join('');
+$('tasks').innerHTML=(rows||'<div class="skel">Nothing planned for this day. Anything you log still counts.</div>')+'<div id="ntask" class="row" style="margin-top:12px"><button class="sm" onclick="addTaskUI()">\uFF0B Add task</button></div>';
 // off day state
 $('offBtn').style.display=(!J.offDay&&D>=TODAY)?'':'none';
 $('offStrip').style.display=J.offDay?'':'none';
@@ -612,12 +612,12 @@ async function offDayFlow(){
 let chips=[];
 try{chips=(await api('/api/offday/reasons')).reasons;}catch(e){}
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
-+'<h1 style="font-size:19px">💤 Mark '+(D===TODAY?'today':D)+' as an off day</h1>'
++'<h1 style="font-size:20px">💤 Mark '+(D===TODAY?'today':D)+' as an off day</h1>'
 +'<p class="muted" style="margin-top:4px">Goals are forgiven for this day and the streak skips it. You can still grind whenever you want.</p>'
 +'<label class="fld">Reason</label><input id="offReason" placeholder="migraine / family / event…" maxlength="80">'
-+(chips.length?'<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:8px">'+chips.map(r=>
++(chips.length?'<div class="row" style="flex-wrap:wrap;gap:8px;margin-top:8px">'+chips.map(r=>
 '<button class="chip" style="cursor:pointer" onclick="$(\\'offReason\\').value=this.dataset.r" data-r="'+esc(r.reason)+'">'+esc(r.reason)+' <span class="tiny">×'+r.n+'</span></button>').join('')+'</div>':'')
-+'<div class="row" style="margin-top:18px">'
++'<div class="row" style="margin-top:20px">'
 +'<button class="pri grow" onclick="saveOffDay()">Mark off day</button>'
 +'<button onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button></div></div></div>';
 setTimeout(()=>$('offReason').focus(),80);}
@@ -629,8 +629,8 @@ catch(e){toast(String(e))}}
 async function undoOffDay(){
 await api('/api/offday/'+D,{method:'DELETE'});toast('Back on. Goals restored.');load();}
 function addTaskUI(){
-$('ntask').innerHTML='<div class="grow"><input id="nt-title" placeholder="What needs doing?" style="margin-bottom:6px"><input id="nt-detail" placeholder="Details (optional)">'
-+'<div class="row" style="margin-top:6px;flex-wrap:wrap"><label class="tiny" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="nt-pin" style="width:auto;margin:0"> pinned to this date</label><span class="grow"></span>'
+$('ntask').innerHTML='<div class="grow"><input id="nt-title" placeholder="What needs doing?" style="margin-bottom:8px"><input id="nt-detail" placeholder="Details (optional)">'
++'<div class="row" style="margin-top:8px;flex-wrap:wrap"><label class="tiny" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="nt-pin" style="width:auto;margin:0"> pinned to this date</label><span class="grow"></span>'
 +'<button class="ghost sm" onclick="load()">Cancel</button><button class="sm pri" onclick="saveNewTask()">Save</button></div></div>';
 $('nt-title').focus();}
 async function saveNewTask(){const title=$('nt-title').value.trim();if(!title)return toast('Give it a title');

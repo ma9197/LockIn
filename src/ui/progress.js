@@ -23,7 +23,7 @@ ${SH ? `<style>.refresh-fab{display:none}</style><div class="ph"><div class="ph-
 </div>
 
 ${pane('overview', `<section class="tabpane${firstTab === 'overview' ? ' on' : ''}" data-t="overview">
-  <div class="statgrid" style="margin-top:14px">
+  <div class="statgrid" style="margin-top:16px">
     <div class="stat" style="--ac:var(--ember)"><b class="num" id="streak" style="color:var(--ember)">–</b><span>day streak 🔥</span></div>
     <div class="stat"><b class="num" id="lc">–</b><span id="lcSub">LeetCode solved</span></div>
     <div class="stat"><b class="num" id="apps">–</b><span>Applications</span></div>
@@ -42,7 +42,7 @@ ${pane('overview', `<section class="tabpane${firstTab === 'overview' ? ' on' : '
 </section>`)}
 
 ${pane('lc', `<section class="tabpane${firstTab === 'lc' ? ' on' : ''}" data-t="lc">
-  <div class="statgrid" style="margin-top:14px">
+  <div class="statgrid" style="margin-top:16px">
     <div class="stat" style="--ac:var(--ember)"><b class="num" id="lcAvg" style="color:var(--ember)">–</b><span>avg solve time</span></div>
     <div class="stat" style="--ac:var(--mint)"><b class="num" id="lcEasy" style="color:var(--mint)">–</b><span>easy avg</span></div>
     <div class="stat" style="--ac:var(--ember2)"><b class="num" id="lcMed" style="color:var(--ember2)">–</b><span>medium avg</span></div>
@@ -60,7 +60,7 @@ ${pane('lc', `<section class="tabpane${firstTab === 'lc' ? ' on' : ''}" data-t="
 </section>`)}
 
 ${pane('grind', `<section class="tabpane${firstTab === 'grind' ? ' on' : ''}" data-t="grind">
-  <div class="statgrid" style="margin-top:14px">
+  <div class="statgrid" style="margin-top:16px">
     <div class="stat" style="--ac:var(--ember)"><b class="num" id="gh" style="color:var(--ember)">–</b><span>total hours 🔥</span></div>
     <div class="stat"><b class="num" id="gavg">–</b><span>avg h / grind day</span></div>
     <div class="stat" style="--ac:var(--rose)"><b class="num" id="got" style="color:var(--rose)">–</b><span>overtime hours</span></div>
@@ -69,8 +69,8 @@ ${pane('grind', `<section class="tabpane${firstTab === 'grind' ? ' on' : ''}" da
   ${sh('Last 8 weeks', 'One square per day. Darker means more checked-in hours.')}
   <div class="card">
     <div style="overflow-x:auto;padding:4px 0"><div class="heat" id="heat"></div></div>
-    <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px 10px"><span class="tiny">less</span>
-    <span style="display:flex;gap:3px">${[0.12, 0.35, 0.6, 1].map(o => `<span style="width:12px;height:12px;border-radius:3px;background:rgba(255,107,53,${o})"></span>`).join('')}</span>
+    <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:8px 12px"><span class="tiny">less</span>
+    <span style="display:flex;gap:4px">${[0.12, 0.35, 0.6, 1].map(o => `<span style="width:12px;height:12px;border-radius:3px;background:rgba(255,107,53,${o})"></span>`).join('')}</span>
     <span class="tiny">more</span><span class="grow"></span><span class="tiny" id="gtarget">target: 6h/day</span></div>
   </div>
   ${sh('Which weekday carries you', 'Average grind hours by weekday, across every week in the plan.')}
@@ -81,7 +81,7 @@ ${pane('grind', `<section class="tabpane${firstTab === 'grind' ? ' on' : ''}" da
 </section>`)}
 
 ${pane('jobs', `<section class="tabpane${firstTab === 'jobs' ? ' on' : ''}" data-t="jobs">
-  <div class="statgrid" style="margin-top:14px">
+  <div class="statgrid" style="margin-top:16px">
     <div class="stat" style="--ac:var(--ice)"><b class="num" id="jTot" style="color:var(--ice)">–</b><span>applications</span></div>
     <div class="stat"><b class="num" id="jWeek">–</b><span>per week</span></div>
     <div class="stat" style="--ac:var(--mint)"><b class="num" id="jResp" style="color:var(--mint)">–</b><span>heard back</span></div>
@@ -101,7 +101,7 @@ ${pane('friends', `<section class="tabpane${firstTab === 'friends' ? ' on' : ''}
   ${sh('Friend time', 'Hours logged with friends, by person and by activity.')}
   <div class="card" id="friends"><div class="skel">Loading…</div></div>
 </section>`)}
-${SH ? '<p class="tiny" style="text-align:center;margin:26px 0 8px">read only · shared by ' + hesc(SH.title) + '</p>' : ''}
+${SH ? '<p class="tiny" style="text-align:center;margin:28px 0 8px">read only · shared by ' + hesc(SH.title) + '</p>' : ''}
 <div class="chart-tip" id="tip"></div>
 `, `<script>
 const SHARE=${SH ? 'true' : 'false'};
@@ -246,7 +246,7 @@ return '<div class="trow"><b class="trl">'+label+'</b>'
 function paceRow(label,p,color,cons){
 const pct=p.target>0?Math.min(1,p.done/p.target):0;
 const ok=p.diff>=0;
-const c=cons&&cons.days?'<div style="margin-top:5px"><span class="tiny">goal hit on <b class="num">'+cons.hit+'</b> of '+cons.days+' days · '+Math.round(cons.hit/cons.days*100)+'%</span></div>':'';
+const c=cons&&cons.days?'<div style="margin-top:4px"><span class="tiny">goal hit on <b class="num">'+cons.hit+'</b> of '+cons.days+' days · '+Math.round(cons.hit/cons.days*100)+'%</span></div>':'';
 return '<div class="pacei"><div class="row" style="flex-wrap:wrap;gap:4px 8px"><b>'+label+'</b><span class="grow"></span>'
 +'<span class="num">'+p.done+' / '+p.target+' planned</span>'
 +'<span class="delta '+(ok?'up':'down')+'">'+(ok?(p.diff>0?'+'+p.diff+' ahead':'on pace'):p.diff+' behind')+'</span></div>'
@@ -314,9 +314,9 @@ rec(R.longestStreak+'d','longest streak')
 ||'<span class="muted">Records appear once you start logging.</span>';
 const OD=j.offdays||{total:0,reasons:[],recent:[]};
 if(OD.total){$('offdays').innerHTML=
-'<div class="row"><b class="num" style="font:800 26px var(--disp)">'+OD.total+'</b><span class="tiny">off day'+(OD.total>1?'s':'')+' total</span></div>'
-+'<div class="row" style="flex-wrap:wrap;gap:6px;margin-top:10px">'+OD.reasons.map(r=>'<span class="chip">💤 '+esc(r.r)+' <b class="num">×'+r.n+'</b></span>').join('')+'</div>'
-+'<div style="margin-top:10px">'+OD.recent.map(o=>'<div class="exp-row"><span class="num" style="color:var(--ink2);min-width:96px">'+fmtD(o.date)+'</span><span class="tiny">'+esc(o.reason||'')+'</span></div>').join('')+'</div>';}
+'<div class="row"><b class="num" style="font:800 28px var(--disp)">'+OD.total+'</b><span class="tiny">off day'+(OD.total>1?'s':'')+' total</span></div>'
++'<div class="row" style="flex-wrap:wrap;gap:8px;margin-top:12px">'+OD.reasons.map(r=>'<span class="chip">💤 '+esc(r.r)+' <b class="num">×'+r.n+'</b></span>').join('')+'</div>'
++'<div style="margin-top:12px">'+OD.recent.map(o=>'<div class="exp-row"><span class="num" style="color:var(--ink2);min-width:96px">'+fmtD(o.date)+'</span><span class="tiny">'+esc(o.reason||'')+'</span></div>').join('')+'</div>';}
 }
 
 // ---- leetcode ----
@@ -338,7 +338,7 @@ $('lcMix').innerHTML=dn?('<div class="bp-label">Difficulty mix of your '+dn+' ti
 +'<div class="mixnote">'+(hardShare<50
 ?'<b>'+hardShare+'%</b> of your solves are medium or hard. Interviews are mostly medium, so this is the number to push up.'
 :'<b>'+hardShare+'%</b> medium or hard. That is interview-shaped, keep it there.')+'</div>'
-+(seen?('<div class="mixleg" style="margin-top:11px"><span>cracked <b class="num">'+cracked+'</b> of '+seen+' problems opened · <b class="num">'+Math.round(cracked/seen*100)+'%</b> crack rate</span>'
++(seen?('<div class="mixleg" style="margin-top:12px"><span>cracked <b class="num">'+cracked+'</b> of '+seen+' problems opened · <b class="num">'+Math.round(cracked/seen*100)+'%</b> crack rate</span>'
 +(L.slowTotal?'<span><b class="num">'+L.slowTotal+'</b> solved but slow, not counted as solved until you rerun it</span>':'')+'</div>'):''))
 :'<div class="skel"><b>No timed solves yet</b>Log a few with the Focus timer and the mix shows up here.</div>';
 $('lcTrendCard').innerHTML=L.total?('<div class="bp-label">Getting faster? (lower is better)</div>'
@@ -346,7 +346,7 @@ $('lcTrendCard').innerHTML=L.total?('<div class="bp-label">Getting faster? (lowe
 +trendChip('🟢 Easy',L.easy.avgNow,L.easy.avgPrev)
 +trendChip('🟡 Medium',L.medium.avgNow,L.medium.avgPrev)
 +trendChip('🔴 Hard',L.hard.avgNow,L.hard.avgPrev)
-+'<div class="row" style="margin-top:12px;flex-wrap:wrap;gap:6px 14px">'
++'<div class="row" style="margin-top:12px;flex-wrap:wrap;gap:8px 16px">'
 +'<span class="tiny">solves timed: <b class="num">'+L.total+'</b>'+(L.attempts?' · '+L.attempts+' unfinished tr'+(L.attempts>1?'ies':'y')+' not counted here':'')+'</span>'
 +'<span class="tiny">'+L.easy.n+' easy · '+L.medium.n+' medium · '+L.hard.n+' hard</span></div>')
 :'<div class="skel"><b>No solve times yet</b>Use the Focus timer with 🧩 LeetCode record on, and they land here.</div>';
@@ -379,7 +379,7 @@ return '<div class="dayc" onclick="this.classList.toggle(\\'open\\')">'
 +outBadge(s.finished)
 +'<b class="mn">'+mins(s.minutes)+'</b>'
 +(s.source==='timer'?'<span class="tiny" title="timed live">⏱</span>':'')
-+(SHARE?'':'<button class="ghost sm" style="padding:0 6px" onclick="delSolve('+s.id+')">✕</button>')+'</div>').join('')
++(SHARE?'':'<button class="ghost sm" style="padding:0 8px" onclick="delSolve('+s.id+')">✕</button>')+'</div>').join('')
 +'</div></div>';}).join(''):'<div class="empty"><b>No solves recorded yet</b>Every attempt you log lands here, day by day.</div>';
 }
 
@@ -453,7 +453,7 @@ const bar=(label,v,color)=>'<div class="funnel-row"><span class="fl">'+label+'</
 +'<span class="fp">'+Math.round(v/mx*100)+'%</span></div>';
 $('funnel').innerHTML=bar('Applied',F.applied,'var(--ice)')+bar('OA',F.oa,'var(--violet)')
 +bar('Interview',F.interview,'var(--ember2)')+bar('Offer 🎉',F.offer,'var(--mint)')
-+'<div class="row" style="margin-top:10px;flex-wrap:wrap;gap:4px 12px"><span class="tiny">heard back: <b class="num">'+F.heardBack+'</b> ('+Math.round(F.heardBack/mx*100)+'%)</span>'
++'<div class="row" style="margin-top:12px;flex-wrap:wrap;gap:4px 12px"><span class="tiny">heard back: <b class="num">'+F.heardBack+'</b> ('+Math.round(F.heardBack/mx*100)+'%)</span>'
 +'<span class="grow"></span><span class="tiny">rejected: '+F.rejected+'</span></div>';}
 const PL=j.byPlatform||[];
 $('platforms').innerHTML=PL.length?PL.map(p=>{

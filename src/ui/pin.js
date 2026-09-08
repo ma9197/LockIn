@@ -5,16 +5,16 @@ import { shell } from './theme.js';
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 
 export const sharePinPage = (cfg, locked) => shell('LockIn · shared progress', null, `
-<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:18px}</style>
+<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:20px}</style>
 <div class="bgfx" aria-hidden="true"><i></i></div>
 <div class="auth">
   <a class="logo" href="/">LOCK<em>IN</em> 🔥</a>
   <div class="card" style="text-align:center">
-    <span class="tile" style="width:64px;height:64px;font-size:30px;border-radius:20px">🔒</span>
-    <h1 style="margin-top:14px">${esc((cfg && cfg.share && cfg.share.title) || 'Shared progress')}</h1>
+    <span class="tile" style="width:64px;height:64px;font-size:32px;border-radius:20px">🔒</span>
+    <h1 style="margin-top:16px">${esc((cfg && cfg.share && cfg.share.title) || 'Shared progress')}</h1>
     <p class="lead">A read-only look at the grind. Enter the PIN you were given.</p>
     <form id="f">
-      <div class="fg"><input id="pin" type="password" inputmode="numeric" placeholder="••••" autofocus aria-label="PIN" style="text-align:center;font-size:28px;letter-spacing:12px;font-family:var(--disp);padding:14px"></div>
+      <div class="fg"><input id="pin" type="password" inputmode="numeric" placeholder="••••" autofocus aria-label="PIN" style="text-align:center;font-size:28px;letter-spacing:12px;font-family:var(--disp);padding:16px"></div>
       <button class="pri" type="submit">View progress</button>
       <p class="ferr" id="err" role="alert" aria-live="polite">${esc(locked || '')}</p>
     </form>
@@ -31,13 +31,13 @@ catch(err){$('err').textContent=err;$('pin').value='';$('pin').focus();}};
 
 // shown when there is no share PIN, so the link simply does not work
 export const shareOffPage = () => shell('LockIn', null, `
-<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:18px}</style>
+<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:20px}</style>
 <div class="bgfx" aria-hidden="true"><i></i></div>
 <div class="auth">
   <a class="logo" href="/">LOCK<em>IN</em> 🔥</a>
   <div class="card" style="text-align:center">
-    <span class="tile" style="width:64px;height:64px;font-size:30px;border-radius:20px">🔒</span>
-    <h1 style="margin-top:14px">Not shared right now</h1>
+    <span class="tile" style="width:64px;height:64px;font-size:32px;border-radius:20px">🔒</span>
+    <h1 style="margin-top:16px">Not shared right now</h1>
     <p class="lead">The owner has turned sharing off, or has not set a PIN yet. Ask them for a fresh link.</p>
   </div>
   <p class="foot"><a href="/">Made with LockIn</a> · a grind tracker for CS students</p>

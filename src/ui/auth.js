@@ -4,7 +4,7 @@ import { shell } from './theme.js';
 // Page-script rule: no backticks, no ${ } and no quotes inside inline handlers.
 
 const wrap = (title, inner, script) => shell(title, null, `
-<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:18px}</style>
+<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:20px}</style>
 <div class="bgfx" aria-hidden="true"><i></i></div>
 <div class="auth">
   <a class="logo" href="/">LOCK<em>IN</em> 🔥</a>

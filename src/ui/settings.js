@@ -20,113 +20,113 @@ const pane = (id, first) => `${first ? '' : '</div>'}<div class="tabpane" id="ta
 
 export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 <style>
-.stg-h1{margin:0;font-size:22px;line-height:1.2}
+.stg-h1{margin:0;font-size:24px;line-height:1.2}
 .tabwrap{position:sticky;top:0;z-index:5;background:transparent;margin:0 -16px -16px;padding:12px 16px 28px;-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent);transition:background .25s}
 .tabwrap.stuck{background:rgba(11,14,20,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
 
 /* account rows: icon + title + description on the left, the controls on the right */
 .stg .card.acct{padding:0;overflow:hidden}
-.acct .idrow{padding:18px 20px}
-.acct .idrow .who b{font-size:17px}
-.acrow{display:grid;grid-template-columns:1fr;gap:14px;padding:18px 20px;border-top:1px solid var(--line)}
+.acct .idrow{padding:20px 20px}
+.acct .idrow .who b{font-size:18px}
+.acrow{display:grid;grid-template-columns:1fr;gap:16px;padding:20px 20px;border-top:1px solid var(--line)}
 @media(min-width:760px){.acrow{grid-template-columns:minmax(0,.85fr) minmax(0,1.45fr);gap:28px;align-items:start}}
-.acl{display:flex;gap:14px;align-items:flex-start}
+.acl{display:flex;gap:16px;align-items:flex-start}
 .acl b{display:block;font:800 15px var(--disp);margin-bottom:4px}
-.acl p{font-size:13.5px;color:var(--ink2);line-height:1.5}
+.acl p{font-size:14px;color:var(--ink2);line-height:1.5}
 .acl .tile{width:44px;height:44px;border-radius:12px}
 .acl .tile.rose{background:#FF5D7318;border-color:#FF5D7355}
-.stg .acr label.fld{margin:0 0 6px;text-transform:none;letter-spacing:0;font:600 13px var(--body);color:var(--ink2)}
+.stg .acr label.fld{margin:0 0 8px;text-transform:none;letter-spacing:0;font:600 13px var(--body);color:var(--ink2)}
 .acr .fgrid{grid-template-columns:1fr;gap:12px}
 .acr-end{display:flex;justify-content:flex-end;align-items:center}
-button.rose.outl{background:transparent;color:var(--rose);border:1px solid var(--rose);padding:9px 18px}
+button.rose.outl{background:transparent;color:var(--rose);border:1px solid var(--rose);padding:8px 20px}
 button.rose.outl:hover{background:#FF5D7318}
-.drop{display:flex;align-items:center;gap:14px;border:1px dashed var(--line2);border-radius:12px;padding:14px;cursor:pointer;background:var(--well)}
+.drop{display:flex;align-items:center;gap:16px;border:1px dashed var(--line2);border-radius:12px;padding:16px;cursor:pointer;background:var(--well)}
 .drop:hover{border-color:var(--ink3)}
 .drop input{display:none}
 .drop b{display:block;font:700 14px var(--body)}
-.note{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px 14px;border-radius:10px;background:#5EA2FF12;border:1px solid #5EA2FF40;font-size:13px;color:var(--ink2);line-height:1.5}
+.note{display:flex;gap:12px;align-items:flex-start;margin-top:12px;padding:12px 16px;border-radius:12px;background:#5EA2FF12;border:1px solid #5EA2FF40;font-size:13px;color:var(--ink2);line-height:1.5}
 .note b{color:var(--ice)}
 .meter{display:flex;align-items:center;gap:4px;margin-top:8px}
 .meter i{width:26px;height:4px;border-radius:2px;background:var(--surface3)}
 .meter i.on{background:var(--mint)}.meter.weak i.on{background:var(--rose)}.meter.mid i.on{background:var(--ember2)}
 .meter span{margin-left:8px;font-size:12px;color:var(--ink2)}
-@media(min-width:900px){.tabwrap{margin:0 -34px -16px;padding-left:34px;padding-right:34px}}
-.tabbar{margin:10px 0 0}
-.regrow{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:14px}
+@media(min-width:900px){.tabwrap{margin:0 -32px -16px;padding-left:32px;padding-right:32px}}
+.tabbar{margin:12px 0 0}
+.regrow{display:flex;flex-direction:column;gap:12px;align-items:flex-start;margin-top:16px}
 @media(min-width:560px){.regrow{flex-direction:row;align-items:center}}
 .regrow .hint{margin:0;flex:1}
-.tabbar button{position:relative;padding:10px 16px}
+.tabbar button{position:relative;padding:12px 16px}
 .tabbar button.chg::after{content:'';position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:99px;background:var(--ember)}
 
-.stg{margin-top:30px;scroll-margin-top:calc(var(--clkh,46px) + 76px)}
+.stg{margin-top:32px;scroll-margin-top:calc(var(--clkh,46px) + 76px)}
 .tabpane>.stg:first-child{margin-top:20px}
 .stg-hd{margin:0 0 12px;padding:0 2px}
-.stg .stg-t{font:800 19px/1.25 var(--disp);color:var(--ink);letter-spacing:-.01em;text-transform:none;margin:0}
-.stg .stg-t .dot{display:none;color:var(--ember);margin-left:8px;font-size:10px;vertical-align:middle}
+.stg .stg-t{font:800 20px/1.25 var(--disp);color:var(--ink);letter-spacing:-.01em;text-transform:none;margin:0}
+.stg .stg-t .dot{display:none;color:var(--ember);margin-left:8px;font-size:11px;vertical-align:middle}
 .stg .stg-t.chg .dot{display:inline}
-.stg-d{margin:5px 0 0;font-size:14px;line-height:1.55;color:var(--ink2);max-width:64ch}
-.stg .card{padding:18px 16px;margin:0}
-@media(min-width:760px){.stg .card{padding:22px}}
-.stg label.fld{margin:0 0 8px;color:var(--ink2);letter-spacing:.08em}
+.stg-d{margin:4px 0 0;font-size:14px;line-height:1.55;color:var(--ink2);max-width:64ch}
+.stg .card{padding:20px 16px;margin:0}
+@media(min-width:760px){.stg .card{padding:24px}}
+.stg label.fld{margin:0 0 8px}
 .stg .hint{font-size:13px;line-height:1.5;color:var(--ink2);opacity:.85;margin-top:8px}
 
 .lowbtn.on{background:#9B6EF322;border-color:#9B6EF388;color:var(--violet)}
 .defpill{background:#FF6B3522;color:var(--ember)}
 
 .rng{display:flex;align-items:center;gap:8px}
-.rng input{flex:1;min-width:0;width:auto;padding:9px 10px;font-size:14px}
+.rng input{flex:1;min-width:0;width:auto;padding:8px 12px;font-size:14px}
 .rng .tiny{flex:none}
 .rng button{flex:none}
 .rng .lbl{flex:none;width:56px;font:700 11px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
 .rng+.rng{margin-top:8px}
-.rng input[type=time],.rng input[type=date]{font-size:14px;padding:9px 8px;font-variant-numeric:tabular-nums}
-@media(max-width:560px){.rng.blk{flex-wrap:wrap;gap:6px}.rng.blk .lbl{width:100%;margin-bottom:-2px}.rng.blk .xbtn{width:30px}.rng input[type=time]{font-size:13px;padding:9px 4px}}
-.chips{display:flex;gap:6px}
-.chips button{flex:1;min-width:0;padding:9px 0;font-size:12px}
+.rng input[type=time],.rng input[type=date]{font-size:14px;padding:8px 8px;font-variant-numeric:tabular-nums}
+@media(max-width:560px){.rng.blk{flex-wrap:wrap;gap:8px}.rng.blk .lbl{width:100%;margin-bottom:-2px}.rng.blk .xbtn{width:30px}.rng input[type=time]{font-size:13px;padding:8px 4px}}
+.chips{display:flex;gap:8px}
+.chips button{flex:1;min-width:0;padding:8px 0;font-size:12px}
 .chips button.on{background:var(--ember);color:#0B0E14;border-color:var(--ember)}
-.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;flex:1;min-width:0;max-width:300px}
-.sw button{width:100%;aspect-ratio:1;height:auto;min-height:28px;border-radius:9px;border:2px solid transparent;padding:0}
+.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;flex:1;min-width:0;max-width:300px}
+.sw button{width:100%;aspect-ratio:1;height:auto;min-height:28px;border-radius:8px;border:2px solid transparent;padding:0}
 .sw button.on{border-color:#fff;box-shadow:0 0 0 2px var(--surface2)}
-.em{display:flex;gap:5px;flex-wrap:wrap}
-.em button{width:36px;height:36px;font-size:18px;padding:0;border-radius:10px;background:var(--well)}
+.em{display:flex;gap:4px;flex-wrap:wrap}
+.em button{width:36px;height:36px;font-size:18px;padding:0;border-radius:12px;background:var(--well)}
 .em button.on{background:var(--surface3);border-color:var(--ember)}
-.gl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
-.gl label{font:700 10.5px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;white-space:nowrap}
-.gl input{width:100%;padding:9px 10px}
+.gl{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.gl label{font:700 11px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;white-space:nowrap}
+.gl input{width:100%;padding:8px 12px}
 
 
-.snip{width:100%;font:12.5px/1.55 var(--mono);color:var(--ink2);background:var(--well);min-height:170px}
+.snip{width:100%;font:13px/1.55 var(--mono);color:var(--ink2);background:var(--well);min-height:170px}
 .picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
-.pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;width:100%;min-height:96px;background:var(--well);border:1px solid var(--line2)}
+.pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:12px;width:100%;min-height:96px;background:var(--well);border:1px solid var(--line2)}
 .pick span{font:700 11px var(--disp);color:var(--ink2)}
 .pick.on{border-color:var(--ember);background:#FF6B3512}
 .pick.on span{color:var(--ember)}
 .pick .mc-prev{display:flex;align-items:center;justify-content:center;transform:scale(.85);max-width:100%;overflow:hidden}
-.bgprev{width:100%;height:52px;border-radius:9px;border:1px solid var(--line2);background:#0B0E14;position:relative;overflow:hidden}
+.bgprev{width:100%;height:52px;border-radius:8px;border:1px solid var(--line2);background:#0B0E14;position:relative;overflow:hidden}
 .bgprev.aurora{background:radial-gradient(circle at 18% 22%,rgba(255,107,53,.55),transparent 55%),radial-gradient(circle at 86% 88%,rgba(94,162,255,.5),transparent 55%),#0B0E14}
 .bgprev.aurora:after,.bgprev.dots:after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(237,241,247,.22) 1px,transparent 1.3px);background-size:9px 9px}
 .rangerow{display:flex;align-items:center;gap:12px}
 .rangerow input[type=range]{flex:1;accent-color:var(--ember);padding:0}
 .rangerow .num{min-width:52px;text-align:right;font:800 15px var(--disp);color:var(--ember)}
-.colorrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.colorrow input[type=color]{width:56px;height:40px;padding:3px;flex:none}
+.colorrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.colorrow input[type=color]{width:56px;height:40px;padding:4px;flex:none}
 .idrow{display:flex;align-items:center;gap:12px}
 .idrow .who{flex:1;min-width:0}
 .idrow .who b{display:block;font:800 16px var(--disp);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .idrow .who .tiny{margin-top:2px}
-.filebtn{display:inline-flex;align-items:center;gap:10px;width:100%;min-width:0}
+.filebtn{display:inline-flex;align-items:center;gap:12px;width:100%;min-width:0}
 .filebtn input{display:none}
 .filebtn .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--ink2)}
-.btnlink{display:inline-flex;align-items:center;gap:6px;background:var(--surface2);color:var(--ink);border:1px solid var(--line2);border-radius:var(--rs);padding:8px 14px;font:700 13px var(--disp);text-decoration:none;white-space:nowrap;cursor:pointer}
+.btnlink{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);color:var(--ink);border:1px solid var(--line2);border-radius:var(--rs);padding:8px 16px;font:700 13px var(--disp);text-decoration:none;white-space:nowrap;cursor:pointer}
 .danger{border-color:#FF5D7345;background:linear-gradient(180deg,#FF5D730d,var(--surface) 60%)}
 .row>button{white-space:nowrap}
 .savebar{position:fixed;left:0;right:0;bottom:calc(74px + env(safe-area-inset-bottom));z-index:49;background:rgba(13,17,26,.96);backdrop-filter:blur(14px);border-top:1px solid var(--ember);padding:12px 16px;display:none;align-items:center;gap:8px}
 .savebar.show{display:flex}
-.savebar .msg{flex:1;min-width:0;font-size:12.5px;color:var(--ink2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
+.savebar .msg{flex:1;min-width:0;font-size:13px;color:var(--ink2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
 .savebar .msg b{display:block;color:var(--ink);font:700 13px var(--disp)}
 body.dirty{padding-bottom:calc(74px + 70px + env(safe-area-inset-bottom))}
 body.dirty .refresh-fab{display:none}
-@media(min-width:900px){.savebar{left:216px;bottom:0;padding:14px 34px}body.dirty{padding-bottom:84px}}
+@media(min-width:900px){.savebar{left:216px;bottom:0;padding:16px 32px}body.dirty{padding-bottom:84px}}
 </style>
 <div id="tabSentinel" style="height:1px"></div>
 <div class="tabwrap" id="tabwrap"><h1 class="stg-h1">Settings</h1><div class="tabbar" id="tabs">${TABS.map(([id, l]) => `<button id="tb-${id}" onclick="showTab('${id}')">${l}</button>`).join('')}</div></div>
@@ -230,7 +230,7 @@ ${pane('api')}
 ${sec('platforms', 'Job platforms', 'The dropdown on the Jobs tab. Anything not listed is filed under "Other".', `
 <div class="card">
   <div class="row" id="platChips" style="flex-wrap:wrap;gap:8px"></div>
-  <div class="row" style="margin-top:14px;gap:8px"><input id="platNew" placeholder="Add a platform, e.g. Simplify" onkeydown="if(event.key==='Enter')addPlat()"><button class="sm" onclick="addPlat()">Add</button></div>
+  <div class="row" style="margin-top:16px;gap:8px"><input id="platNew" placeholder="Add a platform, e.g. Simplify" onkeydown="if(event.key==='Enter')addPlat()"><button class="sm" onclick="addPlat()">Add</button></div>
 </div>`)}
 ${sec('api', 'Agent API · job tracker', 'An AI agent (or any script) gets full access to the Jobs tab with this key: read, add, edit, change status and delete. Adding bumps that day’s counter, deleting takes it back down.', `
 <div class="card">
@@ -266,7 +266,7 @@ ${sec('account', 'Account', '', `
     <div class="acl"><span class="tile">🔒</span><div><b>Change password</b><p>Choose a strong password to keep your account secure. Every other signed-in device is signed out.</p></div></div>
     <div class="acr"><div class="fgrid"><div><label class="fld" for="p-cur">Current password</label><div class="pwwrap"><input id="p-cur" type="password" autocomplete="current-password" placeholder="Enter current password"><button type="button" data-eye="p-cur" aria-label="show password">Show</button></div></div>
       <div><label class="fld" for="p-new">New password</label><div class="pwwrap"><input id="p-new" type="password" autocomplete="new-password" placeholder="At least 10 characters" oninput="pwMeter(this.value)"><button type="button" data-eye="p-new" aria-label="show password">Show</button></div><div class="meter" id="pwMeter"><i></i><i></i><i></i><i></i><span>Use 10+ characters</span></div></div></div>
-      <button class="pri sm" style="margin-top:14px" onclick="changePw()">Update password ›</button></div>
+      <button class="pri sm" style="margin-top:16px" onclick="changePw()">Update password ›</button></div>
   </div>
   <div class="acrow">
     <div class="acl"><span class="tile">📥</span><div><b>Import a LockIn export</b><p>Replace all your data with the contents of an export file.</p></div></div>
@@ -463,7 +463,7 @@ $('layouts').innerHTML=names.map(n=>'<div class="item" style="--ac:'+(n===LAY.de
 +(LAY.layouts[n].length<4?'<div class="ifoot"><button class="sm" onclick="D.sched.layouts[\\''+q(n)+'\\'].push([\\'19:00\\',\\'21:00\\']);renderLayouts();mark()">\\uFF0B Add block</button><span class="tiny">up to four</span></div>':'')+'</div>').join('');
 const one=names.length<2;$('layAssign').style.display=one?'none':'';
 $('layHint').textContent=one?'One layout means every day uses it. Add a second one (a night-owl day, a weekend shape) to assign it to weekdays or to low-load days.':'Weekday overrides beat the default; low-load days always use their own pick.';
-$('byDow').innerHTML=DN.map((d,i)=>'<label class="tiny" style="display:flex;flex-direction:column;gap:4px;color:var(--ink2)">'+d+'<select onchange="if(this.value)D.sched.byDow['+i+']=this.value;else delete D.sched.byDow['+i+'];mark()" style="padding:7px 8px;width:auto"><option value="">default</option>'+names.map(n=>'<option value="'+esc2(n)+'"'+(LAY.byDow[i]===n?' selected':'')+'>'+esc2(n)+'</option>').join('')+'</select></label>').join('');
+$('byDow').innerHTML=DN.map((d,i)=>'<label class="tiny" style="display:flex;flex-direction:column;gap:4px;color:var(--ink2)">'+d+'<select onchange="if(this.value)D.sched.byDow['+i+']=this.value;else delete D.sched.byDow['+i+'];mark()" style="padding:8px 8px;width:auto"><option value="">default</option>'+names.map(n=>'<option value="'+esc2(n)+'"'+(LAY.byDow[i]===n?' selected':'')+'>'+esc2(n)+'</option>').join('')+'</select></label>').join('');
 $('lowSel').innerHTML=names.map(n=>'<option value="'+esc2(n)+'"'+(LAY.low===n?' selected':'')+'>'+esc2(n)+'</option>').join('');
 $('lowSel').onchange=()=>{D.sched.low=$('lowSel').value;mark();};}
 function addLayout(){const n=$('layNew').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g,'').slice(0,24);if(!n)return toast('Letters and numbers only');if(D.sched.layouts[n])return toast('Already exists');
@@ -476,9 +476,9 @@ const EM=S.sideEmoji||['\\uD83D\\uDCCC'];
 $('sides').innerHTML=SD.length?SD.map((t,i)=>'<div class="item'+(t.enabled?'':' dim')+'" style="--ac:var(--mint)"><div class="ihead"><span class="tile">'+t.emoji+'</span><input class="nm" value="'+esc2(t.name)+'" oninput="D.sides['+i+'].name=this.value;mark()" placeholder="Gym, class, shift\\u2026" aria-label="Side task name">'
 +'<div class="toggle'+(t.enabled?' on':'')+'" role="switch" tabindex="0" aria-checked="'+(!!t.enabled)+'" aria-label="on" onclick="D.sides['+i+'].enabled=D.sides['+i+'].enabled?0:1;renderSides();mark()"></div>'
 +'<button class="xbtn" onclick="D.sides.splice('+i+',1);renderSides();mark()" aria-label="Remove side task">\\u2715</button></div>'
-+'<div class="ibody"><div class="cklab">Days</div><div class="chips" style="margin-top:6px">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" onclick="tgDay('+i+','+di+')">'+d+'</button>').join('')+'</div>'
-+'<div class="cklab">Time</div><div class="rng" style="margin-top:6px"><input type="time" value="'+t.start+'" onchange="D.sides['+i+'].start=this.value;mark()" aria-label="start"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="D.sides['+i+'].end=this.value;mark()" aria-label="end"></div>'
-+'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:6px"><input type="date" value="'+(t.date_from||'')+'" onchange="D.sides['+i+'].date_from=this.value||null;mark()" aria-label="from"><span class="tiny">and</span><input type="date" value="'+(t.date_to||'')+'" onchange="D.sides['+i+'].date_to=this.value||null;mark()" aria-label="to"></div><div class="hint" style="margin-top:6px">Empty dates = every week.</div></div>'
++'<div class="ibody"><div class="cklab">Days</div><div class="chips" style="margin-top:8px">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" onclick="tgDay('+i+','+di+')">'+d+'</button>').join('')+'</div>'
++'<div class="cklab">Time</div><div class="rng" style="margin-top:8px"><input type="time" value="'+t.start+'" onchange="D.sides['+i+'].start=this.value;mark()" aria-label="start"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="D.sides['+i+'].end=this.value;mark()" aria-label="end"></div>'
++'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:8px"><input type="date" value="'+(t.date_from||'')+'" onchange="D.sides['+i+'].date_from=this.value||null;mark()" aria-label="from"><span class="tiny">and</span><input type="date" value="'+(t.date_to||'')+'" onchange="D.sides['+i+'].date_to=this.value||null;mark()" aria-label="to"></div><div class="hint" style="margin-top:8px">Empty dates = every week.</div></div>'
 +'<div class="ifoot"><div class="em">'+EM.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" onclick="D.sides['+i+'].emoji=this.textContent;renderSides();mark()" aria-label="emoji">'+e+'</button>').join('')+'</div><span class="grow"></span><button class="sm" onclick="cloneSide('+i+')" title="the same task at another time of day">\\uFF0B Another time</button></div></div>').join('')
 :'<div class="empty">Nothing yet.<br><span class="tiny">Gym, a class, a shift: add what takes real time each week.</span></div>';}
 function tgDay(i,d){const t=D.sides[i];const k=t.days.indexOf(d);if(k<0)t.days.push(d);else t.days.splice(k,1);t.days.sort();renderSides();mark();}
@@ -527,8 +527,8 @@ mcPreview();}
 // ---- platforms (part of the draft) ----
 function renderPlats(){
 $('platChips').innerHTML=D.platforms.map((p,i)=>
-'<span class="chip" style="padding:7px 8px 7px 14px">'+esc(p)+'<button class="ghost sm" style="padding:2px 6px;margin-left:2px" onclick="D.platforms.splice('+i+',1);renderPlats();mark()" aria-label="remove '+esc(p)+'">\\u2715</button></span>').join('')
-+'<span class="chip" style="opacity:.6;padding:7px 14px">Other <span class="tiny">always available</span></span>';}
+'<span class="chip" style="padding:8px 8px 8px 16px">'+esc(p)+'<button class="ghost sm" style="padding:2px 8px;margin-left:2px" onclick="D.platforms.splice('+i+',1);renderPlats();mark()" aria-label="remove '+esc(p)+'">\\u2715</button></span>').join('')
++'<span class="chip" style="opacity:.6;padding:8px 16px">Other <span class="tiny">always available</span></span>';}
 function addPlat(){
 const v=$('platNew').value.trim();
 if(!v)return;

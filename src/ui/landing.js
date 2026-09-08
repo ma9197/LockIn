@@ -70,7 +70,7 @@ const JOBS = [['Stripe', 'Software Engineer, New Grad', 'LinkedIn', 'interview']
   ['Cloudflare', 'Systems Engineer I', 'Company site', 'applied'], ['Figma', 'Early Career Engineer', 'Handshake', 'offer'],
   ['Ramp', 'Backend Engineer', 'LinkedIn', 'rejected'], ['Notion', 'Software Engineer, 2027', 'Company site', 'applied']];
 const STAT = { applied: ['Applied', '#5EA2FF'], oa: ['OA', '#FFB347'], interview: ['Interview', '#9B6EF3'], offer: ['Offer', '#3DDC97'], rejected: ['Rejected', '#FF5D73'] };
-const jobCard = (j, i) => `<div class="item" style="--ac:${STAT[j[3]][1]}"><b style="display:block;font:700 15px/1.3 var(--body)">${j[0]}</b><div class="tiny" style="margin-top:2px">${j[1]}</div><div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><select data-job="${i}" style="flex:1;min-width:120px;width:auto;padding:7px 9px;font-size:12.5px;background:var(--well)">${Object.keys(STAT).map(k => `<option value="${k}"${k === j[3] ? ' selected' : ''}>${STAT[k][0]}</option>`).join('')}</select><span class="chip" style="padding:3px 9px;font-size:11px">${j[2]}</span><span class="tiny num">Sep ${8 - i}</span></div></div>`;
+const jobCard = (j, i) => `<div class="item" style="--ac:${STAT[j[3]][1]}"><b style="display:block;font:700 15px/1.3 var(--body)">${j[0]}</b><div class="tiny" style="margin-top:2px">${j[1]}</div><div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><select data-job="${i}" style="flex:1;min-width:120px;width:auto;padding:8px 8px;font-size:13px;background:var(--well)">${Object.keys(STAT).map(k => `<option value="${k}"${k === j[3] ? ' selected' : ''}>${STAT[k][0]}</option>`).join('')}</select><span class="chip" style="padding:4px 8px;font-size:11px">${j[2]}</span><span class="tiny num">Sep ${8 - i}</span></div></div>`;
 
 const DOW = [['Sun', 2.1], ['Mon', 5.4], ['Tue', 6.2], ['Wed', 5.8], ['Thu', 4.9], ['Fri', 5.1], ['Sat', 3.0]];
 const heat = () => { let s = 7, out = ''; for (let i = 0; i < 84; i++) { s = (s * 1103515245 + 12345) & 0x7fffffff; const v = (s >> 8) % 7; const dow = i % 7; const a = i > 76 ? 0 : (dow === 0 || dow === 6 ? [0, .15, .3][v % 3] : [0, .3, .55, .8, 1, .7, .45][v]); out += `<div style="background:${a ? 'rgba(255,107,53,' + (0.15 + a * .85).toFixed(2) + ')' : 'var(--surface2)'}"></div>`; } return out; };
@@ -85,89 +85,89 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 <style>
 .liveclock,.refresh-fab{display:none}
 .wrap{max-width:1160px;padding:0 16px 40px}
-@media(min-width:900px){.wrap{padding:0 34px 70px}}
-.ld-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 0}
+@media(min-width:900px){.wrap{padding:0 32px 70px}}
+.ld-top{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:20px 0}
 .ld-top .logo{white-space:nowrap}
-.ld-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;font:800 14px var(--disp);color:var(--ink);background:var(--surface2);border:1px solid var(--line2);white-space:nowrap;transition:transform .08s,filter .15s,border-color .15s}
+.ld-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 16px;border-radius:12px;font:800 14px var(--disp);color:var(--ink);background:var(--surface2);border:1px solid var(--line2);white-space:nowrap;transition:transform .08s,filter .15s,border-color .15s}
 .ld-btn:hover{border-color:var(--ink3)}
 .ld-btn:active{transform:scale(.97)}
 .ld-btn.pri{background:var(--grad);border:0;color:#1A0D05}
 .ld-btn.ghost{background:transparent;border-color:transparent;color:var(--ink2)}
-.ld-btn.big{padding:15px 24px;font-size:16px;border-radius:14px}
+.ld-btn.big{padding:16px 24px;font-size:16px;border-radius:12px}
 
 /* hero */
-.ld-hero{padding:22px 0 0;text-align:left}
-.ld-eyebrow{display:inline-flex;align-items:center;gap:8px;font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember2);background:#FF6B3514;border:1px solid #FF6B3540;border-radius:99px;padding:6px 12px}
-.ld-h1{font:900 clamp(38px,7vw,68px)/1.02 var(--disp);letter-spacing:-.03em;margin:18px 0 16px;max-width:14ch}
+.ld-hero{padding:24px 0 0;text-align:left}
+.ld-eyebrow{display:inline-flex;align-items:center;gap:8px;font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember2);background:#FF6B3514;border:1px solid #FF6B3540;border-radius:99px;padding:8px 12px}
+.ld-h1{font:900 clamp(38px,7vw,68px)/1.02 var(--disp);letter-spacing:-.03em;margin:20px 0 16px;max-width:14ch}
 .ld-h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.ld-lead{color:var(--ink2);font-size:17px;line-height:1.6;max-width:58ch}
+.ld-lead{color:var(--ink2);font-size:18px;line-height:1.6;max-width:58ch}
 .ld-lead b{color:var(--ink)}
-.ld-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
-.ld-trust{display:flex;gap:6px 16px;flex-wrap:wrap;margin-top:18px;font-size:12.5px;color:var(--ink3)}
-.ld-trust span{display:flex;align-items:center;gap:6px}
+.ld-cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.ld-trust{display:flex;gap:8px 16px;flex-wrap:wrap;margin-top:20px;font-size:13px;color:var(--ink3)}
+.ld-trust span{display:flex;align-items:center;gap:8px}
 .ld-trust i{width:6px;height:6px;border-radius:99px;background:var(--mint);flex:none}
 @media(min-width:900px){
   .ld-hero{text-align:center;padding:40px 0 0}
-  .ld-h1{margin:20px auto 18px}
+  .ld-h1{margin:20px auto 20px}
   .ld-lead{margin:0 auto}
   .ld-cta,.ld-trust{justify-content:center}
 }
 
 /* device stage */
-.stage{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:28px;margin-top:38px}
-.stagecap{display:flex;justify-content:center;gap:6px;margin-top:18px}
-.stagecap button{padding:8px 14px;font:700 12.5px var(--disp);border-radius:99px}
+.stage{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:28px;margin-top:40px}
+.stagecap{display:flex;justify-content:center;gap:8px;margin-top:20px}
+.stagecap button{padding:8px 16px;font:700 13px var(--disp);border-radius:99px}
 .stagecap button.on{background:var(--surface3);border-color:var(--ink3);color:var(--ember)}
 .laptop{position:relative;width:100%;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:left bottom}
-.lp-screen{position:relative;background:#0A0D13;border:1px solid var(--line2);border-radius:16px 16px 4px 4px;padding:9px 9px 10px;box-shadow:0 40px 90px #000b,inset 0 0 0 1px #ffffff08}
+.lp-screen{position:relative;background:#0A0D13;border:1px solid var(--line2);border-radius:16px 16px 4px 4px;padding:8px 8px 12px;box-shadow:0 40px 90px #000b,inset 0 0 0 1px #ffffff08}
 .lp-view{position:relative;overflow:hidden;border-radius:6px;background:var(--bg);height:calc(820px * var(--lps,.6))}
 .lp-canvas{position:absolute;left:0;top:0;width:1180px;height:820px;transform:scale(var(--lps,.6));transform-origin:0 0;display:grid;grid-template-columns:196px 1fr;pointer-events:auto}
 .lp-base{height:13px;margin:0 -2.5%;background:linear-gradient(180deg,#2A3447,#141a26);border:1px solid var(--line2);border-top:0;border-radius:0 0 12px 12px}
 .lp-base:after{content:'';display:block;width:110px;height:4px;margin:0 auto;background:#0B0E14;border-radius:0 0 6px 6px}
-.lp-side{background:var(--surface);border-right:1px solid var(--line);padding:22px 12px;display:flex;flex-direction:column;gap:4px}
+.lp-side{background:var(--surface);border-right:1px solid var(--line);padding:24px 12px;display:flex;flex-direction:column;gap:4px}
 .lp-side .logo{padding:0 12px 20px}
-.lp-side a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--ink2);font:700 14px var(--disp)}
+.lp-side a{display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:12px;color:var(--ink2);font:700 14px var(--disp)}
 .lp-side a.on{background:var(--surface2);color:var(--ember)}
-.lp-main{padding:22px 28px;min-width:0}
-.lp-hdr{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px 14px}
+.lp-main{padding:24px 28px;min-width:0}
+.lp-hdr{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 20px 16px}
 .lp-hdr .dh-top{padding-bottom:12px;border-bottom:1px solid var(--line)}
 .lp-hdr .race{margin:16px 0 0}
-.lp-cols{display:grid;grid-template-columns:1fr 380px;gap:22px;align-items:start;margin-top:6px}
-.lp-cols h2{margin:22px 0 10px}
+.lp-cols{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start;margin-top:8px}
+.lp-cols h2{margin:24px 0 12px}
 .lp-cols>div>h2:first-child{margin-top:16px}
 .lp-main .card{margin:0}
 .lp-main .ringrow{grid-auto-flow:row;grid-template-columns:repeat(2,1fr);overflow:visible;gap:12px}
 .lp-main .ringrow .ring{width:104px;height:104px}
 .lp-main .ringrow .ring .val b{font-size:28px}
-.lp-main .task .d{font-size:12.5px}
+.lp-main .task .d{font-size:13px}
 .lp-main .dstat-top{grid-template-columns:repeat(2,1fr)}
 .lp-main .ld-tmr{display:flex;align-items:center;gap:16px}
 .lp-main .ld-tmr .btns{display:flex;flex-direction:column;gap:8px;flex:1}
-.lp-main .ld-tmr .tring .tv{font-size:30px}
+.lp-main .ld-tmr .tring .tv{font-size:32px}
 
 .phwrap{display:flex;justify-content:center}
-.phone{position:relative;width:min(100%,360px);background:var(--bg);border:1px solid var(--line2);border-radius:30px;padding:14px 12px;box-shadow:0 40px 90px #000a,inset 0 0 0 1px #ffffff08;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:right bottom}
+.phone{position:relative;width:min(100%,360px);background:var(--bg);border:1px solid var(--line2);border-radius:30px;padding:16px 12px;box-shadow:0 40px 90px #000a,inset 0 0 0 1px #ffffff08;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:right bottom}
 .ph-scroll{padding-top:2px}
 .phone .dh-chips{margin-left:0;width:100%}
-.phone .dh-nav{margin-top:10px}
-.phone .card{margin:8px 0;padding:14px}
-.phone h2{margin:14px 0 6px}
-.phone .ringrow{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow:visible;gap:6px}
-.phone .ringrow .ringcard{padding:10px 4px 8px}
+.phone .dh-nav{margin-top:12px}
+.phone .card{margin:8px 0;padding:16px}
+.phone h2{margin:16px 0 8px}
+.phone .ringrow{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow:visible;gap:8px}
+.phone .ringrow .ringcard{padding:12px 4px 8px}
 .phone .ringrow .ring{width:72px;height:72px}
 .phone .ringrow .ring .val b{font-size:20px}
-.phone .ringrow .ring .val span{font-size:8.5px}
-.phone .ringbtns button{min-width:36px;padding:6px 0}
-.phone .ld-tmr{display:flex;align-items:center;gap:14px}
+.phone .ringrow .ring .val span{font-size:11px}
+.phone .ringbtns button{min-width:36px;padding:8px 0}
+.phone .ld-tmr{display:flex;align-items:center;gap:16px}
 .phone .ld-tmr .btns{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0}
-.phone .ld-tmr .tring .tv{font-size:26px}
+.phone .ld-tmr .tring .tv{font-size:28px}
 .phone .ld-tmr .tring .tsub{font-size:11px}
-.phone .tl2{gap:14px}
-.phone .tl2-item{grid-template-columns:84px 1fr;gap:10px}
+.phone .tl2{gap:16px}
+.phone .tl2-item{grid-template-columns:84px 1fr;gap:12px}
 .phone .tl2-rail{min-width:84px}
 .phone .tl2-line{min-height:22px}
 .phone .dh-title h1{font-size:24px}
-.phone .dh-chips .chip,.phone .dh-chips .pill{padding:5px 10px;font-size:11.5px}
+.phone .dh-chips .chip,.phone .dh-chips .pill{padding:4px 12px;font-size:12px}
 .devhint{display:none}
 @media(min-width:900px){
   .stage{flex-direction:row;align-items:flex-end;gap:0}
@@ -185,7 +185,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .stage.front .laptop{opacity:.42;filter:saturate(.4);transform:translateX(-3%) scale(.94);cursor:pointer;z-index:1}
   .stage.front .laptop:hover{opacity:.62}
   .stage.front .lp-canvas{pointer-events:none}
-  .devhint{display:block;text-align:center;margin-top:12px;font-size:12.5px;color:var(--ink3)}
+  .devhint{display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--ink3)}
 }
 @media(max-width:899px){.stagecap{display:none}}
 
@@ -195,54 +195,54 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .ld-h2{font:900 clamp(26px,4.5vw,42px)/1.08 var(--disp);letter-spacing:-.02em;margin:8px 0 12px;color:var(--ink);text-transform:none}
 .ld-kick{font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember)}
 .ld-sub{color:var(--ink2);font-size:16px;line-height:1.6;max-width:640px}
-.ld-tabs{margin:26px 0 14px;position:sticky;top:8px;z-index:6}
-.ld-tabs button{padding:10px 16px}
-.ld-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 16px}
-@media(min-width:760px){.ld-panel{padding:26px}}
-.ld-two{display:grid;gap:18px}
+.ld-tabs{margin:28px 0 16px;position:sticky;top:8px;z-index:6}
+.ld-tabs button{padding:12px 16px}
+.ld-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:20px 16px}
+@media(min-width:760px){.ld-panel{padding:28px}}
+.ld-two{display:grid;gap:20px}
 .ld-two>*{min-width:0}
 .ld-panel,.ld-panel .card{min-width:0;overflow:hidden}
 .ld-panel .codewrap{max-width:100%}
 .ld-panel .codearea{max-width:100%;overflow-x:auto}
-@media(min-width:760px){.ld-two{grid-template-columns:1fr 1fr;gap:26px}}
+@media(min-width:760px){.ld-two{grid-template-columns:1fr 1fr;gap:28px}}
 .ld-panel .card{background:var(--surface2);border-color:var(--line2)}
-.ld-feat{display:grid;gap:14px;margin-top:28px}
-@media(min-width:700px){.ld-feat{grid-template-columns:repeat(3,1fr);gap:18px}}
-.ld-fc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 20px}
-.ld-fc .n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--grad);color:#1A0D05;font:900 15px var(--disp);margin-bottom:14px}
-.ld-fc b{display:block;font:800 17px var(--disp);margin-bottom:6px}
+.ld-feat{display:grid;gap:16px;margin-top:28px}
+@media(min-width:700px){.ld-feat{grid-template-columns:repeat(3,1fr);gap:20px}}
+.ld-fc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:24px 20px}
+.ld-fc .n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:12px;background:var(--grad);color:#1A0D05;font:900 15px var(--disp);margin-bottom:16px}
+.ld-fc b{display:block;font:800 18px var(--disp);margin-bottom:8px}
 .ld-fc p{color:var(--ink2);font-size:14px;line-height:1.55}
 /* the seven wizard screens, in a speech bubble hanging off card 2 */
-.snakewrap{position:relative;margin-top:26px;background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:14px 16px 16px}
+.snakewrap{position:relative;margin-top:28px;background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:16px 16px 16px}
 .snakewrap::before{content:'';position:absolute;top:-8px;left:50%;width:14px;height:14px;background:var(--surface);border-left:1px solid var(--line2);border-top:1px solid var(--line2);transform:translateX(-50%) rotate(45deg)}
-.snakecap{font:700 10.5px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember);margin-bottom:10px}
-.snake{list-style:none;display:flex;flex-direction:column;gap:22px;margin:0;padding:0}
-.snake li{position:relative;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--line2);border-radius:11px;padding:8px 11px 8px 8px;font:700 12.5px var(--body);color:var(--ink);white-space:nowrap}
-.snake li b{flex:none;width:22px;height:22px;border-radius:7px;background:var(--grad);color:#1A0D05;font:900 11.5px var(--disp);display:inline-flex;align-items:center;justify-content:center}
+.snakecap{font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember);margin-bottom:12px}
+.snake{list-style:none;display:flex;flex-direction:column;gap:24px;margin:0;padding:0}
+.snake li{position:relative;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:8px 12px 8px 8px;font:700 13px var(--body);color:var(--ink);white-space:nowrap}
+.snake li b{flex:none;width:22px;height:22px;border-radius:8px;background:var(--grad);color:#1A0D05;font:900 12px var(--disp);display:inline-flex;align-items:center;justify-content:center}
 .snake li::after{position:absolute;color:var(--ember);font:900 15px var(--disp);line-height:1}
 .snake li:not(:last-child)::after{content:'↓';left:50%;bottom:-20px;transform:translateX(-50%)}
 @media(min-width:760px){
-  .snake{flex-direction:row;justify-content:space-between;gap:18px}
+  .snake{flex-direction:row;justify-content:space-between;gap:20px}
   .snake li{flex:0 1 auto;min-width:0}
   .snake li:not(:last-child)::after{content:'→';left:auto;right:-16px;bottom:auto;top:50%;transform:translateY(-50%)}
 }
 
 .ld-shape{display:grid;gap:12px;margin-top:28px}
 @media(min-width:700px){.ld-shape{grid-template-columns:repeat(3,1fr);gap:16px}}
-.ld-sh{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start}
-.ld-sh .e{font-size:22px;flex:none;line-height:1.2}
+.ld-sh{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 20px;display:flex;gap:12px;align-items:flex-start}
+.ld-sh .e{font-size:24px;flex:none;line-height:1.2}
 .ld-sh b{display:block;font:800 15px var(--disp);margin-bottom:4px}
-.ld-sh p{color:var(--ink2);font-size:13.5px;line-height:1.5}
+.ld-sh p{color:var(--ink2);font-size:14px;line-height:1.5}
 .ld-priv{background:linear-gradient(135deg,#FF6B3512,#5EA2FF0e);border:1px solid var(--line2);border-radius:var(--r);padding:24px 20px;margin-top:8px;display:grid;gap:20px}
-@media(min-width:760px){.ld-priv{grid-template-columns:1.2fr 1fr;padding:36px;gap:34px}}
+@media(min-width:760px){.ld-priv{grid-template-columns:1.2fr 1fr;padding:36px;gap:32px}}
 .ld-priv ul{list-style:none;display:grid;gap:12px}
-.ld-priv li{display:flex;gap:10px;color:var(--ink2);font-size:14px;line-height:1.5}
+.ld-priv li{display:flex;gap:12px;color:var(--ink2);font-size:14px;line-height:1.5}
 .ld-priv li i{flex:none;width:22px;height:22px;border-radius:99px;background:#3DDC9722;color:var(--mint);display:inline-flex;align-items:center;justify-content:center;font:800 12px var(--disp);margin-top:2px}
-.ld-foot{margin-top:70px;padding:40px 0 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.ld-foot{margin-top:70px;padding:40px 0 12px;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:center;text-align:center;gap:16px}
 .ld-foot .tiny a{color:var(--ink3)}
-.ld-code{background:#0E121B;border:1px solid var(--line2);border-radius:var(--rs);padding:14px;font:12.5px/1.6 var(--mono);color:#CFE3FF;overflow-x:auto;white-space:pre;margin-top:12px}
+.ld-code{background:#0E121B;border:1px solid var(--line2);border-radius:var(--rs);padding:16px;font:13px/1.6 var(--mono);color:#CFE3FF;overflow-x:auto;white-space:pre;margin-top:12px}
 .ld-code .k{color:var(--ember2)}.ld-code .s{color:var(--mint)}.ld-code .c{color:var(--ink3)}
-.ld-slot{padding:9px 12px;font:700 13px var(--disp)}
+.ld-slot{padding:8px 12px;font:700 13px var(--disp)}
 .ld-slot.on{background:var(--mint);border-color:var(--mint);color:#062A1C}
 .ld-modal{position:fixed;inset:0;background:rgba(5,7,11,.75);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
 .ld-modal.on{display:flex}
@@ -253,8 +253,8 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 <div class="bgfx" aria-hidden="true"><i></i></div>
 
 <header class="ld-top">
-  <a class="logo" href="/" style="font-size:22px">LOCK<em>IN</em> 🔥</a>
-  <div class="row" style="gap:4px"><a href="/login" class="ld-btn ghost" style="padding:10px 12px">Sign in</a><a href="/signup" class="ld-btn pri" style="padding:10px 14px">Create account</a></div>
+  <a class="logo" href="/" style="font-size:24px">LOCK<em>IN</em> 🔥</a>
+  <div class="row" style="gap:4px"><a href="/login" class="ld-btn ghost" style="padding:12px 12px">Sign in</a><a href="/signup" class="ld-btn pri" style="padding:12px 16px">Create account</a></div>
 </header>
 
 <section class="ld-hero">
@@ -281,7 +281,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
               <h2>Daily counters</h2>
               <div class="ringrow two">${(ring('lc', '🧩', 'LeetCode', 2, 3, '#FF6B35') + ring('ap', '📨', 'Applications', 1, 2, '#5EA2FF')).replace(/<div class="ld-ring"/g, '<div class="card ringcard ld-ring"')}</div>
               <h2>Day clock</h2>
-              <div class="card">${clockSvg()}<p class="tiny" style="text-align:center;margin-top:10px">Two things at once? The one closer to now takes the outer lane.</p></div>
+              <div class="card">${clockSvg()}<p class="tiny" style="text-align:center;margin-top:12px">Two things at once? The one closer to now takes the outer lane.</p></div>
               <h2>Focus timer</h2>
               <div class="card">${timer(132)}</div>
             </div>
@@ -296,7 +296,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
       <h2>Goals</h2>
       <div class="ringrow">${rings().replace(/<div class="ld-ring"/g, '<div class="card ringcard ld-ring"')}</div>
       <h2>Focus timer</h2>
-      <div class="card">${timer(108)}<p class="tiny" style="text-align:center;margin-top:10px" id="dmHint">The same clock follows you to every tab. Press Done and it asks how the problem went.</p></div>
+      <div class="card">${timer(108)}<p class="tiny" style="text-align:center;margin-top:12px" id="dmHint">The same clock follows you to every tab. Press Done and it asks how the problem went.</p></div>
       <h2>Schedule</h2>
       <div class="card"><div class="tl2">${timeline()}</div></div>
     </div></div></div>
@@ -314,22 +314,22 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   <div class="tabpane on ld-panel" id="ldp-lc">
     <div class="ld-two">
       <div>
-        <div class="row" style="margin-bottom:12px"><b style="font:800 17px var(--disp)" class="grow">Attempts</b><span class="tiny">newest first</span></div>
+        <div class="row" style="margin-bottom:12px"><b style="font:800 18px var(--disp)" class="grow">Attempts</b><span class="tiny">newest first</span></div>
         <div class="tiny" style="margin-bottom:8px">Come back to these</div>
-        <div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:14px"><span class="chip">${outb(2)} Coin Change <span class="tiny">×2 · 48m</span></span><span class="chip">${outb(0)} LRU Cache <span class="tiny">×1 · 25m</span></span></div>
+        <div class="row" style="flex-wrap:wrap;gap:8px;margin-bottom:16px"><span class="chip">${outb(2)} Coin Change <span class="tiny">×2 · 48m</span></span><span class="chip">${outb(0)} LRU Cache <span class="tiny">×1 · 25m</span></span></div>
         <div id="ldLcRows">${LC.map(lcRow).join('')}</div>
         <p class="hint">A problem's state is its <b>newest</b> attempt. Reruns stack on the same name, so "solved" means solved clean, not "touched once".</p>
       </div>
       <div>
         <div class="card" style="margin:0"><div class="row" style="flex-wrap:wrap;gap:8px"><span class="diff medium">MEDIUM</span><b style="font:800 16px var(--disp)">Coin Change</b><span class="grow"></span><span class="savetick on">SAVED</span></div>
-          <p style="margin-top:10px;font-size:15px;line-height:1.6">Bottom-up DP over amounts. dp[a] = min coins for a. Slow the first time because I recomputed subproblems; second try 31m.</p>
+          <p style="margin-top:12px;font-size:15px;line-height:1.6">Bottom-up DP over amounts. dp[a] = min coins for a. Slow the first time because I recomputed subproblems; second try 31m.</p>
           <div class="codewrap"><span class="codetag">PYTHON</span><pre class="codearea" style="margin:0">dp = [0] + [inf] * amount
 for a in range(1, amount + 1):
     for c in coins:
         if c &lt;= a:
             dp[a] = min(dp[a], dp[a - c] + 1)
 return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
-          <div class="row" style="gap:6px;flex-wrap:wrap"><span class="chip" style="font-size:12px">⏱ median 18m</span><span class="chip" style="font-size:12px;color:var(--mint)">↓ 4m vs last week</span><span class="chip" style="font-size:12px">38 solved · 150 target</span></div>
+          <div class="row" style="gap:8px;flex-wrap:wrap"><span class="chip" style="font-size:12px">⏱ median 18m</span><span class="chip" style="font-size:12px;color:var(--mint)">↓ 4m vs last week</span><span class="chip" style="font-size:12px">38 solved · 150 target</span></div>
         </div>
         <p class="hint">One living note per problem, with a code block and an array visualiser for pointer problems. The timer's "Done" opens the log with the minutes filled in.</p>
       </div>
@@ -339,12 +339,12 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
   <div class="tabpane ld-panel" id="ldp-jobs">
     <div class="ld-two">
       <div>
-        <b style="font:800 17px var(--disp)">Funnel</b>
-        <div id="ldFunnel" style="margin-top:10px"></div>
+        <b style="font:800 18px var(--disp)">Funnel</b>
+        <div id="ldFunnel" style="margin-top:12px"></div>
         <p class="hint">Change a status on the right and watch it move.</p>
-        <div class="tiny" style="margin:18px 0 6px">Platforms</div>
-        <div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip">LinkedIn <b class="num">11</b></span><span class="chip">Handshake <b class="num">6</b></span><span class="chip">Company site <b class="num">5</b></span><span class="chip">Referral <b class="num">2</b></span></div>
-        <div class="card" style="margin:18px 0 0"><b style="font:800 14px var(--disp)">🤖 Let an agent do the typing</b><p class="tiny" style="margin-top:4px">A separate API key gives Claude Code full access to this tab only: log, find, edit, change status, delete. Adding bumps today's counter, deleting takes it back.</p></div>
+        <div class="tiny" style="margin:20px 0 8px">Platforms</div>
+        <div class="row" style="flex-wrap:wrap;gap:8px"><span class="chip">LinkedIn <b class="num">11</b></span><span class="chip">Handshake <b class="num">6</b></span><span class="chip">Company site <b class="num">5</b></span><span class="chip">Referral <b class="num">2</b></span></div>
+        <div class="card" style="margin:20px 0 0"><b style="font:800 14px var(--disp)">🤖 Let an agent do the typing</b><p class="tiny" style="margin-top:4px">A separate API key gives Claude Code full access to this tab only: log, find, edit, change status, delete. Adding bumps today's counter, deleting takes it back.</p></div>
       </div>
       <div id="ldJobs">${JOBS.map(jobCard).join('')}</div>
     </div>
@@ -357,9 +357,9 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
         <b style="font:800 15px var(--disp)">Pace vs plan</b>
         <div class="tiny" style="margin-top:2px">38 clean solves · the plan asked for 34 by today</div>
         <div class="pace-bar"><div style="width:78%;background:var(--grad)"></div></div>
-        <b style="display:block;font:800 15px var(--disp);margin-top:22px">When you actually grind</b>
+        <b style="display:block;font:800 15px var(--disp);margin-top:24px">When you actually grind</b>
         <div class="dow">${DOW.map(([d, h]) => `<div class="dw"><div class="bar"><i style="height:${Math.round(h / 6.2 * 100)}%;background:${h >= 5 ? 'var(--ember)' : h >= 3 ? 'var(--ember2)' : 'var(--surface3)'}"></i></div><b>${h}</b><span>${d}</span></div>`).join('')}</div>
-        <b style="display:block;font:800 15px var(--disp);margin-top:22px">Last 12 weeks</b>
+        <b style="display:block;font:800 15px var(--disp);margin-top:24px">Last 12 weeks</b>
         <div style="overflow-x:auto;padding-bottom:4px;margin-top:8px"><div class="heat">${heat()}</div></div>
       </div>
       <div>
@@ -376,7 +376,7 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
       <div class="card" style="margin:0">
         <b style="font:800 16px var(--disp)">🔒 Progress for friends</b>
         <p class="tiny" style="margin-top:4px">A read-only copy of your Progress tab behind a PIN you choose. You decide what shows: overview, LeetCode, grind hours, jobs funnel without company names, off-day reasons.</p>
-        <div id="ldShareGate"><label class="fld">PIN</label><div class="row"><input id="ldPin" inputmode="numeric" placeholder="try 1234" style="flex:1"><button class="pri" data-act="pin">Open</button></div><div class="tiny" id="ldPinMsg" style="margin-top:6px;min-height:14px"></div></div>
+        <div id="ldShareGate"><label class="fld">PIN</label><div class="row"><input id="ldPin" inputmode="numeric" placeholder="try 1234" style="flex:1"><button class="pri" data-act="pin">Open</button></div><div class="tiny" id="ldPinMsg" style="margin-top:8px;min-height:14px"></div></div>
         <div id="ldShareOpen" style="display:none">
           <div class="csum" style="grid-template-columns:repeat(2,1fr);margin-top:12px"><div class="ci"><b>12</b><span>🔥 streak</span></div><div class="ci"><b>38</b><span>solved</span></div><div class="ci"><b>61h</b><span>grind</span></div><div class="ci"><b>24</b><span>applied</span></div></div>
           <div class="tiny">Friends see numbers, never your notes and never company names unless you allow it.</div>
@@ -386,20 +386,20 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
         <b style="font:800 16px var(--disp)">🎮 Book Sam's free time</b>
         <p class="tiny" style="margin-top:4px">Your public page at <span class="num">/u/sam/book</span>. Whatever is left of your bookable windows after grind blocks and side tasks is what friends can grab. Approve or decline from the Friends tab.</p>
         <label class="fld">Tue, Sep 8 · 12:00 PM – 3:00 PM</label>
-        <div class="row" style="flex-wrap:wrap;gap:6px" id="ldSlots"><button class="ld-slot" data-slot="12:00 PM">12:00</button><button class="ld-slot" data-slot="12:30 PM">12:30</button><button class="ld-slot" data-slot="2:00 PM">2:00</button><button class="ld-slot" data-slot="2:30 PM">2:30</button></div>
-        <div class="tiny" style="margin-top:6px">1:00 to 2:00 is already Jordan's.</div>
-        <div class="row" style="gap:6px;margin-top:12px;flex-wrap:wrap"><span class="chip">🎮 game</span><span class="chip">💬 talk</span><span class="chip">📋 task</span></div>
-        <div id="ldBookMsg" class="tiny" style="margin-top:10px;min-height:16px;color:var(--mint)"></div>
+        <div class="row" style="flex-wrap:wrap;gap:8px" id="ldSlots"><button class="ld-slot" data-slot="12:00 PM">12:00</button><button class="ld-slot" data-slot="12:30 PM">12:30</button><button class="ld-slot" data-slot="2:00 PM">2:00</button><button class="ld-slot" data-slot="2:30 PM">2:30</button></div>
+        <div class="tiny" style="margin-top:8px">1:00 to 2:00 is already Jordan's.</div>
+        <div class="row" style="gap:8px;margin-top:12px;flex-wrap:wrap"><span class="chip">🎮 game</span><span class="chip">💬 talk</span><span class="chip">📋 task</span></div>
+        <div id="ldBookMsg" class="tiny" style="margin-top:12px;min-height:16px;color:var(--mint)"></div>
       </div>
     </div>
-    <p class="hint" style="margin-top:14px">Both live under your handle. Turn the Friends module off and the booking page disappears entirely. The share link stops working the moment you clear the PIN.</p>
+    <p class="hint" style="margin-top:16px">Both live under your handle. Turn the Friends module off and the booking page disappears entirely. The share link stops working the moment you clear the PIN.</p>
   </div>
 
   <div class="tabpane ld-panel" id="ldp-api">
     <div class="ld-two">
       <div>
-        <b style="font:800 17px var(--disp)">Let Claude read your log</b>
-        <p class="ld-sub" style="font-size:14.5px;margin-top:6px">A read-only key exposes three endpoints: LeetCode, jobs, progress. Every response starts with a <b>guide</b> that spells out the counting rules for your account, so the model reads the numbers the way the app counts them. Works in Claude Code and in claude.ai chat.</p>
+        <b style="font:800 18px var(--disp)">Let Claude read your log</b>
+        <p class="ld-sub" style="font-size:15px;margin-top:8px">A read-only key exposes three endpoints: LeetCode, jobs, progress. Every response starts with a <b>guide</b> that spells out the counting rules for your account, so the model reads the numbers the way the app counts them. Works in Claude Code and in claude.ai chat.</p>
         <div class="seg-ctl" style="margin-top:16px;max-width:320px" id="ldApiSeg"><button class="on" data-api="cc">Claude Code</button><button data-api="web">Browser Claude</button></div>
         <div class="ld-code" id="ldApiCode"></div>
       </div>
@@ -463,7 +463,7 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
 </section>
 
 <footer class="ld-foot">
-  <div class="logo" style="font-size:26px">LOCK<em>IN</em> 🔥</div>
+  <div class="logo" style="font-size:28px">LOCK<em>IN</em> 🔥</div>
   <p class="ld-sub" style="text-align:center">The finish line is a date. Start counting.</p>
   <div class="ld-cta" style="margin-top:4px;justify-content:center"><a class="ld-btn pri big" href="/signup">Create your account</a><a class="ld-btn big" href="/login">Sign in</a></div>
   <p class="tiny"><a href="https://github.com/ma9197/LockIn" target="_blank" rel="noopener">GitHub</a> · MIT license · built on Cloudflare Workers</p>
@@ -530,14 +530,14 @@ hint('\\u2705 Finished \\u00b7 <b class="num">'+mins+'m</b> \\u00b7 now log it')
 // ---- log modal ----
 let LDLOG={diff:'medium'};
 function ldLogOpen(mins){LDLOG={diff:'medium'};
-$('ldModal').innerHTML='<div class="modal" onclick="event.stopPropagation()"><h1 style="font-size:19px">\\uD83E\\uDDE9 Log a LeetCode problem</h1>'
+$('ldModal').innerHTML='<div class="modal" onclick="event.stopPropagation()"><h1 style="font-size:20px">\\uD83E\\uDDE9 Log a LeetCode problem</h1>'
 +'<p class="muted" style="margin-top:4px">All three count for today. \\u26a1 Solved, slow is not counted as solved and stays in your come-back list.</p>'
-+'<div class="fg" style="margin-top:14px"><label class="fld">Difficulty</label><div class="seg-ctl" id="ldDiff"><button data-diff="easy">Easy</button><button data-diff="medium" class="on">Medium</button><button data-diff="hard">Hard</button></div></div>'
++'<div class="fg" style="margin-top:16px"><label class="fld">Difficulty</label><div class="seg-ctl" id="ldDiff"><button data-diff="easy">Easy</button><button data-diff="medium" class="on">Medium</button><button data-diff="hard">Hard</button></div></div>'
 +'<div class="fg"><label class="fld">Minutes spent</label><input id="ldMin" type="number" inputmode="numeric" value="'+(mins||'')+'" placeholder="e.g. 22"></div>'
 +'<div class="fg"><label class="fld">Problem name</label><input id="ldName" placeholder="Start typing, past attempts match here" value="Merge Intervals">'
 +'<div class="hint">New problem, nothing like it logged before.</div></div>'
-+'<div class="row" style="margin-top:18px;flex-wrap:wrap"><button class="mint grow" data-out="1">\\u2713 Solved \\u00b7 +1</button><button class="grow" style="border-color:#9B6EF388;color:var(--violet)" data-out="2">\\u26a1 Solved, slow</button><button class="grow" data-out="0">\\u2715 Did not finish</button></div>'
-+'<button class="ghost" style="width:100%;margin-top:10px" data-act="close">Cancel</button></div>';
++'<div class="row" style="margin-top:20px;flex-wrap:wrap"><button class="mint grow" data-out="1">\\u2713 Solved \\u00b7 +1</button><button class="grow" style="border-color:#9B6EF388;color:var(--violet)" data-out="2">\\u26a1 Solved, slow</button><button class="grow" data-out="0">\\u2715 Did not finish</button></div>'
++'<button class="ghost" style="width:100%;margin-top:12px" data-act="close">Cancel</button></div>';
 $('ldModal').classList.add('on');}
 function ldLogSave(out){const m=+$('ldMin').value||1,n=$('ldName').value.trim()||'Untitled';
 const row=document.createElement('div');row.className='lcrow';
@@ -565,7 +565,7 @@ const tot={};for(const k of Object.keys(c))tot[k]=LDBASE[k]-(base[k]||0)+c[k];
 const reached={applied:tot.applied+tot.oa+tot.interview+tot.offer+tot.rejected,oa:tot.oa+tot.interview+tot.offer,interview:tot.interview+tot.offer,offer:tot.offer};
 const max=reached.applied||1;
 $('ldFunnel').innerHTML=['applied','oa','interview','offer'].map(k=>'<div class="funnel-row"><span class="fl">'+STC[k][0]+'</span><div><div class="fb" style="width:'+Math.max(8,Math.round(reached[k]/max*100))+'%;background:'+STC[k][1]+'">'+reached[k]+'</div></div><span class="fp">'+Math.round(reached[k]/max*100)+'%</span></div>').join('')
-+'<div class="tiny" style="margin-top:6px">'+tot.rejected+' rejected \\u00b7 '+Math.round(reached.interview/max*100)+'% of applications reach an interview</div>';
++'<div class="tiny" style="margin-top:8px">'+tot.rejected+' rejected \\u00b7 '+Math.round(reached.interview/max*100)+'% of applications reach an interview</div>';
 document.querySelectorAll('#ldJobs .item').forEach((el,i)=>{el.style.setProperty('--ac',STC[LDJ[i]][1]);});}
 ldFunnel();
 

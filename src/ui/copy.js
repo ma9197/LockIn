@@ -54,15 +54,15 @@ function openSnip(id){
 const s=id?SN.find(x=>x.id===id):null;
 EDIT_SUBS=s?subsOf(s).map(u=>({label:u.label,value:u.value})):[];
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
-+'<h1 style="font-size:19px">'+(s?'✎ Edit block':'＋ New copy block')+'</h1>'
-+'<div class="fg" style="margin-top:14px"><label class="fld">Value (what gets copied)</label>'
++'<h1 style="font-size:20px">'+(s?'✎ Edit block':'＋ New copy block')+'</h1>'
++'<div class="fg" style="margin-top:16px"><label class="fld">Value (what gets copied)</label>'
 +'<textarea id="sn-value" rows="3" placeholder="123 Main St, Apt 4B, Brooklyn, NY 11101">'+(s?esc(s.value):'')+'</textarea></div>'
 +'<div class="fg"><label class="fld">Label (optional, shown as the title)</label>'
 +'<input id="sn-label" value="'+(s?esc(s.label):'')+'" placeholder="Address" maxlength="60"></div>'
 +'<div class="fg"><label class="fld">Sub-items <span style="text-transform:none;letter-spacing:0">(e.g. ZIP, city, state)</span></label>'
 +'<div id="sn-subs"></div>'
 +'<button class="sm" style="margin-top:8px" onclick="addSub()">＋ sub-item</button></div>'
-+'<div class="row" style="margin-top:18px">'
++'<div class="row" style="margin-top:20px">'
 +'<button class="pri grow" onclick="saveSnip('+(s?s.id:0)+')">'+(s?'Save':'Add block')+'</button>'
 +'<button onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button></div></div></div>';
 renderSubEdit();
