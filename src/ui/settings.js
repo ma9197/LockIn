@@ -74,6 +74,9 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 .pick.on{border-color:var(--ember);background:#FF6B3512}
 .pick.on span{color:var(--ember)}
 .pick .mc-prev{display:flex;align-items:center;justify-content:center;transform:scale(.85);max-width:100%;overflow:hidden}
+.bgprev{width:100%;height:52px;border-radius:9px;border:1px solid var(--line2);background:#0B0E14;position:relative;overflow:hidden}
+.bgprev.aurora{background:radial-gradient(circle at 18% 22%,rgba(255,107,53,.55),transparent 55%),radial-gradient(circle at 86% 88%,rgba(94,162,255,.5),transparent 55%),#0B0E14}
+.bgprev.aurora:after,.bgprev.dots:after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(237,241,247,.22) 1px,transparent 1.3px);background-size:9px 9px}
 .rangerow{display:flex;align-items:center;gap:12px}
 .rangerow input[type=range]{flex:1;accent-color:var(--ember);padding:0}
 .rangerow .num{min-width:52px;text-align:right;font:800 15px var(--disp);color:var(--ember)}
@@ -147,6 +150,8 @@ ${sec('today', 'Today page', 'The header style and the focus timer.', `
   <div class="fg"><label class="fld">Header style</label><div class="seg-ctl" id="layoutSeg"><button data-l="classic">Classic</button><button data-l="refined">Refined</button></div><div class="hint">Refined puts the date, phase, mode and off-day controls in one bordered header card.</div></div>
   <div class="fg"><label class="fld">Focus timer</label><div class="fgrid"><div><div class="gl" style="margin:0"><div><label>Default (min)</label><input id="s-timer" type="number" min="5" max="120"></div></div></div><div><div class="gl" style="margin:0;grid-template-columns:1fr"><div><label>Choices</label><input id="s-topts" placeholder="10, 15, 20, 25, 50"></div></div></div></div></div>
 </div>`)}
+${sec('bg', 'Background', 'What sits behind every page. The glow is the default; Plain is the quietest.', `
+<div class="card"><div class="picks" id="bgPicks"></div></div>`)}
 ${sec('clock', 'Day clock', 'The 12-hour dial on Today that shows your blocks around the face.', `
 <div class="card">
   <div class="fg"><label class="fld">Design</label><div class="picks" id="ckDesigns"></div></div>
@@ -247,8 +252,10 @@ const MODS=[['leetcode','\\uD83E\\uDDE9 LeetCode tab','problem log, notes, visua
 const SHK=[['shOverview','overview'],['shLc','lc'],['shGrind','grind'],['shJobs','jobs'],['shLcNames','lcNames'],['shFriends','friends'],['shOffReasons','offReasons']];
 const LAYEMO={morning:'\\uD83C\\uDF05',night:'\\uD83C\\uDF19',low:'\\uD83E\\uDEAB',weekend:'\\uD83C\\uDFD6\\uFE0F',sunday:'\\uD83C\\uDFD6\\uFE0F'};
 // which draft keys belong to which section, for the change markers and the save bar text
-const SEC={time:['tz','clock24'],plan:['phases'],cats:['cats'],layouts:['sched'],sides:['sides'],modules:['modules','grindTarget'],today:['todayLayout','timerDefault','timerOptions'],clock:['clock'],mclock:['mclock'],booking:['booking'],share:['share'],platforms:['platforms']};
-const TABOF={time:'plan',plan:'plan',cats:'plan',layouts:'schedule',sides:'schedule',modules:'today',today:'today',clock:'today',mclock:'today',booking:'sharing',share:'sharing',platforms:'api'};
+const SEC={time:['tz','clock24'],plan:['phases'],cats:['cats'],layouts:['sched'],sides:['sides'],modules:['modules','grindTarget'],today:['todayLayout','timerDefault','timerOptions'],bg:['bgStyle'],clock:['clock'],mclock:['mclock'],booking:['booking'],share:['share'],platforms:['platforms']};
+const TABOF={time:'plan',plan:'plan',cats:'plan',layouts:'schedule',sides:'schedule',modules:'today',today:'today',bg:'today',clock:'today',mclock:'today',booking:'sharing',share:'sharing',platforms:'api'};
+const BGS=[['aurora','Glow','two soft lights and a dot grid'],['dots','Grid','the dot grid only'],['plain','Plain','one solid colour']];
+function renderBg(){$('bgPicks').innerHTML=BGS.map(([k,n,d])=>'<button class="pick'+(D.bgStyle===k?' on':'')+'" onclick="D.bgStyle=\\''+k+'\\';renderBg();mark()" title="'+d+'"><div class="bgprev '+k+'"></div><span>'+n+'</span></button>').join('');}
 const TABN={plan:'Plan',schedule:'Schedule',today:'Today',sharing:'Sharing',api:'Integrations',account:'Account'};
 let TAB='plan';
 try{history.scrollRestoration='manual';}catch(e){}
@@ -272,7 +279,7 @@ tz:S.tz,clock24:!!S.clock24,
 phases:S.phases.map(p=>({id:p.id,name:p.name,start_date:p.start_date,end_date:p.end_date,color:p.color,low_load:p.low_load?1:0})),
 cats:S.categories.map(c=>({id:c.id,name:c.name,emoji:c.emoji,color:c.color,goal_wd:c.goal_wd,goal_we:c.goal_we,goal_low:c.goal_low,enabled:c.enabled?1:0,builtin:c.builtin||null})),
 sides:S.sideTasks.map(t=>({id:t.id,name:t.name,emoji:t.emoji,days:String(t.days).split(',').filter(x=>x!=='').map(Number),start:t.start,end:t.end,date_from:t.date_from||null,date_to:t.date_to||null,enabled:t.enabled?1:0})),
-sched:JSON.parse(JSON.stringify(S.sched)),modules:{...S.modules},grindTarget:S.grindTarget,todayLayout:S.todayLayout,
+sched:JSON.parse(JSON.stringify(S.sched)),modules:{...S.modules},grindTarget:S.grindTarget,todayLayout:S.todayLayout,bgStyle:S.bgStyle||'aurora',
 timerDefault:S.timerDefault,timerOptions:S.timerOptions.join(', '),
 clock:{design:S.clock.design,size:S.clock.size,font:S.clock.font,accent:S.clock.accent||''},
 mclock:{design:S.mclock.design,font:S.mclock.font,accent:S.mclock.accent||''},
@@ -315,7 +322,7 @@ num('s-target',()=>D.grindTarget,v=>{D.grindTarget=v;});
 seg('layoutSeg','l',D.todayLayout,v=>{D.todayLayout=v;});
 num('s-timer',()=>D.timerDefault,v=>{D.timerDefault=v;});
 txt('s-topts',()=>D.timerOptions,v=>{D.timerOptions=v;});
-renderClockCtl();renderMClockCtl();
+renderBg();renderClockCtl();renderMClockCtl();
 tg('bookT',()=>D.booking.enabled,v=>{D.booking.enabled=v;});
 renderAvail();
 $('s-bdays').value=D.booking.days;$('bdVal').textContent=D.booking.days+(D.booking.days===1?' day':' days');
@@ -475,7 +482,7 @@ for(const c of D.cats)if(!c.builtin&&!c.name.trim())return bad('cats','Name ever
 for(const [n,l] of Object.entries(D.sched.layouts))for(const b of l)if(!hmOk(b[0])||!hmOk(b[1]))return bad('layouts','Fill every time in '+n);
 for(const t of D.sides){if(!t.name.trim())return bad('sides','Name every side task');if(!t.days.length)return bad('sides',t.name+': pick at least one day');}
 const sh=D.share;
-const body={settings:{timezone:D.tz,clock24:D.clock24,modules:D.modules,grindTarget:+D.grindTarget||6,todayLayout:D.todayLayout,
+const body={settings:{timezone:D.tz,clock24:D.clock24,modules:D.modules,grindTarget:+D.grindTarget||6,todayLayout:D.todayLayout,bgStyle:D.bgStyle,
 timerDefault:+D.timerDefault,timerOptions:nums(D.timerOptions),
 clockDesign:D.clock.design,clockSize:+D.clock.size,clockFont:+D.clock.font,clockAccent:D.clock.accent||'',
 mclockDesign:D.mclock.design,mclockFont:+D.mclock.font,mclockAccent:D.mclock.accent||'',
@@ -484,7 +491,7 @@ shareTitle:sh.title,shareOverview:sh.overview,shareLc:sh.lc,shareGrind:sh.grind,
 jobPlatforms:D.platforms,sched:D.sched},
 phases:D.phases,categories:D.cats,sideTasks:D.sides};
 // the nav, the time zone and the header style live in the page shell, so those need a fresh page
-const needReload=['modules','tz','clock24','todayLayout'].some(k=>snap(k)!==B[k]);
+const needReload=['modules','tz','clock24','todayLayout','bgStyle'].some(k=>snap(k)!==B[k]);
 const btn=$('sbSave');btn.disabled=true;btn.textContent='Saving\\u2026';
 try{const j=await api('/api/settings/all',{body});
 toast(j.regenerated?'Saved. Goals for '+j.regenerated+' upcoming days updated.':'Saved');

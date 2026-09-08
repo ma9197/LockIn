@@ -152,6 +152,7 @@ export async function loadCfg(db) {
       accent: /^#[0-9a-fA-F]{6}$/.test(s.mclock_accent || '') ? s.mclock_accent : '',
     },
     todayLayout: s.today_layout === 'refined' ? 'refined' : 'classic',
+    bgStyle: ['aurora', 'dots', 'plain'].includes(s.bg_style) ? s.bg_style : 'aurora',
     jobPlatforms: (() => {
       const a = j('job_platforms', null);
       return Array.isArray(a) && a.length ? a.map(String).slice(0, 20) : DEFAULT_PLATFORMS;

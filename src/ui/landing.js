@@ -37,8 +37,24 @@ const task = (emoji, title, sub, done, goal) => `<div class="task"><div class="b
 // plan: 4 phases over 112 days, today is day 14
 const PH = [['#5EA2FF', 28], ['#FF6B35', 42], ['#9B6EF3', 7], ['#3DDC97', 35]];
 const race = (h) => { let out = '', i = 0; for (const [c, n] of PH) for (let k = 0; k < n; k++, i++) out += `<div class="race-seg ${i < 13 ? 'past' : i === 13 ? 'today' : ''}" style="--seg:${c}"></div>`; return `<div class="race"><div class="race-track" style="height:${h}px">${out}</div><div class="race-cap"><span>AUG 26</span><b>DAY 14 OF 112</b><span>DEC 15</span></div></div>`; };
-const header = () => `<div class="dh-top"><button class="dh-nav" aria-label="previous day" tabindex="-1">‹</button><div class="dh-title"><h1>Today</h1><div class="dh-date">Tue, September 8</div></div><button class="dh-nav" aria-label="next day" tabindex="-1">›</button></div>
-<div class="dh-chips"><span class="pill" style="background:#FF6B3522;color:var(--ember)">🎯 Interview prep</span><span class="chip">🔥 12 day streak</span><span class="chip">☀️ morning</span><span class="chip">💤 Off day</span></div>`;
+const header = () => `<div class="dh-top"><div class="dh-title"><h1>Today</h1></div><div class="dh-chips"><span class="pill" style="background:#FF6B3522;color:var(--ember);border:1px solid currentColor">Phase 2 · Interview prep</span><span class="chip" style="border-color:#FF6B3555;background:#FF6B3514;color:var(--ember2)">🔥 12 day streak</span><span class="chip">☀️ morning</span><span class="chip">💤 Off day</span></div></div>
+<div class="dh-nav"><button class="dh-btn" aria-label="previous day" tabindex="-1">‹</button><div class="dh-date">Tue, September 8</div><button class="dh-btn" aria-label="next day" tabindex="-1">›</button></div>`;
+
+// the day clock, drawn once on the server: a 12-hour dial with the day's blocks around the face
+const clockSvg = () => {
+  const P = (r, deg) => [150 + r * Math.cos((deg - 90) * Math.PI / 180), 150 + r * Math.sin((deg - 90) * Math.PI / 180)];
+  const arc = (r, a1, a2, col, w) => { const [x1, y1] = P(r, a1), [x2, y2] = P(r, a2); return `<path d="M ${x1.toFixed(1)} ${y1.toFixed(1)} A ${r} ${r} 0 ${a2 - a1 > 180 ? 1 : 0} 1 ${x2.toFixed(1)} ${y2.toFixed(1)}" stroke="${col}" stroke-width="${w}" fill="none"/>`; };
+  const lab = (r, deg, txt, size, col) => { const [x, y] = P(r, deg); return `<text x="${x.toFixed(1)}" y="${(y + size * .35).toFixed(1)}" text-anchor="middle" font-size="${size}" font-weight="700" fill="${col}" font-family="Archivo">${txt}</text>`; };
+  let s = '<svg viewBox="0 0 300 300" width="100%" style="max-width:340px;display:block;margin:0 auto" aria-hidden="true">';
+  s += '<circle cx="150" cy="150" r="146" fill="#10151F" stroke="#263045" stroke-width="2"/><circle cx="150" cy="150" r="116" fill="none" stroke="#263045" opacity=".5"/>';
+  for (let m = 0; m < 60; m++) { const hr = m % 5 === 0; const [x1, y1] = P(hr ? 130 : 136, m * 6), [x2, y2] = P(142, m * 6); s += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="${hr ? 'rgba(237,241,247,.55)' : 'rgba(237,241,247,.13)'}" stroke-width="${hr ? 2.4 : .8}" stroke-linecap="round"/>`; }
+  for (let h = 1; h <= 12; h++) s += lab(118, h * 30, h, 12, '#97A3B6');
+  // 9:30-12 grind · 12-3 free · 3:30-6 grind · 7-8:30 gym, then the hand at 5:40
+  s += arc(100, 285, 360, '#FF6B35', 24) + arc(100, 0, 90, '#5EA2FF', 24) + arc(100, 105, 180, '#FF6B35', 24) + arc(100, 210, 255, '#3DDC97', 24);
+  s += lab(100, 322, '🔥', 14, '') + lab(80, 322, '2h 30m', 9, '#97A3B6') + lab(100, 45, '🎮', 14, '') + lab(80, 45, '3h', 9, '#97A3B6') + lab(100, 142, '🔥', 14, '') + lab(80, 142, '2h 30m', 9, '#97A3B6') + lab(100, 232, '🏋️', 14, '') + lab(80, 232, '1h 30m', 9, '#97A3B6');
+  const [hx, hy] = P(66, 170); s += `<line x1="150" y1="150" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="#EDF1F7" stroke-width="2.5" stroke-linecap="round" opacity=".85"/><circle cx="150" cy="150" r="4.5" fill="#EDF1F7"/>`;
+  return s + '</svg>';
+};
 
 const NAV = [['today', 'Today', 1], ['calendar', 'Calendar'], ['progress', 'Progress'], ['leetcode', 'LeetCode'], ['jobs', 'Jobs'], ['copy', 'Copy'], ['friends', 'Friends'], ['settings', 'Settings']];
 
@@ -104,9 +120,8 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .stagecap button.on{background:var(--surface3);border-color:var(--ink3);color:var(--ember)}
 .laptop{position:relative;width:100%;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:left bottom}
 .lp-screen{position:relative;background:#0A0D13;border:1px solid var(--line2);border-radius:16px 16px 4px 4px;padding:9px 9px 10px;box-shadow:0 40px 90px #000b,inset 0 0 0 1px #ffffff08}
-.lp-screen:before{content:'';position:absolute;left:50%;top:3px;width:5px;height:5px;border-radius:99px;background:#232C3E;transform:translateX(-50%)}
-.lp-view{position:relative;overflow:hidden;border-radius:6px;background:var(--bg);height:calc(720px * var(--lps,.6))}
-.lp-canvas{position:absolute;left:0;top:0;width:1180px;height:720px;transform:scale(var(--lps,.6));transform-origin:0 0;display:grid;grid-template-columns:196px 1fr;pointer-events:auto}
+.lp-view{position:relative;overflow:hidden;border-radius:6px;background:var(--bg);height:calc(820px * var(--lps,.6))}
+.lp-canvas{position:absolute;left:0;top:0;width:1180px;height:820px;transform:scale(var(--lps,.6));transform-origin:0 0;display:grid;grid-template-columns:196px 1fr;pointer-events:auto}
 .lp-base{height:13px;margin:0 -2.5%;background:linear-gradient(180deg,#2A3447,#141a26);border:1px solid var(--line2);border-top:0;border-radius:0 0 12px 12px}
 .lp-base:after{content:'';display:block;width:110px;height:4px;margin:0 auto;background:#0B0E14;border-radius:0 0 6px 6px}
 .lp-side{background:var(--surface);border-right:1px solid var(--line);padding:22px 12px;display:flex;flex-direction:column;gap:4px}
@@ -114,22 +129,27 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .lp-side a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--ink2);font:700 14px var(--disp)}
 .lp-side a.on{background:var(--surface2);color:var(--ember)}
 .lp-main{padding:22px 28px;min-width:0}
-.lp-cols{display:grid;grid-template-columns:1fr 372px;gap:22px;align-items:start;margin-top:6px}
+.lp-hdr{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px 14px}
+.lp-hdr .dh-top{padding-bottom:12px;border-bottom:1px solid var(--line)}
+.lp-hdr .race{margin:16px 0 0}
+.lp-cols{display:grid;grid-template-columns:1fr 380px;gap:22px;align-items:start;margin-top:6px}
 .lp-cols h2{margin:22px 0 10px}
 .lp-cols>div>h2:first-child{margin-top:16px}
 .lp-main .card{margin:0}
-.lp-main .ringrow{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow:visible}
-.lp-main .ringrow .ring{width:92px;height:92px}
-.lp-main .ringrow .ring .val b{font-size:26px}
+.lp-main .ringrow{grid-auto-flow:row;grid-template-columns:repeat(2,1fr);overflow:visible;gap:12px}
+.lp-main .ringrow .ring{width:104px;height:104px}
+.lp-main .ringrow .ring .val b{font-size:28px}
+.lp-main .task .d{font-size:12.5px}
 .lp-main .dstat-top{grid-template-columns:repeat(2,1fr)}
 .lp-main .ld-tmr{display:flex;align-items:center;gap:16px}
 .lp-main .ld-tmr .btns{display:flex;flex-direction:column;gap:8px;flex:1}
 .lp-main .ld-tmr .tring .tv{font-size:30px}
 
 .phwrap{display:flex;justify-content:center}
-.phone{position:relative;width:min(100%,360px);background:var(--bg);border:1px solid var(--line2);border-radius:30px;padding:16px 12px;box-shadow:0 40px 90px #000a,inset 0 0 0 1px #ffffff08;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:right bottom}
-.phone:before{content:'';position:absolute;left:50%;top:9px;width:86px;height:5px;border-radius:99px;background:var(--surface3);transform:translateX(-50%)}
-.ph-scroll{padding-top:4px}
+.phone{position:relative;width:min(100%,360px);background:var(--bg);border:1px solid var(--line2);border-radius:30px;padding:14px 12px;box-shadow:0 40px 90px #000a,inset 0 0 0 1px #ffffff08;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:right bottom}
+.ph-scroll{padding-top:2px}
+.phone .dh-chips{margin-left:0;width:100%}
+.phone .dh-nav{margin-top:10px}
 .phone .card{margin:8px 0;padding:14px}
 .phone h2{margin:14px 0 6px}
 .phone .ringrow{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow:visible;gap:6px}
@@ -151,9 +171,10 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .devhint{display:none}
 @media(min-width:900px){
   .stage{flex-direction:row;align-items:flex-end;gap:0}
-  .stage .laptop{flex:1;min-width:0;z-index:2}
-  .stage .phwrap{flex:none;width:300px;margin-left:-120px;justify-content:flex-end;z-index:3;position:relative}
-  .stage .phone{width:300px;height:clamp(420px,calc(720px * var(--lps,.6) + 24px),640px);overflow:hidden;display:flex;flex-direction:column;transform:scale(.8);opacity:.5;filter:saturate(.5);cursor:pointer}
+  .stage .laptop{flex:1;min-width:0;z-index:2;position:relative}
+  .stage .phwrap{flex:none;width:300px;margin-left:-130px;justify-content:flex-end;z-index:1;position:relative;transform:translateY(-14px)}
+  .stage.front .phwrap{z-index:3}
+  .stage .phone{width:300px;height:clamp(420px,calc(820px * var(--lps,.6) - 10px),700px);overflow:hidden;display:flex;flex-direction:column;transform:scale(.8);opacity:.5;filter:saturate(.5);cursor:pointer}
   .stage .phone:hover{opacity:.82;filter:saturate(.9);transform:scale(.82) translateY(-6px)}
   .stage .ph-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
   .stage .ph-scroll::-webkit-scrollbar{display:none}
@@ -191,9 +212,9 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .ld-fc .n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--grad);color:#1A0D05;font:900 15px var(--disp);margin-bottom:14px}
 .ld-fc b{display:block;font:800 17px var(--disp);margin-bottom:6px}
 .ld-fc p{color:var(--ink2);font-size:14px;line-height:1.55}
-.ld-steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
-.ld-steps span{background:var(--surface2);border:1px solid var(--line2);border-radius:99px;padding:5px 10px;font:700 11.5px var(--disp);color:var(--ink2)}
-.ld-steps span b{color:var(--ember);margin-right:4px}
+.ld-steps{display:grid;gap:0;margin-top:14px;border-top:1px solid var(--line)}
+.ld-steps span{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font:600 13px var(--body);color:var(--ink2)}
+.ld-steps span b{flex:none;width:22px;height:22px;border-radius:7px;background:var(--surface2);border:1px solid var(--line2);color:var(--ember);font:800 11px var(--disp);display:inline-flex;align-items:center;justify-content:center}
 .ld-shape{display:grid;gap:12px;margin-top:28px}
 @media(min-width:700px){.ld-shape{grid-template-columns:repeat(3,1fr);gap:16px}}
 .ld-sh{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start}
@@ -236,22 +257,21 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
       <div class="lp-screen"><div class="lp-view"><div class="lp-canvas">
         <aside class="lp-side"><div class="logo">LOCK<em>IN</em> 🔥</div>${NAV.map(([i, l, on]) => `<a class="${on ? 'on' : ''}">${ic(i, 18)}${l}</a>`).join('')}</aside>
         <main class="lp-main">
-          ${header()}
-          ${race(22)}
+          <div class="lp-hdr">${header()}${race(22)}</div>
           <div class="lp-cols">
             <div>
+              <h2>Tasks</h2>
+              <div class="card">${task('🧩', '3 LeetCode problems', 'Attempts count here too', 2, 3)}${task('📨', '2 applications', 'Auto-checks when the counter hits 2', 1, 2)}<div class="task"><div class="box">✓</div><div class="grow"><div class="t"><span class="track-ic">📚</span>Graph algorithms · week 3 assignment</div><div class="d">Day 2 of 3. Shortest paths on a weighted graph, then the write-up. Sort the edges first, the rest follows.</div></div></div></div>
               <h2>Schedule</h2>
               <div class="card"><div class="tl2">${timeline()}</div><div class="cardfoot"><button class="sm ghost" tabindex="-1">✍️ Log a past grind</button><button class="sm pri" tabindex="-1">🔥 Start grind now</button></div></div>
-              <h2>Tasks</h2>
-              <div class="card">${task('🧩', '3 LeetCode problems', 'Attempts count here too', 2, 3)}${task('📨', '2 applications', 'Auto-checks when the counter hits 2', 1, 2)}${task('🏗️', 'System design · 1', 'Auto-checks when the counter hits 1', 0, 1)}</div>
             </div>
             <div>
-              <h2>Goals</h2>
-              <div class="ringrow">${rings().replace(/<div class="ld-ring"/g, '<div class="card ringcard ld-ring"')}</div>
+              <h2>Daily counters</h2>
+              <div class="ringrow two">${(ring('lc', '🧩', 'LeetCode', 2, 3, '#FF6B35') + ring('ap', '📨', 'Applications', 1, 2, '#5EA2FF')).replace(/<div class="ld-ring"/g, '<div class="card ringcard ld-ring"')}</div>
+              <h2>Day clock</h2>
+              <div class="card">${clockSvg()}<p class="tiny" style="text-align:center;margin-top:10px">Two things at once? The one closer to now takes the outer lane.</p></div>
               <h2>Focus timer</h2>
               <div class="card">${timer(132)}</div>
-              <h2>Today in numbers</h2>
-              <div class="card"><div class="dstat-top"><div class="dstat"><b class="num">4h 10m</b><span>grind time 🔥</span></div><div class="dstat"><b class="num">2<small>/3</small></b><span>🧩 problems</span></div><div class="dstat"><b class="num">1<small>/2</small></b><span>📨 applications</span></div><div class="dstat"><b class="num">2</b><span>sessions</span></div></div></div>
             </div>
           </div>
         </main>

@@ -5,15 +5,18 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
 <div id="dash" class="${cfg && cfg.todayLayout === 'refined' ? 'layout-v2' : ''}">
 <div id="dayHeader" class="dh">
   <div class="dh-top">
-    <button class="dh-nav" onclick="nav(-1)" aria-label="Previous day">‹</button>
-    <div class="dh-title"><h1 id="dtitle">Today</h1><div id="dsub" class="dh-date"></div></div>
-    <button class="dh-nav" onclick="nav(1)" aria-label="Next day">›</button>
+    <div class="dh-title"><h1 id="dtitle">Today</h1></div>
+    <div class="dh-chips">
+      <span id="phase" class="pill"></span>
+      <span id="streak" class="chip" style="display:none"></span>
+      <button id="modeT" class="chip"></button>
+      <button id="offBtn" class="chip" onclick="offDayFlow()" style="display:none">💤 Off day</button>
+    </div>
   </div>
-  <div class="dh-chips">
-    <span id="phase" class="pill"></span>
-    <span id="streak" class="chip" style="display:none"></span>
-    <button id="modeT" class="chip"></button>
-    <button id="offBtn" class="chip" onclick="offDayFlow()" style="display:none">💤 Off day</button>
+  <div class="dh-nav">
+    <button class="dh-btn" onclick="nav(-1)" aria-label="Previous day">‹</button>
+    <div id="dsub" class="dh-date"></div>
+    <button class="dh-btn" onclick="nav(1)" aria-label="Next day">›</button>
   </div>
   <div class="race" id="race"></div>
 </div>
@@ -109,15 +112,15 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
   </div>
 </div>
 <div id="colB">
+  <div id="secTasks">
+  <h2>Tasks</h2>
+  <div class="card" id="tasks"><div class="skel">Loading…</div></div>
+  </div>
   <div id="secSchedule">
   <h2>Schedule</h2>
   <div class="card"><div class="tl2" id="blocks"></div>
     <div class="cardfoot"><button class="sm ghost" onclick="openGrindLog()">✍️ Log a past grind</button><button class="sm pri" id="adhocBtn" onclick="startGrind(null)" style="display:none">🔥 Start grind now</button></div>
   </div>
-  </div>
-  <div id="secTasks">
-  <h2>Tasks</h2>
-  <div class="card" id="tasks"><div class="skel">Loading…</div></div>
   </div>
   <div id="secStats">
   <h2>Today in numbers</h2>

@@ -76,6 +76,8 @@ h2{font:700 12px/1 var(--disp);color:var(--ink2);margin:28px 0 12px;text-transfo
 @keyframes bgdrift1{from{transform:translate(0,0) scale(1)}to{transform:translate(12vw,10vh) scale(1.12)}}
 @keyframes bgdrift2{from{transform:translate(0,0) scale(1)}to{transform:translate(-10vw,-12vh) scale(1.08)}}
 @media(prefers-reduced-motion:reduce){.bgfx:before,.bgfx:after{animation:none}}
+@media(max-width:600px){.bgfx:before,.bgfx:after{filter:blur(60px);opacity:.22}}
+.bgfx.dots:before,.bgfx.dots:after{display:none}
 
 /* ---------- auth + public single-card pages ---------- */
 .auth{max-width:440px;margin:5vh auto 0;padding:0 2px}
@@ -104,17 +106,19 @@ h2{font:700 12px/1 var(--disp);color:var(--ink2);margin:28px 0 12px;text-transfo
 .pub .foot a{color:var(--ink3);font-weight:700}
 
 /* ---------- Today header ---------- */
-.dh-top{display:flex;align-items:center;gap:10px}
-.dh-title{flex:1;min-width:0}
+.dh-top{display:flex;align-items:center;gap:10px 12px;flex-wrap:wrap}
+.dh-title{flex:1;min-width:120px}
 .dh-title h1{font-size:28px;line-height:1.05}
-.dh-date{font:700 14px var(--disp);color:var(--ink2);margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.dh-nav{width:40px;height:40px;padding:0;border-radius:12px;background:var(--surface2);border:1px solid var(--line2);color:var(--ink2);font-size:22px;line-height:1;flex:none}
-.dh-nav:hover{color:var(--ink);border-color:var(--ink3)}
-.dh-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.dh-chips{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
 .dh-chips .chip,.dh-chips .pill{padding:7px 12px;font:700 12.5px var(--disp);border-radius:99px}
 .dh-chips .pill:empty{display:none}
 .dh-chips button.chip{cursor:pointer;color:var(--ink)}
 .dh-chips button.chip:hover{border-color:var(--ink3)}
+.dh-nav{display:flex;align-items:center;gap:10px;margin-top:14px}
+.dh-date{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font:700 15px var(--disp);color:var(--ink);text-align:center}
+.dh-btn{width:40px;height:40px;padding:0;border-radius:12px;background:var(--surface2);border:1px solid var(--line2);color:var(--ink2);font-size:22px;line-height:1;flex:none}
+.dh-btn:hover{color:var(--ink);border-color:var(--ink3)}
+@media(max-width:560px){.dh-chips{margin-left:0;width:100%}}
 
 /* ---------- goal rings row ---------- */
 .ringrow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(104px,1fr);gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;scroll-snap-type:x proximity;margin:0 -2px}
@@ -689,13 +693,10 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
 /* ---------- Today layout v2 (refined header) ---------- */
 .layout-v2 #dayHeader{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);
   padding:16px 18px 14px;margin-bottom:6px}
-.layout-v2 .hdr-title{gap:10px;padding-bottom:12px;border-bottom:1px solid var(--line);margin-bottom:12px}
+.layout-v2 .dh-top{padding-bottom:12px;border-bottom:1px solid var(--line)}
 .layout-v2 #phase{border:1px solid currentColor;padding:6px 14px}
-.layout-v2 #modeT,.layout-v2 #offBtn{background:var(--surface2);border:1px solid var(--line2);color:var(--ink2);
-  border-radius:10px;padding:8px 13px}
-.layout-v2 #modeT:hover,.layout-v2 #offBtn:hover{color:var(--ink);border-color:var(--ink3)}
 .layout-v2 #streak{border-color:#FF6B3555;background:#FF6B3514;color:var(--ember2)}
-.layout-v2 .hdr-nav{margin-top:0;gap:12px}
+.layout-v2 .dh-nav{margin-top:12px}
 .layout-v2 .hdr-nav>button{background:var(--surface2);border:1px solid var(--line2);color:var(--ink2);
   width:38px;height:38px;padding:0;border-radius:10px;font-size:18px;flex:none}
 .layout-v2 .hdr-nav>button:hover{color:var(--ember);border-color:var(--ember)}
@@ -772,7 +773,7 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
   body.nonav .refresh-fab{left:12px}
   .nav,.navwrap{display:none}
   .side{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:216px;
-    background:var(--surface);border-right:1px solid var(--line);padding:26px 14px;z-index:50;gap:4px}
+    background:rgba(19,24,36,.9);backdrop-filter:blur(12px);border-right:1px solid var(--line);padding:26px 14px;z-index:50;gap:4px}
   .side .logo{padding:0 12px 22px}
   .side a{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:var(--rs);
     color:var(--ink2);font:700 14px var(--disp);position:relative}
@@ -1244,7 +1245,7 @@ return `<!doctype html><html lang="en"><head>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Atkinson+Hyperlegible:wght@400;700&family=Orbitron:wght@600;800&family=VT323&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <title>${title}</title><style>${CSS}</style></head>
-<body${active ? '' : ' class="nonav"'}>${active ? navHTML(active, u) : ''}<div class="wrap">${body}</div>
+<body${active ? '' : ' class="nonav"'}>${(!opts.public && opts.cfg && (opts.cfg.bgStyle || 'aurora') !== 'plain') ? `<div class="bgfx ${opts.cfg.bgStyle || 'aurora'}" aria-hidden="true"><i></i></div>` : ''}${active ? navHTML(active, u) : ''}<div class="wrap">${body}</div>
 <script>window.__U=${JSON.stringify(u)}${opts.public ? ';window.__PUBLIC=1' : ''}</script>
 ${opts.mclock ? `<script>window.__MCLOCK=${JSON.stringify(opts.mclock)}</script>` : ''}
 ${RUNTIME}${(opts.public || !u || u.modules.friends === false) ? '' : '<script>notifyBadge()</script>'}

@@ -3,9 +3,9 @@ import { shell } from './theme.js';
 export const calendarPage = (cfg) => shell('LockIn · Calendar', '/calendar', `
 <div class="ph">
   <div class="ph-t"><h1>Calendar</h1></div>
-  <div class="ph-a" style="padding-top:0"><button class="dh-nav" onclick="nav(-1)" aria-label="Previous month">‹</button>
+  <div class="ph-a" style="padding-top:0"><button class="dh-btn" onclick="nav(-1)" aria-label="Previous month">‹</button>
   <b id="mt" class="num" style="font:800 16px var(--disp);min-width:150px;text-align:center"></b>
-  <button class="dh-nav" onclick="nav(1)" aria-label="Next month">›</button></div>
+  <button class="dh-btn" onclick="nav(1)" aria-label="Next month">›</button></div>
 </div>
 <div class="race" id="race"></div>
 <div class="cal-grid" style="margin-top:18px" id="dows"></div>

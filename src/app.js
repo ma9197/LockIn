@@ -1135,7 +1135,7 @@ app.get('/api/settings', async c => {
     bookingPerDevice: cfg.bookingPerDevice, bookingPerSlot: cfg.bookingPerSlot, bookingDurations: cfg.bookingDurations,
     timerDefault: cfg.timerDefault, timerOptions: cfg.timerOptions, streakCategory: cfg.streakCategory,
     categories: cfg.allCategories, sideTasks, phases: cfg.phases, sideEmoji: SIDE_EMOJI,
-    clock: cfg.clock, mclock: cfg.mclock, jobPlatforms: cfg.jobPlatforms, todayLayout: cfg.todayLayout,
+    clock: cfg.clock, mclock: cfg.mclock, jobPlatforms: cfg.jobPlatforms, todayLayout: cfg.todayLayout, bgStyle: cfg.bgStyle,
     icsUrl: pub + '/calendar.ics?token=' + icsToken,
     shareUrl: pub + '/share', bookUrl: pub + '/book', share: { ...cfg.share, pinHash: undefined, isOn: !!cfg.share.pinHash },
   });
@@ -1180,6 +1180,7 @@ const applySettings = async (c, b) => {
   if (b.clockFont !== undefined) await setSetting(db, 'clock_font', String(Math.min(18, Math.max(9, +b.clockFont || 12))));
   if (b.clockAccent !== undefined) await setSetting(db, 'clock_accent', /^#[0-9a-fA-F]{6}$/.test(b.clockAccent) ? b.clockAccent : '');
   if (b.todayLayout !== undefined && ['classic', 'refined'].includes(b.todayLayout)) await setSetting(db, 'today_layout', b.todayLayout);
+  if (b.bgStyle !== undefined && ['aurora', 'dots', 'plain'].includes(b.bgStyle)) await setSetting(db, 'bg_style', b.bgStyle);
   if (b.mclockDesign !== undefined && ['pill', 'led', 'analog', 'flip', 'ring'].includes(b.mclockDesign)) await setSetting(db, 'mclock_design', b.mclockDesign);
   if (b.mclockFont !== undefined) await setSetting(db, 'mclock_font', String(Math.min(22, Math.max(10, +b.mclockFont || 13))));
   if (b.mclockAccent !== undefined) await setSetting(db, 'mclock_accent', /^#[0-9a-fA-F]{6}$/.test(b.mclockAccent) ? b.mclockAccent : '');
