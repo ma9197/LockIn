@@ -19,7 +19,43 @@ body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);padding-bo
 a{color:var(--ice);text-decoration:none}
 ::selection{background:#FF6B3555}
 h1{font:800 24px/1.2 var(--disp);letter-spacing:-.01em}
-h2{font:700 12px/1 var(--disp);color:var(--ink3);margin:26px 0 10px;text-transform:uppercase;letter-spacing:.14em}
+h2{font:700 12px/1 var(--disp);color:var(--ink2);margin:28px 0 12px;text-transform:uppercase;letter-spacing:.14em}
+.cardfoot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+
+/* ---------- Today header ---------- */
+.dh-top{display:flex;align-items:center;gap:10px}
+.dh-title{flex:1;min-width:0}
+.dh-title h1{font-size:28px;line-height:1.05}
+.dh-date{font:700 14px var(--disp);color:var(--ink2);margin-top:4px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dh-nav{width:40px;height:40px;padding:0;border-radius:12px;background:var(--surface2);border:1px solid var(--line2);color:var(--ink2);font-size:22px;line-height:1;flex:none}
+.dh-nav:hover{color:var(--ink);border-color:var(--ink3)}
+.dh-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.dh-chips .chip,.dh-chips .pill{padding:7px 12px;font:700 12.5px var(--disp);border-radius:99px}
+.dh-chips .pill:empty{display:none}
+.dh-chips button.chip{cursor:pointer;color:var(--ink)}
+.dh-chips button.chip:hover{border-color:var(--ink3)}
+
+/* ---------- goal rings row ---------- */
+.ringrow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(104px,1fr);gap:10px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 6px;scroll-snap-type:x proximity;margin:0 -2px}
+.ringrow::-webkit-scrollbar{display:none}
+.ringrow.few{grid-auto-columns:1fr}
+.ringcard{margin:0;padding:14px 8px 12px;scroll-snap-align:start;min-width:0}
+.ringlab{font:700 10.5px/1.25 var(--disp);color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:26px}
+.ringrow .ring{width:84px;height:84px}
+.ring svg{width:100%;height:100%;display:block}
+.ringrow .ring .val b{font-size:24px}
+.ringrow .ring .val span{font-size:9.5px}
+.ringrow .extra{font-size:10.5px;margin-top:8px}
+.ringbtns{display:flex;justify-content:center;gap:8px;margin-top:8px}
+.ringbtns button{min-width:44px;padding:8px 0}
+@media(min-width:600px){.ringrow{grid-auto-columns:minmax(150px,1fr)}.ringrow .ring{width:112px;height:112px}.ringrow .ring .val b{font-size:30px}.ringrow .ring .val span{font-size:11px}.ringcard{padding:16px 10px 14px}.ringbtns{gap:12px}.ringbtns button{min-width:56px}}
+@media(min-width:900px){.ringrow{grid-auto-flow:row;grid-template-columns:repeat(auto-fit,minmax(108px,1fr));overflow:visible}.ringrow .ring{width:96px;height:96px}.ringrow .ring .val b{font-size:26px}.ringbtns button{min-width:44px}}
+@media(max-width:899px){
+  .cols,#colA,#colB{display:contents}
+  #dash{display:flex;flex-direction:column}
+  #dash>*{order:0}
+  #secRings{order:1}#secSchedule{order:2}#secTimer{order:3}#secTasks{order:4}#secStats{order:5}#clockSection{order:6}
+}
 .wrap{max-width:660px;margin:0 auto;padding:calc(var(--clkh,46px) + 16px) 16px 18px}
 .liveclock{position:fixed;top:10px;right:12px;z-index:70;font-variant-numeric:tabular-nums;color:var(--ink);
   display:flex;align-items:center;gap:6px}

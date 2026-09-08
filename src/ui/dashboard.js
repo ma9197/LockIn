@@ -3,19 +3,17 @@ import { shell } from './theme.js';
 export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
 <style>@media(min-width:900px){.cols>#colB{order:-1}}</style>
 <div id="dash" class="${cfg && cfg.todayLayout === 'refined' ? 'layout-v2' : ''}">
-<div id="dayHeader">
-  <div class="row hdr-title" style="flex-wrap:wrap;gap:8px">
-    <h1 id="dtitle">Today</h1>
-    <span id="streak" class="chip" style="display:none"></span>
-    <span class="right"></span>
-    <span id="phase" class="pill"></span>
-    <button id="modeT" class="sm ghost"></button>
-    <button id="offBtn" class="sm ghost" onclick="offDayFlow()" style="display:none">💤 Off day</button>
+<div id="dayHeader" class="dh">
+  <div class="dh-top">
+    <button class="dh-nav" onclick="nav(-1)" aria-label="Previous day">‹</button>
+    <div class="dh-title"><h1 id="dtitle">Today</h1><div id="dsub" class="dh-date"></div></div>
+    <button class="dh-nav" onclick="nav(1)" aria-label="Next day">›</button>
   </div>
-  <div class="row hdr-nav" style="margin-top:2px">
-    <button class="ghost sm" onclick="nav(-1)" aria-label="Previous day">‹</button>
-    <span id="dsub" class="muted grow" style="text-align:center;font:700 14px var(--disp)"></span>
-    <button class="ghost sm" onclick="nav(1)" aria-label="Next day">›</button>
+  <div class="dh-chips">
+    <span id="phase" class="pill"></span>
+    <span id="streak" class="chip" style="display:none"></span>
+    <button id="modeT" class="chip"></button>
+    <button id="offBtn" class="chip" onclick="offDayFlow()" style="display:none">💤 Off day</button>
   </div>
   <div class="race" id="race"></div>
 </div>
@@ -69,17 +67,18 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
 
 <div class="cols">
 <div id="colA">
-  <h2 class="v2only" style="margin-top:14px">Daily counters</h2>
-  <div class="statgrid" style="grid-template-columns:1fr 1fr">
-    <div id="rings" style="display:contents"></div>
+  <div id="secRings">
+  <h2>Goals</h2>
+  <div class="ringrow" id="rings"></div>
   </div>
   <div id="clockSection">
   <h2>Day clock</h2>
   <div class="card clockwrap" id="clockCard">
     <div id="clockSvg"></div>
-    <p class="tiny" style="text-align:center">When AM and PM overlap, the closer one takes the wide lane.</p>
+    <p class="tiny" style="text-align:center">Two things at once? The one closer to now takes the outer lane.</p>
   </div>
   </div>
+  <div id="secTimer">
   <h2>Focus timer</h2>
   <div class="card"><div class="timer-wrap">
     <div class="tring"><svg width="190" height="190" viewBox="0 0 190 190">
@@ -107,18 +106,23 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
     </div>
     <p class="tiny" id="tHint" style="text-align:center">Stuck at 25? Read the solution. Don't grind for 2 hours.</p>
   </div></div>
+  </div>
 </div>
 <div id="colB">
-  <h2 style="margin-top:14px">Tasks</h2>
-  <div class="card" id="tasks"><div class="skel">Loading…</div></div>
-  <div class="row" style="margin-top:18px">
-    <h2 style="margin:0" class="grow">Schedule</h2>
-    <button class="sm ghost" onclick="openGrindLog()">✍️ Log grind</button>
-    <button class="sm" id="adhocBtn" onclick="startGrind(null)" style="display:none">🔥 Start grind now</button>
+  <div id="secSchedule">
+  <h2>Schedule</h2>
+  <div class="card"><div class="tl2" id="blocks"></div>
+    <div class="cardfoot"><button class="sm ghost" onclick="openGrindLog()">✍️ Log a past grind</button><button class="sm pri" id="adhocBtn" onclick="startGrind(null)" style="display:none">🔥 Start grind now</button></div>
   </div>
-  <div class="card"><div class="tl2" id="blocks"></div></div>
+  </div>
+  <div id="secTasks">
+  <h2>Tasks</h2>
+  <div class="card" id="tasks"><div class="skel">Loading…</div></div>
+  </div>
+  <div id="secStats">
   <h2>Today in numbers</h2>
   <div class="card" id="dayStats"><div class="skel">Loading…</div></div>
+  </div>
 </div>
 </div>
 </div>
@@ -139,23 +143,23 @@ const noGoal=goal<=0;
 const hit=noGoal?done>0:done>=goal;
 const pct=noGoal?(done>0?1:0):Math.min(1,done/goal);
 const col=hit?'var(--mint)':accent;const CF=289;
-return '<div style="text-align:center"><div class="tiny" style="font:700 11px var(--disp);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">'+label+'</div>'
-+'<div class="ring"><svg width="112" height="112" viewBox="0 0 112 112">'
+return '<div style="text-align:center"><div class="ringlab">'+label+'</div>'
++'<div class="ring"><svg viewBox="0 0 112 112">'
 +'<circle cx="56" cy="56" r="46" fill="none" stroke="var(--surface2)" stroke-width="8"/>'
 +'<circle cx="56" cy="56" r="46" fill="none" stroke="'+col+'" stroke-width="8" stroke-linecap="round" stroke-dasharray="'+CF+'" stroke-dashoffset="'+(CF*(1-pct))+'" style="transition:stroke-dashoffset .4s"/>'
 +'</svg><div class="val"><b class="num">'+done+'</b><span>'+(noGoal?'NO GOAL':'OF '+goal)+'</span></div></div>'
 +'<div class="extra">'+(done>goal?('+'+(done-goal)+' EXTRA 💪'):(hit?'GOAL HIT ✓':'&nbsp;'))+'</div>'
 +(note?'<div class="tiny" style="margin-top:-2px">'+note+'</div>':'')
-+'<div class="row" style="justify-content:center;gap:14px;margin-top:4px">'
-+'<button class="sm" onclick="bump(\\''+id+'\\',-1)" aria-label="minus">−</button>'
-+'<button class="sm pri" style="padding:6px 22px" onclick="bump(\\''+id+'\\',1)" aria-label="plus">+</button></div></div>';}
++'<div class="ringbtns">'
++'<button class="sm" onclick="bump(\\''+id+'\\',-1)" aria-label="one less">−</button>'
++'<button class="sm pri" onclick="bump(\\''+id+'\\',1)" aria-label="one more">+</button></div></div>';}
 
 function counterTask(type,emoji,g,openN,cat){
 if(!g||!g.goal)return '';
 const done=g.done>=g.goal;
 return '<div class="task '+(done?'done':'')+'"><div class="box">✓</div>'
 +'<div class="grow"><div class="t"><span class="track-ic">'+emoji+'</span>'
-+(type==='leetcode'?'Work '+g.goal+' LeetCode problems':type==='applications'?'Send '+g.goal+' applications':(cat?cat.name:type)+': '+g.goal+' today')+'</div>'
++(type==='leetcode'?g.goal+' LeetCode problem'+(g.goal>1?'s':''):type==='applications'?g.goal+' application'+(g.goal>1?'s':''):(cat?cat.name:type)+' \\u00b7 '+g.goal)+'</div>'
 +'<div class="d">'+(type==='leetcode'
 ?'Attempts count here too'+(openN?' · '+openN+' unsolved tr'+(openN>1?'ies':'y'):'')
 :'Auto-checks when the counter hits '+g.goal)+(g.done>g.goal?' · +'+(g.done-g.goal)+' extra 💪':'')+'</div></div>'
@@ -554,7 +558,8 @@ lcOpenT?'<b style="color:var(--ember2)">'+lcOpenT+' unsolved</b>':''].filter(Boo
 const CJ=J.categories||[];
 const withGoal=CJ.filter(c=>{const g=J.goals[c.key]||{};return g.goal>0||g.done>0;});
 const showCats=withGoal.length?withGoal:CJ.slice(0,2);
-$('rings').innerHTML=showCats.map(c=>'<div class="card" style="margin:0">'+ringCard(c.key,c.emoji+' '+c.name,J.goals[c.key]||{goal:0,done:0},c.color,c.builtin==='leetcode'?lcNote:'')+'</div>').join('');
+$('rings').innerHTML=showCats.map(c=>'<div class="card ringcard">'+ringCard(c.key,c.emoji+' '+esc(c.name),J.goals[c.key]||{goal:0,done:0},c.color,c.builtin==='leetcode'?lcNote:'')+'</div>').join('');
+$('rings').classList.toggle('few',showCats.length<=2);
 const rows=CJ.map(c=>counterTask(c.key,c.emoji,J.goals[c.key],c.builtin==='leetcode'?lcOpenT:0,c)).join('')
 +J.tasks.map(t=>{
 if(t.status==='hold')return '<div class="task hold">'
