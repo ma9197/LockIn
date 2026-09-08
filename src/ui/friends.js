@@ -1,27 +1,27 @@
 import { shell } from './theme.js';
 
 export const friendsPage = (cfg) => shell('LockIn · Friends', '/friends', `
-<h1>Friends & sessions</h1>
-<div class="card row" style="gap:10px">
-  <span style="font-size:20px">🔗</span>
-  <div class="grow"><b>Booking link</b><div class="tiny">Send this to your friends. They grab free slots there.</div></div>
-  <button class="sm" id="copyLink">Copy link</button>
+<div class="ph">
+  <div class="ph-t"><h1>Friends</h1><p class="ph-d">Requests from your booking page, the sessions you confirmed, and a log of who you spent time with.</p></div>
 </div>
-<h2>Requests <span id="reqN" class="pill" style="background:var(--rose);color:#fff;display:none"></span></h2>
-<div id="reqs"><div class="skel card">Loading…</div></div>
+<div class="card" style="margin-top:14px">
+  <div class="ihead"><span class="tile">🔗</span><div class="who"><b>Booking link</b><div class="tiny">Send it to friends. They grab your free windows there.</div></div><button class="sm" id="copyLink">Copy link</button></div>
+</div>
+<div class="sech"><h2>Requests</h2><span id="reqN" class="pill" style="background:var(--rose);color:#fff;display:none"></span></div>
+<div id="reqs"><div class="skel">Loading…</div></div>
 <h2>Upcoming</h2>
 <div id="upc"></div>
 <h2>Log a session</h2>
 <div class="card">
   <div class="fgrid">
-    <div><label class="fld">Date</label><input id="m-date" type="date"></div>
-    <div><label class="fld">Activity</label><select id="m-act"><option value="game">🎮 game</option><option value="talk">💬 talk</option><option value="task">📋 task</option><option value="other">✨ other</option></select></div>
+    <div><label class="fld" style="margin-top:0">Date</label><input id="m-date" type="date"></div>
+    <div><label class="fld" style="margin-top:0">Activity</label><select id="m-act"><option value="game">🎮 game</option><option value="talk">💬 talk</option><option value="task">📋 task</option><option value="other">✨ other</option></select></div>
     <div><label class="fld">Start</label><input id="m-start" type="time" value="12:00"></div>
     <div><label class="fld">End</label><input id="m-end" type="time" value="15:00"></div>
   </div>
-  <label class="fld">Who (comma separated)</label><input id="m-names" placeholder="Alex, Sam">
-  <label class="fld">Note</label><input id="m-note" placeholder="optional">
-  <button class="pri" style="width:100%;margin-top:14px" onclick="logManual()">Log session as done</button>
+  <div class="fg" style="margin-top:14px"><label class="fld">Who (comma separated)</label><input id="m-names" placeholder="Alex, Sam"></div>
+  <div class="fg"><label class="fld">Note</label><input id="m-note" placeholder="optional"></div>
+  <button class="pri" style="width:100%;margin-top:16px" onclick="logManual()">Log session as done</button>
 </div>
 <h2>History</h2>
 <div id="hist"></div>
@@ -31,14 +31,15 @@ $('copyLink').onclick=()=>{navigator.clipboard.writeText(location.origin+'/u/'+(
 let SES=[];
 const fmtD=ds=>new Date(ds+'T12:00:00Z').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',timeZone:'UTC'});
 const avatars=names=>(names||'').split(',').map(s=>s.trim()).filter(Boolean).map(avatar).join('');
+const ACTC={game:'var(--violet)',talk:'var(--ice)',task:'var(--ember2)',other:'var(--ink3)'};
 function sesCard(s,btns){
-return '<div class="req" id="ses-'+s.id+'"><div class="row" style="flex-wrap:wrap">'
-+avatars(s.names)
-+'<div class="grow"><b>'+(ACT[s.activity]||'')+' '+esc(s.names||'(no name)')+'</b>'
-+(s.device_id?' <span class="tiny" title="device fingerprint: same tag = same phone">📱#'+esc(s.device_id.slice(0,3))+'</span>':'')
-+'<div class="muted num">'+fmtD(s.start_ts.slice(0,10))+' · '+fmtR(s.start_ts.slice(11,16),s.end_ts.slice(11,16))+'</div>'
+return '<div class="item" id="ses-'+s.id+'" style="--ac:'+(ACTC[s.activity]||'var(--line2)')+'"><div class="ihead" style="flex-wrap:wrap">'
++'<span class="tile">'+(ACT[s.activity]||'✨')+'</span>'
++'<div class="who"><b>'+esc(s.names||'(no name)')
++(s.device_id?' <span class="tiny" title="device fingerprint: same tag = same phone">📱#'+esc(s.device_id.slice(0,3))+'</span>':'')+'</b>'
++'<div class="tiny num">'+fmtD(s.start_ts.slice(0,10))+' · '+fmtR(s.start_ts.slice(11,16),s.end_ts.slice(11,16))+'</div>'
 +(s.note?'<div class="tiny">“'+esc(s.note)+'”</div>':'')+'</div>'
-+'<div class="row">'+btns+'</div></div><div id="ed-'+s.id+'"></div></div>';}
++'<div class="row" style="gap:8px">'+btns+'</div></div><div id="ed-'+s.id+'"></div></div>';}
 function render(){
 const today=todayU();
 const reqs=SES.filter(s=>s.status==='requested');
@@ -48,14 +49,14 @@ $('reqN').style.display=reqs.length?'':'none';$('reqN').textContent=reqs.length;
 $('reqs').innerHTML=reqs.length?reqs.map(s=>sesCard(s,
 '<button class="mint sm" onclick="setStatus('+s.id+',\\'confirmed\\')">Confirm</button>'
 +'<button class="rose sm" onclick="setStatus('+s.id+',\\'declined\\')">Decline</button>')).join('')
-:'<div class="card skel">No pending requests.</div>';
+:'<div class="empty">No pending requests. Friends who book on your page show up here.</div>';
 $('upc').innerHTML=upc.length?upc.map(s=>sesCard(s,
 '<button class="mint sm" onclick="setStatus('+s.id+',\\'done\\')">Done ✓</button>'
 +'<button class="sm" onclick="openEd('+s.id+')">Edit</button>')).join('')
-:'<div class="card skel">Nothing confirmed yet.</div>';
+:'<div class="empty">Nothing confirmed yet. Confirmed sessions also appear on your Today timeline.</div>';
 $('hist').innerHTML=hist.length?hist.map(s=>sesCard(s,
 '<button class="ghost sm" onclick="openEd('+s.id+')">Edit</button>')).join('')
-:'<div class="card skel">No finished sessions yet.</div>';
+:'<div class="empty">No finished sessions yet.</div>';
 notifyBadge();}
 function openEd(id){
 const s=SES.find(x=>x.id===id);

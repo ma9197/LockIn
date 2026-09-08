@@ -4,7 +4,7 @@ import { shell } from './theme.js';
 // take structured notes, and sketch arrays with their indices.
 export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
 <style>@media(min-width:1000px){.wrap{max-width:1240px}}@media(min-width:1500px){.wrap{max-width:1420px}}</style>
-<h1>LeetCode</h1>
+<div class="ph"><div class="ph-t"><h1>LeetCode</h1><p class="ph-d">Pick a problem, run the timer, log how it went. A problem's state is its newest attempt.</p></div></div>
 <div class="tabbar" id="tabs">
   <button data-t="solve" class="on">🧩 Solve</button>
   <button data-t="stats">📊 Stats</button>
@@ -61,15 +61,15 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
   </div>
 
   <div>
-  <div class="row" style="margin:26px 0 10px">
-    <h2 style="margin:0" class="grow">Notes</h2>
+  <div class="sech">
+    <h2>Notes</h2>
     <span class="savetick" id="saveTick">&nbsp;</span>
   </div>
   <div class="card" id="noteCard"><div class="skel">Pick a problem to open its notes.</div></div>
   </div>
 
   <div class="full">
-  <p class="tiny" id="noteHelp" style="margin:6px 0 0">Enter = next point · Tab = sub-point · Shift+Tab = back out · Shift+Enter = new line in the same point · \`\`\` = code box</p>
+  <p class="hint" id="noteHelp" style="margin-top:6px">Enter = next point · Tab = sub-point · Shift+Tab = back out · Shift+Enter = new line in the same point · \`\`\` = code box</p>
 
   <h2>Array visualizer</h2>
   <div class="card">
@@ -92,7 +92,7 @@ export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
     <div class="stat"><b class="num" id="stTries">–</b><span>tries logged</span></div>
   </div>
   <div class="stgrid">
-    <div><h2>Toughest problems</h2><p class="tiny" id="stAvg" style="margin:-4px 0 4px"></p>
+    <div><h2>Toughest problems</h2><p class="hint" id="stAvg" style="margin:-6px 0 10px"></p>
     <div class="card" id="stTough"><div class="skel">Loading…</div></div></div>
     <div><h2>Come back to these</h2>
     <div class="card" id="stOpenList"><div class="skel">Loading…</div></div></div>

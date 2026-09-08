@@ -39,28 +39,9 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 .stg-d{margin:5px 0 0;font-size:14px;line-height:1.55;color:var(--ink2);max-width:64ch}
 .stg .card{padding:18px 16px;margin:0}
 @media(min-width:760px){.stg .card{padding:22px}}
-.fg{margin-top:22px}.fg:first-child{margin-top:0}
 .stg label.fld{margin:0 0 8px;color:var(--ink2);letter-spacing:.08em}
 .stg .hint{font-size:13px;line-height:1.5;color:var(--ink2);opacity:.85;margin-top:8px}
-.cklab{font:700 11px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;margin-top:14px}
-.cklab:first-child{margin-top:0}
 
-/* editable rows */
-.item{background:var(--surface2);border:1px solid var(--line2);border-left:4px solid var(--ac,var(--line2));border-radius:14px;padding:14px;margin-top:12px}
-.item:first-child{margin-top:0}
-.item input,.item select{background:var(--well)}
-.item.dim{opacity:.5}
-.ihead{display:flex;align-items:center;gap:10px}
-.ihead input.nm{flex:1;min-width:0;font-weight:700;padding:10px 12px}
-.ihead b.nm{flex:1;min-width:0;font:800 16px var(--disp);text-transform:capitalize;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tile{width:40px;height:40px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;background:var(--surface3);border:1px solid var(--line2);flex:none}
-.ibody{margin-top:12px}
-.ifoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.xbtn{width:38px;height:38px;padding:0;border-radius:10px;background:transparent;border:1px solid transparent;color:var(--ink3);font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex:none}
-.xbtn:hover{border-color:#FF5D7355;color:var(--rose);background:#FF5D7314}
-.addbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:13px;border:1px dashed var(--line2);background:transparent;color:var(--ink2);border-radius:12px;font:700 14px var(--disp)}
-.addbtn:hover{border-color:var(--ember);color:var(--ember)}
-.empty{padding:22px 12px;text-align:center;color:var(--ink2);font-size:14px;line-height:1.5;border:1px dashed var(--line2);border-radius:14px}
 .lowbtn.on{background:#9B6EF322;border-color:#9B6EF388;color:var(--violet)}
 .defpill{background:#FF6B3522;color:var(--ember)}
 
@@ -71,7 +52,7 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 .rng .lbl{flex:none;width:56px;font:700 11px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em}
 .rng+.rng{margin-top:8px}
 .rng input[type=time],.rng input[type=date]{font-size:14px;padding:9px 8px;font-variant-numeric:tabular-nums}
-@media(max-width:560px){.rng.blk{flex-wrap:wrap}.rng.blk .lbl{width:100%;margin-bottom:-2px}.rng input[type=time]{font-size:13.5px;padding:9px 6px}}
+@media(max-width:560px){.rng.blk{flex-wrap:wrap;gap:6px}.rng.blk .lbl{width:100%;margin-bottom:-2px}.rng.blk .xbtn{width:30px}.rng input[type=time]{font-size:13px;padding:9px 4px}}
 .chips{display:flex;gap:6px}
 .chips button{flex:1;min-width:0;padding:9px 0;font-size:12px}
 .chips button.on{background:var(--ember);color:#0B0E14;border-color:var(--ember)}
@@ -85,17 +66,7 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 .gl label{font:700 10.5px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;white-space:nowrap}
 .gl input{width:100%;padding:9px 10px}
 
-/* toggle rows */
-.togrow{display:flex;align-items:center;gap:14px;padding:13px 0;border-top:1px solid var(--line)}
-.togrow:first-child{border-top:0;padding-top:0}
-.togrow:last-child{padding-bottom:0}
-.togrow b{display:block;font:700 15px var(--body)}
-.togrow .tiny{margin-top:2px;font-size:13px;color:var(--ink2);opacity:.85}
 
-/* read-only values, snippets */
-.kv{display:flex;gap:8px;align-items:center}
-.kv input{font:13px var(--mono);color:var(--ink2);background:var(--well)}
-.kv button{flex:none}
 .snip{width:100%;font:12.5px/1.55 var(--mono);color:var(--ink2);background:var(--well);min-height:170px}
 .picks{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
 .pick{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:10px 8px;border-radius:12px;width:100%;min-height:96px;background:var(--well);border:1px solid var(--line2)}

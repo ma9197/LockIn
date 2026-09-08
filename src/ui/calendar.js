@@ -1,15 +1,14 @@
 import { shell } from './theme.js';
 
 export const calendarPage = (cfg) => shell('LockIn · Calendar', '/calendar', `
-<div class="row">
-  <h1>Calendar</h1>
-  <span class="right"></span>
-  <button class="ghost sm" onclick="nav(-1)" aria-label="Previous month">‹</button>
+<div class="ph">
+  <div class="ph-t"><h1>Calendar</h1></div>
+  <div class="ph-a" style="padding-top:0"><button class="dh-nav" onclick="nav(-1)" aria-label="Previous month">‹</button>
   <b id="mt" class="num" style="font:800 16px var(--disp);min-width:150px;text-align:center"></b>
-  <button class="ghost sm" onclick="nav(1)" aria-label="Next month">›</button>
+  <button class="dh-nav" onclick="nav(1)" aria-label="Next month">›</button></div>
 </div>
 <div class="race" id="race"></div>
-<div class="cal-grid" style="margin-top:14px" id="dows"></div>
+<div class="cal-grid" style="margin-top:18px" id="dows"></div>
 <div class="cal-grid" id="grid" style="margin-top:5px"><div class="skel" style="grid-column:1/-1">Loading…</div></div>
 <div class="leg" id="legend"></div>
 `, `<script>

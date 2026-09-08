@@ -1,13 +1,12 @@
 import { shell } from './theme.js';
 
 export const jobsPage = (cfg) => shell('LockIn · Jobs', '/jobs', `
-<div class="row" style="flex-wrap:wrap">
-  <h1>Job applications</h1>
-  <span class="right"></span>
-  <span id="todayChip" class="chip"></span>
+<div class="ph">
+  <div class="ph-t"><h1>Applications</h1><p class="ph-d">Every application you send, with where it stands. Adding one bumps today's goal.</p></div>
+  <div class="ph-a"><span id="todayChip" class="chip"></span></div>
 </div>
-<div class="row" style="margin-top:14px">
-  <h2 style="margin:0" class="grow">Hunting grounds</h2>
+<div class="sech">
+  <h2>Hunting grounds</h2>
   <button class="sm" onclick="openLink()">＋ Link</button>
   <button class="pri sm" id="openAllBtn" onclick="openAll()" style="display:none">🚀 Open all</button>
 </div>
@@ -15,10 +14,10 @@ export const jobsPage = (cfg) => shell('LockIn · Jobs', '/jobs', `
 
 <h2>Log an application</h2>
 <div class="card">
-  <div class="row" style="cursor:pointer" onclick="document.getElementById('addForm').classList.toggle('hide');this.querySelector('.tl2-x').classList.toggle('open')">
-    <b>➕ Add application</b><span class="tiny grow">counts toward today's goal</span><span class="tl2-x">›</span>
+  <div class="disc" id="addDisc" onclick="document.getElementById('addForm').classList.toggle('hide');this.querySelector('.tl2-x').classList.toggle('open')">
+    <span class="tile">➕</span><div class="who"><b>Add application</b><div class="tiny">Title and company are enough. Counts toward today's goal.</div></div><span class="tl2-x">›</span>
   </div>
-  <div id="addForm" class="hide" style="margin-top:12px">
+  <div id="addForm" class="hide" style="margin-top:18px">
     <div class="fgrid">
       <div><label class="fld">Job title *</label><input id="j-title" placeholder="Software Engineer, New Grad"></div>
       <div><label class="fld">Company *</label><input id="j-company" placeholder="Stripe"></div>
@@ -28,23 +27,23 @@ export const jobsPage = (cfg) => shell('LockIn · Jobs', '/jobs', `
       <input id="j-platform-other" placeholder="Where from?" style="display:none;margin-top:6px"></div>
       <div><label class="fld">Applied date</label><input id="j-date" type="date"></div>
     </div>
-    <label class="fld">Link to posting</label><input id="j-url" placeholder="https://…">
-    <button class="pri" style="width:100%;margin-top:12px" onclick="addJob()">Add · +1 to counter</button>
+    <div class="fg" style="margin-top:14px"><label class="fld">Link to posting</label><input id="j-url" placeholder="https://…"></div>
+    <button class="pri" style="width:100%;margin-top:16px" onclick="addJob()">Add · +1 to counter</button>
   </div>
 </div>
-<div class="row" style="margin:26px 0 10px">
-  <h2 style="margin:0" class="grow">Applications</h2>
+<div class="sech">
+  <h2>Applications</h2>
   <span class="tiny num" id="jCount"></span>
 </div>
-<div class="row" style="margin-bottom:10px">
+<div class="row" style="margin-bottom:10px;gap:8px">
   <input id="jSearch" class="grow" autocomplete="off" placeholder="🔍 Search job title or company">
   <button class="ghost sm" id="jClear" style="display:none">✕ Clear</button>
 </div>
 <div class="row" id="jFilters" style="flex-wrap:wrap;gap:6px;margin-bottom:12px"></div>
 <div class="card jwrap" id="list"><div class="skel">Loading…</div></div>
-<p class="tiny" style="margin-top:8px">🤖 Your CV agent can add rows here automatically. Grab the API key in <a href="/settings">Settings</a>.</p>
+<p class="hint">🤖 An agent can log applications here for you. The key is in <a href="/settings#api">Settings → Integrations</a>.</p>
 <div id="modalHost"></div>
-<style>.hide{display:none}</style>
+<style>.hide{display:none}.fgrid>div>label.fld{margin-top:0}.fgrid>div{margin-top:4px}</style>
 `, `<script>
 const ST={applied:['Applied','#5EA2FF'],oa:['OA','#9B6EF3'],interview:['Interview','#FFB347'],offer:['OFFER 🎉','#3DDC97'],rejected:['Rejected','#5C6779']};
 $('j-date').value=todayU();
@@ -77,8 +76,8 @@ $('jSearch').addEventListener('input',applyFilter);
 $('jClear').onclick=()=>{$('jSearch').value='';applyFilter();$('jSearch').focus();};
 function render(jobs,q,st){
 if(!jobs.length){$('list').innerHTML='<div class="skel">'
-+(q?('Nothing matches “'+esc(q)+'”'+(st&&st!=='all'?' in '+ST[st][0]:'')+'. Try part of the job title or the company.')
-:(st&&st!=='all'?'Nothing at '+ST[st][0]+' yet.':'No applications logged yet. Add the first one 👆'))
++(q?('<b>Nothing matches “'+esc(q)+'”</b>'+(st&&st!=='all'?'in '+ST[st][0]+'. ':'')+'Try part of the job title or the company.')
+:(st&&st!=='all'?'<b>Nothing at '+ST[st][0]+' yet</b>Change a status above and it lands here.':'<b>No applications yet</b>Add the first one above. Every row here counts toward the day it was sent.'))
 +'</div>';return;}
 $('list').innerHTML='<table class="jtable"><thead><tr><th>Date</th><th>Job title</th><th>Company</th><th>Platform</th><th>Salary</th><th>Location</th><th>Status</th><th></th></tr></thead><tbody>'
 +jobs.map(j=>'<tr>'
@@ -92,7 +91,7 @@ $('list').innerHTML='<table class="jtable"><thead><tr><th>Date</th><th>Job title
 +'<td>'+statusSel(j)+'</td>'
 +'<td><button class="ghost sm" onclick="delJob('+j.id+')" aria-label="delete">✕</button></td>'
 +'</tr>').join('')+'</tbody></table>'
-+jobs.map(j=>'<div class="jcard"><b class="jt">'+esc(j.title)+(j.source==='agent'?' <span title="logged by your agent">🤖</span>':'')+'</b>'
++jobs.map(j=>'<div class="jcard" style="--ac:'+ST[j.status][1]+'"><b class="jt">'+esc(j.title)+(j.source==='agent'?' <span title="logged by your agent">🤖</span>':'')+'</b>'
 +'<div class="muted jm">'+esc(j.company)+(j.platform?' · '+esc(j.platform):'')+(j.location?' · '+esc(j.location):'')+(j.salary?' · '+esc(j.salary):'')+'</div>'
 +'<div class="row jrow">'+statusSel(j)+'<span class="tiny num">'+fmtD(j.date)+'</span>'
 +(j.url?'<a class="tiny" href="'+esc(j.url)+'" target="_blank" rel="noopener">posting ↗</a>':'')

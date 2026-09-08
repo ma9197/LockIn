@@ -22,6 +22,51 @@ h1{font:800 24px/1.2 var(--disp);letter-spacing:-.01em}
 h2{font:700 12px/1 var(--disp);color:var(--ink2);margin:28px 0 12px;text-transform:uppercase;letter-spacing:.14em}
 .cardfoot{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 
+/* ---------- shared page language: header, section rows, empty states, editable rows ---------- */
+.ph{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;margin:0 0 4px}
+.ph-t{flex:1;min-width:180px}
+.ph-t h1{font-size:26px;line-height:1.1}
+.ph-d{margin:6px 0 0;font-size:14px;line-height:1.5;color:var(--ink2);max-width:60ch}
+.ph-a{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-top:4px}
+.sech{display:flex;align-items:center;gap:10px;margin:28px 0 12px}
+.sech h2{margin:0;flex:1;min-width:0}
+.sech .tiny{white-space:nowrap}
+.skel b{display:block;color:var(--ink);font:800 15px var(--disp);margin-bottom:4px}
+.empty{padding:26px 16px;text-align:center;color:var(--ink2);font-size:14px;line-height:1.55;border:1px dashed var(--line2);border-radius:var(--r)}
+.empty b{display:block;color:var(--ink);font:800 15px var(--disp);margin-bottom:4px}
+.empty>button,.empty>a{margin-top:14px}
+.hint{font-size:13px;line-height:1.5;color:var(--ink2);opacity:.85;margin-top:8px}
+.fg{margin-top:22px}.fg:first-child{margin-top:0}
+.fg>label.fld{margin:0 0 8px;color:var(--ink2);letter-spacing:.08em}
+.cklab{font:700 11px var(--disp);color:var(--ink2);text-transform:uppercase;letter-spacing:.08em;margin-top:14px}
+.cklab:first-child{margin-top:0}
+.item{background:var(--surface2);border:1px solid var(--line2);border-left:4px solid var(--ac,var(--line2));border-radius:14px;padding:14px;margin-top:12px}
+.item:first-child{margin-top:0}
+.item input,.item select,.item textarea{background:var(--well)}
+.item.dim{opacity:.5}
+.ihead{display:flex;align-items:center;gap:10px}
+.ihead input.nm{flex:1;min-width:0;font-weight:700;padding:10px 12px}
+.ihead b.nm{flex:1;min-width:0;font:800 16px var(--disp);text-transform:capitalize;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ihead .who,.disc .who{flex:1;min-width:0}
+.ihead .who b,.disc .who b{display:block;font:800 15px var(--disp)}
+.ihead .who .tiny,.disc .who .tiny{margin-top:2px;font-size:13px}
+.tile{width:40px;height:40px;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;background:var(--surface3);border:1px solid var(--line2);flex:none}
+.ibody{margin-top:12px}
+.ifoot{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.xbtn{width:38px;height:38px;padding:0;border-radius:10px;background:transparent;border:1px solid transparent;color:var(--ink3);font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+.xbtn:hover{border-color:#FF5D7355;color:var(--rose);background:#FF5D7314}
+.addbtn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:13px;border:1px dashed var(--line2);background:transparent;color:var(--ink2);border-radius:12px;font:700 14px var(--disp)}
+.addbtn:hover{border-color:var(--ember);color:var(--ember)}
+.togrow{display:flex;align-items:center;gap:14px;padding:13px 0;border-top:1px solid var(--line)}
+.togrow:first-child{border-top:0;padding-top:0}
+.togrow:last-child{padding-bottom:0}
+.togrow b{display:block;font:700 15px var(--body)}
+.togrow .tiny{margin-top:2px;font-size:13px;color:var(--ink2);opacity:.85}
+.kv{display:flex;gap:8px;align-items:center}
+.kv input{font:13px var(--mono);color:var(--ink2);background:var(--well)}
+.kv button{flex:none}
+.disc{display:flex;align-items:center;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+
 /* ---------- Today header ---------- */
 .dh-top{display:flex;align-items:center;gap:10px}
 .dh-title{flex:1;min-width:0}
@@ -485,7 +530,7 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
 .seg-ctl{display:flex;background:var(--surface2);border:1px solid var(--line2);border-radius:var(--rs);padding:3px;gap:3px}
 .seg-ctl button{flex:1;border:0;background:transparent;padding:7px 10px;font-size:13px;border-radius:7px;color:var(--ink2)}
 .seg-ctl button.on{background:var(--surface3);color:var(--ink)}
-.skel{color:var(--ink3);text-align:center;padding:20px 0}
+.skel{color:var(--ink2);text-align:center;padding:24px 14px;font-size:14px;line-height:1.55}
 
 /* ---------- timeline v2 (bubbles + duration line) ---------- */
 .tl2{display:flex;flex-direction:column;gap:22px}
@@ -567,7 +612,9 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
 .status-pill{font:700 11px var(--disp);border-radius:99px;padding:3px 10px;display:inline-block}
 @media(max-width:700px){
   .jwrap table{display:none}
-  .jcard{display:block;border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:10px 0;background:var(--surface)}
+  .jcard{display:block;border:1px solid var(--line2);border-left:4px solid var(--ac,var(--line2));border-radius:14px;padding:14px;margin:10px 0;background:var(--surface2)}
+  .jcard:first-child{margin-top:0}.jcard:last-child{margin-bottom:0}
+  .jcard select{background:var(--well)}
   .jcard .jt{display:block;font:700 15px/1.3 var(--body)}
   .jcard .jm{font-size:13px;margin-top:3px}
   .jcard .jrow{margin-top:12px;gap:8px}
@@ -960,7 +1007,7 @@ $('links').innerHTML=LK.length?LK.map(l=>
 +'<button class="snip-more" title="include in Open all" onclick="event.stopPropagation();toggleBundle('+l.id+')">'
 +(l.in_bundle?'🚀 in “Open all”':'○ not in “Open all”')+'</button>'
 +'</div>').join('')
-:'<div class="skel card" style="grid-column:1/-1">'+lkT().empty+'</div>';}
+:'<div class="empty" style="grid-column:1/-1">'+lkT().empty+'</div>';}
 async function loadLinks(){LK=(await api('/api/links?kind='+LKKIND)).links;renderLinks();}
 // NOTE: no 'noopener' feature string here — with it window.open always returns null,
 // which makes it impossible to tell "opened" from "blocked by Chrome".

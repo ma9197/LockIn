@@ -1,13 +1,11 @@
 import { shell } from './theme.js';
 
 export const copyPage = (cfg) => shell('LockIn · Quick Copy', '/copy', `
-<div class="row">
-  <h1>Quick Copy</h1>
-  <span class="right"></span>
-  <button class="pri sm" onclick="openSnip()">＋ Add</button>
+<div class="ph">
+  <div class="ph-t"><h1>Quick Copy</h1><p class="ph-d">Tap a block to copy it. Built for speed-running application forms: name, address, LinkedIn URL, work-auth answer.</p></div>
+  <div class="ph-a"><button class="pri sm" onclick="openSnip()">＋ Add block</button></div>
 </div>
-<p class="muted" style="margin-top:4px">Tap a block to copy it. Built for speed-running application forms.</p>
-<div class="snipgrid" id="grid"><div class="skel card" style="grid-column:1/-1">Loading…</div></div>
+<div class="snipgrid" id="grid"><div class="skel" style="grid-column:1/-1">Loading…</div></div>
 <div id="modalHost"></div>
 `, `<script>
 let SN=[],OPEN={};
@@ -34,7 +32,7 @@ return '<div class="snip" onclick="copyVal(this,'+s.id+',-1)">'
 :'<div class="sub-t">'+esc(u.value)+'</div>')
 +'</div><span style="font-size:16px">📋</span></div>').join('')+'</div>':'')
 +'</div>';}).join('')
-:'<div class="skel card" style="grid-column:1/-1">Nothing here yet. Add your name, email, address, LinkedIn URL, work-auth answer… everything you keep retyping.</div>';}
+:'<div class="empty" style="grid-column:1/-1"><b>Nothing here yet</b>Add everything you keep retyping into application forms. A block can hold sub-items, like a full address with its ZIP, city and state.<br><button class="pri sm" onclick="openSnip()">＋ Add your first block</button></div>';}
 function toggleSubs(id){OPEN[id]=!OPEN[id];render();}
 async function load(){SN=(await api('/api/snippets')).snippets;render();}
 async function copyVal(el,id,subIdx){
@@ -57,13 +55,13 @@ const s=id?SN.find(x=>x.id===id):null;
 EDIT_SUBS=s?subsOf(s).map(u=>({label:u.label,value:u.value})):[];
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<h1 style="font-size:19px">'+(s?'✎ Edit block':'＋ New copy block')+'</h1>'
-+'<label class="fld">Value (what gets copied)</label>'
-+'<textarea id="sn-value" rows="3" placeholder="123 Main St, Apt 4B, Brooklyn, NY 11101">'+(s?esc(s.value):'')+'</textarea>'
-+'<label class="fld">Label (optional, shown as the title)</label>'
-+'<input id="sn-label" value="'+(s?esc(s.label):'')+'" placeholder="Address" maxlength="60">'
-+'<label class="fld">Sub-items <span style="text-transform:none;letter-spacing:0">(e.g. ZIP, city, state)</span></label>'
++'<div class="fg" style="margin-top:14px"><label class="fld">Value (what gets copied)</label>'
++'<textarea id="sn-value" rows="3" placeholder="123 Main St, Apt 4B, Brooklyn, NY 11101">'+(s?esc(s.value):'')+'</textarea></div>'
++'<div class="fg"><label class="fld">Label (optional, shown as the title)</label>'
++'<input id="sn-label" value="'+(s?esc(s.label):'')+'" placeholder="Address" maxlength="60"></div>'
++'<div class="fg"><label class="fld">Sub-items <span style="text-transform:none;letter-spacing:0">(e.g. ZIP, city, state)</span></label>'
 +'<div id="sn-subs"></div>'
-+'<button class="sm" style="margin-top:8px" onclick="addSub()">＋ sub-item</button>'
++'<button class="sm" style="margin-top:8px" onclick="addSub()">＋ sub-item</button></div>'
 +'<div class="row" style="margin-top:18px">'
 +'<button class="pri grow" onclick="saveSnip('+(s?s.id:0)+')">'+(s?'Save':'Add block')+'</button>'
 +'<button onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button></div></div></div>';
@@ -74,8 +72,8 @@ $('sn-subs').innerHTML=EDIT_SUBS.map((u,i)=>
 '<div class="subedit">'
 +'<input placeholder="Label (opt)" value="'+esc(u.label)+'" oninput="EDIT_SUBS['+i+'].label=this.value">'
 +'<input placeholder="Value" value="'+esc(u.value)+'" oninput="EDIT_SUBS['+i+'].value=this.value">'
-+'<button class="ghost sm" onclick="EDIT_SUBS.splice('+i+',1);renderSubEdit()">✕</button>'
-+'</div>').join('')||'<p class="tiny" style="margin-top:4px">None yet.</p>';}
++'<button class="xbtn" onclick="EDIT_SUBS.splice('+i+',1);renderSubEdit()" aria-label="remove">✕</button>'
++'</div>').join('')||'<p class="hint" style="margin-top:2px">None yet.</p>';}
 function addSub(){EDIT_SUBS.push({label:'',value:''});renderSubEdit();
 const rows=document.querySelectorAll('#sn-subs .subedit');
 const last=rows[rows.length-1];if(last)last.querySelector('input').focus();}
