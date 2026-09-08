@@ -11,6 +11,7 @@ const tab = (k, id, label) => on(k) ? `<button data-t="${id}"${id === firstTab ?
 const firstTab = !SH ? 'overview'
   : (SH.overview ? 'overview' : SH.lc ? 'lc' : SH.grind ? 'grind' : SH.jobs ? 'jobs' : SH.friends ? 'friends' : 'overview');
 const pane = (k, html) => on(k) ? html : '';
+const sh = (t, d) => `<div class="sech"><h2>${t}</h2></div>${d ? `<p class="secd">${d}</p>` : ''}`;
 return shell(SH ? hesc(SH.title) : 'LockIn · Progress', SH ? null : '/progress', `
 ${SH ? `<style>.refresh-fab{display:none}</style><div class="ph"><div class="ph-t"><h1>🔥 ${hesc(SH.title)}</h1><p class="ph-d">Shared progress, read only. The numbers follow the same counting rules as the owner's own tabs.</p></div><div class="ph-a"><a class="chip" href="/" style="text-decoration:none;color:var(--ink2)">Made with LockIn</a></div></div><div class="race" id="race"></div>` : '<div class="ph"><div class="ph-t"><h1>Progress</h1><p class="ph-d">Streak, pace against the plan, and where the hours went. Every number here follows the same counting rules as the tabs it comes from.</p></div></div>'}
 <div class="tabbar" id="tabs">
@@ -23,81 +24,81 @@ ${SH ? `<style>.refresh-fab{display:none}</style><div class="ph"><div class="ph-
 
 ${pane('overview', `<section class="tabpane${firstTab === 'overview' ? ' on' : ''}" data-t="overview">
   <div class="statgrid" style="margin-top:14px">
-    <div class="stat"><b class="num" id="streak" style="color:var(--ember)">–</b><span>day streak 🔥</span></div>
+    <div class="stat" style="--ac:var(--ember)"><b class="num" id="streak" style="color:var(--ember)">–</b><span>day streak 🔥</span></div>
     <div class="stat"><b class="num" id="lc">–</b><span id="lcSub">LeetCode solved</span></div>
     <div class="stat"><b class="num" id="apps">–</b><span>Applications</span></div>
     <div class="stat"><b class="num" id="tasks">–</b><span>tasks done</span></div>
   </div>
-  <h2>Finish line</h2>
+  ${sh('Finish line', 'Where the plan ends up if the last two weeks keep going like this.')}
   <div class="card" id="proj"><div class="skel">Loading…</div></div>
-  <h2>Pace vs plan</h2>
+  ${sh('Pace vs plan', 'Done so far against what the daily goals added up to by today.')}
   <div class="card" id="pace"><div class="skel">Loading…</div></div>
-  <h2>This week vs last week</h2>
+  ${sh('This week vs last week', 'Monday to today, compared with the same days last week.')}
   <div class="card" id="week"></div>
-  <h2>Records</h2>
-  <div class="row" id="records" style="flex-wrap:wrap;gap:10px"></div>
-  <h2>Off days</h2>
+  ${sh('Records', 'Your best single days and longest runs.')}
+  <div class="recgrid" id="records"></div>
+  ${sh('Off days', 'Days you marked off. They never break a streak.')}
   <div class="card" id="offdays"><div class="skel">None yet. Rest is allowed.</div></div>
 </section>`)}
 
 ${pane('lc', `<section class="tabpane${firstTab === 'lc' ? ' on' : ''}" data-t="lc">
   <div class="statgrid" style="margin-top:14px">
-    <div class="stat"><b class="num" id="lcAvg" style="color:var(--ember)">–</b><span>avg solve time</span></div>
-    <div class="stat"><b class="num" id="lcEasy" style="color:var(--mint)">–</b><span>easy avg</span></div>
-    <div class="stat"><b class="num" id="lcMed" style="color:var(--ember2)">–</b><span>medium avg</span></div>
-    <div class="stat"><b class="num" id="lcHard" style="color:var(--rose)">–</b><span>hard avg</span></div>
+    <div class="stat" style="--ac:var(--ember)"><b class="num" id="lcAvg" style="color:var(--ember)">–</b><span>avg solve time</span></div>
+    <div class="stat" style="--ac:var(--mint)"><b class="num" id="lcEasy" style="color:var(--mint)">–</b><span>easy avg</span></div>
+    <div class="stat" style="--ac:var(--ember2)"><b class="num" id="lcMed" style="color:var(--ember2)">–</b><span>medium avg</span></div>
+    <div class="stat" style="--ac:var(--rose)"><b class="num" id="lcHard" style="color:var(--rose)">–</b><span>hard avg</span></div>
   </div>
-  <h2>What you are actually training</h2>
+  ${sh('What you are actually training', 'Share of timed solves by difficulty and by outcome.')}
   <div class="card" id="lcMix"><div class="skel">Loading…</div></div>
   <div class="card" id="lcTrendCard"></div>
-  <h2>Avg solve time · last 30 days</h2>
+  ${sh('Avg solve time · last 30 days', 'Average minutes per timed solve, per day. Lower is better.')}
   <div class="card" id="chart-lctime"><div class="skel">Loading…</div></div>
-  <h2>Problems solved · last 30 days</h2>
+  ${sh('Problems solved · last 30 days', 'Solves per day against that day\u2019s goal.')}
   <div class="card" id="chart-lc"><div class="skel">Loading…</div></div>
-  ${SH ? '' : '<div class="card" style="margin-top:16px"><a href="/leetcode" style="font-weight:700">Every problem, its tries and its notes live on the LeetCode tab &rarr;</a></div>'}
-  ${!SH || SH.lcNames ? '<h2>History</h2><div id="lcDays"></div>' : ''}
+  ${SH ? '' : '<div class="linkcard"><a href="/leetcode">Every problem, its tries and its notes live on the LeetCode tab &rarr;</a></div>'}
+  ${!SH || SH.lcNames ? sh('History', 'Every day with a logged solve, newest first. Tap a day to expand it.') + '<div id="lcDays"></div>' : ''}
 </section>`)}
 
 ${pane('grind', `<section class="tabpane${firstTab === 'grind' ? ' on' : ''}" data-t="grind">
   <div class="statgrid" style="margin-top:14px">
-    <div class="stat"><b class="num" id="gh" style="color:var(--ember)">–</b><span>total hours 🔥</span></div>
+    <div class="stat" style="--ac:var(--ember)"><b class="num" id="gh" style="color:var(--ember)">–</b><span>total hours 🔥</span></div>
     <div class="stat"><b class="num" id="gavg">–</b><span>avg h / grind day</span></div>
-    <div class="stat"><b class="num" id="got" style="color:var(--rose)">–</b><span>overtime hours</span></div>
+    <div class="stat" style="--ac:var(--rose)"><b class="num" id="got" style="color:var(--rose)">–</b><span>overtime hours</span></div>
     <div class="stat"><b class="num" id="gdays">–</b><span>days checked in</span></div>
   </div>
-  <div class="card" style="margin-top:10px">
-    <div class="bp-label">Last 8 weeks · grind heatmap</div>
+  ${sh('Last 8 weeks', 'One square per day. Darker means more checked-in hours.')}
+  <div class="card">
     <div style="overflow-x:auto;padding:4px 0"><div class="heat" id="heat"></div></div>
     <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:6px 10px"><span class="tiny">less</span>
     <span style="display:flex;gap:3px">${[0.12, 0.35, 0.6, 1].map(o => `<span style="width:12px;height:12px;border-radius:3px;background:rgba(255,107,53,${o})"></span>`).join('')}</span>
     <span class="tiny">more</span><span class="grow"></span><span class="tiny" id="gtarget">target: 6h/day</span></div>
   </div>
-  <h2>Which weekday carries you</h2>
+  ${sh('Which weekday carries you', 'Average grind hours by weekday, across every week in the plan.')}
   <div class="card" id="dowCard"><div class="skel">Loading…</div></div>
-  <h2>Grind hours · last 14 days</h2>
+  ${sh('Grind hours · last 14 days', 'Checked-in hours per day against your grind target.')}
   <div class="card" id="chart-grind"><div class="skel">Loading…</div></div>
   <div class="card" id="modsplit" style="display:none"></div>
 </section>`)}
 
 ${pane('jobs', `<section class="tabpane${firstTab === 'jobs' ? ' on' : ''}" data-t="jobs">
   <div class="statgrid" style="margin-top:14px">
-    <div class="stat"><b class="num" id="jTot" style="color:var(--ice)">–</b><span>applications</span></div>
+    <div class="stat" style="--ac:var(--ice)"><b class="num" id="jTot" style="color:var(--ice)">–</b><span>applications</span></div>
     <div class="stat"><b class="num" id="jWeek">–</b><span>per week</span></div>
-    <div class="stat"><b class="num" id="jResp" style="color:var(--mint)">–</b><span>heard back</span></div>
-    <div class="stat"><b class="num" id="jLast" style="color:var(--ember2)">–</b><span>since last one</span></div>
+    <div class="stat" style="--ac:var(--mint)"><b class="num" id="jResp" style="color:var(--mint)">–</b><span>heard back</span></div>
+    <div class="stat" style="--ac:var(--ember2)"><b class="num" id="jLast" style="color:var(--ember2)">–</b><span>since last one</span></div>
   </div>
-  <h2>Funnel</h2>
+  ${sh('Funnel', 'How far applications get. Each row is a share of the total.')}
   <div class="card" id="funnel"><div class="skel">No applications tracked yet.</div></div>
-  <h2>By platform</h2>
+  ${sh('By platform', 'Where the applications came from.')}
   <div class="card" id="platforms"></div>
-  <h2>Applications · last 30 days</h2>
+  ${sh('Applications · last 30 days', 'Applications sent per day against that day\u2019s goal.')}
   <div class="card" id="chart-apps"><div class="skel">Loading…</div></div>
-  <h2>Daily history</h2>
+  ${sh('Daily history', 'Every day with at least one application.')}
   <div class="card"><div id="list-apps" style="max-height:340px;overflow-y:auto"></div></div>
 </section>`)}
 
 ${pane('friends', `<section class="tabpane${firstTab === 'friends' ? ' on' : ''}" data-t="friends">
-  <h2>Friend time</h2>
+  ${sh('Friend time', 'Hours logged with friends, by person and by activity.')}
   <div class="card" id="friends"><div class="skel">Loading…</div></div>
 </section>`)}
 ${SH ? '<p class="tiny" style="text-align:center;margin:26px 0 8px">read only · shared by ' + hesc(SH.title) + '</p>' : ''}
@@ -180,8 +181,8 @@ s+='<line x1="'+(padL+i*bw+gap/2)+'" x2="'+(padL+i*bw+gap/2+barW)+'" y1="'+y(goa
 for(let i=0;i<n;i++){const d=data[i],v=vals[i],x=padL+i*bw+gap/2;
 if(v<=0){s+='<rect x="'+x+'" y="'+(padT+plotH-2)+'" width="'+barW+'" height="2" rx="1" fill="var(--line2)"/>';}
 else{const h=Math.max(3,(v/mx)*plotH);
-const fill=color||(d.hit?'var(--mint)':'var(--ink3)');
-s+='<rect x="'+x+'" y="'+(padT+plotH-h)+'" width="'+barW+'" height="'+h+'" rx="3" fill="'+fill+'"/>';}}
+const fill=color||(d.hit?'var(--mint)':(o.dim||'rgba(151,163,182,.55)'));
+s+='<rect x="'+x+'" y="'+(padT+plotH-h)+'" width="'+barW+'" height="'+h+'" rx="4" fill="'+fill+'"/>';}}
 // value labels: every bar when they fit, otherwise just the peak and the latest
 const lab={};
 if(barW>=17){for(let i=0;i<act.length;i++)lab[act[i]]=1;}
@@ -205,7 +206,7 @@ const top='<div class="csum">'+cards.map(c=>ci(c[1],c[0])).join('')+'</div>';
 
 let leg='';
 if(!color)leg+='<span><i class="lgs" style="background:var(--mint)"></i>goal hit</span>'
-+'<span><i class="lgs" style="background:var(--ink3)"></i>below goal</span>'
++'<span><i class="lgs" style="background:'+(o.dim||'rgba(151,163,182,.55)')+'"></i>below goal</span>'
 +'<span><i class="lgd"></i>daily goal</span>';
 else leg+='<span><i class="lgs" style="background:'+color+'"></i>'+unit+'</span>';
 if(showAvg)leg+='<span><i class="lgd ice"></i>avg '+fmt(avg)+'</span>';
@@ -246,7 +247,7 @@ function paceRow(label,p,color,cons){
 const pct=p.target>0?Math.min(1,p.done/p.target):0;
 const ok=p.diff>=0;
 const c=cons&&cons.days?'<div style="margin-top:5px"><span class="tiny">goal hit on <b class="num">'+cons.hit+'</b> of '+cons.days+' days · '+Math.round(cons.hit/cons.days*100)+'%</span></div>':'';
-return '<div style="margin:10px 0"><div class="row" style="flex-wrap:wrap;gap:4px 8px"><b>'+label+'</b><span class="grow"></span>'
+return '<div class="pacei"><div class="row" style="flex-wrap:wrap;gap:4px 8px"><b>'+label+'</b><span class="grow"></span>'
 +'<span class="num">'+p.done+' / '+p.target+' planned</span>'
 +'<span class="delta '+(ok?'up':'down')+'">'+(ok?(p.diff>0?'+'+p.diff+' ahead':'on pace'):p.diff+' behind')+'</span></div>'
 +'<div class="pace-bar"><div style="width:'+(pct*100)+'%;background:'+(ok?'var(--mint)':color)+'"></div></div>'+c+'</div>';}
@@ -339,7 +340,7 @@ $('lcMix').innerHTML=dn?('<div class="bp-label">Difficulty mix of your '+dn+' ti
 :'<b>'+hardShare+'%</b> medium or hard. That is interview-shaped, keep it there.')+'</div>'
 +(seen?('<div class="mixleg" style="margin-top:11px"><span>cracked <b class="num">'+cracked+'</b> of '+seen+' problems opened · <b class="num">'+Math.round(cracked/seen*100)+'%</b> crack rate</span>'
 +(L.slowTotal?'<span><b class="num">'+L.slowTotal+'</b> solved but slow, not counted as solved until you rerun it</span>':'')+'</div>'):''))
-:'<div class="skel">Log a few timed solves and the mix shows up here.</div>';
+:'<div class="skel"><b>No timed solves yet</b>Log a few with the Focus timer and the mix shows up here.</div>';
 $('lcTrendCard').innerHTML=L.total?('<div class="bp-label">Getting faster? (lower is better)</div>'
 +trendChip('Overall',L.avgNow,L.avgPrev)
 +trendChip('🟢 Easy',L.easy.avgNow,L.easy.avgPrev)
@@ -348,7 +349,7 @@ $('lcTrendCard').innerHTML=L.total?('<div class="bp-label">Getting faster? (lowe
 +'<div class="row" style="margin-top:12px;flex-wrap:wrap;gap:6px 14px">'
 +'<span class="tiny">solves timed: <b class="num">'+L.total+'</b>'+(L.attempts?' · '+L.attempts+' unfinished tr'+(L.attempts>1?'ies':'y')+' not counted here':'')+'</span>'
 +'<span class="tiny">'+L.easy.n+' easy · '+L.medium.n+' medium · '+L.hard.n+' hard</span></div>')
-:'<div class="skel">Use the Focus timer with 🧩 LeetCode record on, and your solve times land here.</div>';
+:'<div class="skel"><b>No solve times yet</b>Use the Focus timer with 🧩 LeetCode record on, and they land here.</div>';
 if(L.trend&&L.trend.length)chart($('chart-lctime'),L.trend,'min avg','var(--ember)',{
 fmt:v=>nf(v)+'m',vfmt:v=>String(Math.round(v)),
 tip:d=>'<b>'+fmtD(d.d)+'</b><br>'+(d.v?nf(d.v)+' min average over '+d.n+' solve'+(d.n===1?'':'s'):'no solves logged'),
@@ -358,7 +359,7 @@ const slow=won.length?Math.max.apply(null,won.map(d=>d.v)):0;
 const tot=won.reduce((a,d)=>a+(d.n||0),0);
 return [['fastest day',fast?nf(fast)+'m':'–'],['slowest day',slow?nf(slow)+'m':'–'],
 ['day average',won.length?nf(won.reduce((a,d)=>a+d.v,0)/won.length)+'m':'–'],['solves timed',String(tot)]];}});
-chart($('chart-lc'),j.lc30,'problems',null,{
+chart($('chart-lc'),j.lc30,'problems',null,{dim:'rgba(255,107,53,.45)',
 summary:st=>{const hit=st.data.filter(d=>d.hit).length,withGoal=st.data.filter(d=>d.g>0).length;
 return [['logged',String(Math.round(st.sum))],['best day',String(Math.round(st.best))],
 ['active days',st.active+' / '+st.n],['goal hit',hit+(withGoal?' / '+withGoal:'')]];}});
@@ -379,7 +380,7 @@ return '<div class="dayc" onclick="this.classList.toggle(\\'open\\')">'
 +'<b class="mn">'+mins(s.minutes)+'</b>'
 +(s.source==='timer'?'<span class="tiny" title="timed live">⏱</span>':'')
 +(SHARE?'':'<button class="ghost sm" style="padding:0 6px" onclick="delSolve('+s.id+')">✕</button>')+'</div>').join('')
-+'</div></div>';}).join(''):'<div class="card skel">No solves recorded yet.</div>';
++'</div></div>';}).join(''):'<div class="empty"><b>No solves recorded yet</b>Every attempt you log lands here, day by day.</div>';
 }
 
 // ---- grind ----
@@ -408,8 +409,8 @@ return '<div class="dw"><div class="bar" title="'+DOWFULL[w]+' · '+x.n+' day'+(
 +'<div class="mixnote">Strongest: <b>'+DOWFULL[bestD.w]+'</b> at '+nf(bestD.avg)+'h avg'
 +(dwAct.length>1?('. Weakest: <b>'+DOWFULL[worstD.w]+'</b> at '+nf(worstD.avg)+'h. '
 +(worstD.avg<3?'That is the day to attack next week.':'The week is fairly even, which is what you want.')):'')+'</div>';}
-else $('dowCard').innerHTML='<div class="skel">Check in to a few grind blocks and the weekly pattern appears here.</div>';}
-chart($('chart-grind'),G.last14.length?G.last14:[{d:new Date().toISOString().slice(0,10),v:0,g:6,hit:false}],'hours',null,{
+else $('dowCard').innerHTML='<div class="skel"><b>No pattern yet</b>Check in to a few grind blocks and the weekly shape appears here.</div>';}
+chart($('chart-grind'),G.last14.length?G.last14:[{d:new Date().toISOString().slice(0,10),v:0,g:6,hit:false}],'hours',null,{dim:'rgba(255,107,53,.45)',
 fmt:v=>nf(v)+'h',vfmt:v=>nf(v),
 tip:d=>'<b>'+fmtD(d.d)+'</b><br>'+(d.v?nf(d.v)+' hours grinded':'no grind logged')+(d.g?' · target '+d.g+'h':'')+(d.hit?' <span style="color:var(--mint)">✓ hit</span>':''),
 summary:st=>{const hit=st.data.filter(d=>d.hit).length;
@@ -462,7 +463,7 @@ return '<div class="funnel-row"><span class="fl">'+esc(p.p)+'</span>'
 +'<div class="fb" style="width:'+Math.max(6,p.n/mx*100)+'%;background:var(--ice)">'+p.n+'</div>'
 +'<span class="fp">'+Math.round(p.n/tot*100)+'%</span></div>';}).join('')
 :'<div class="skel">Nothing yet.</div>';
-chart($('chart-apps'),j.apps30,'apps',null,{
+chart($('chart-apps'),j.apps30,'apps',null,{dim:'rgba(94,162,255,.45)',
 summary:st=>{const hit=st.data.filter(d=>d.hit).length,withGoal=st.data.filter(d=>d.g>0).length;
 return [['sent',String(Math.round(st.sum))],['best day',String(Math.round(st.best))],
 ['active days',st.active+' / '+st.n],['goal hit',hit+(withGoal?' / '+withGoal:'')]];}});
@@ -479,7 +480,7 @@ $('friends').innerHTML=j.friends.length?j.friends.map(f=>
 '<div class="qrow">'+avatar(f.name)+'<b>'+esc(f.name)+'</b><span class="grow"></span>'
 +'<span class="num" style="font:800 16px var(--disp)">'+f.hours+'h</span>'
 +'<span class="tiny">'+f.sessions+' session'+(f.sessions>1?'s':'')+' · '+esc(f.acts||'')+'</span></div>').join('')
-:'<div class="skel">No logged sessions yet. Time with friends shows up here.</div>';
+:'<div class="skel"><b>No sessions yet</b>Time with friends shows up here once you confirm a booking or log one.</div>';
 }
 redrawCharts();
 }

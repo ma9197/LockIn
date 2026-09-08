@@ -198,6 +198,16 @@ app.post('/api/auth/reset', async c => {
 });
 
 // ---------- account ----------
+app.post('/api/auth/profile', async c => {
+  const u = await sessionUser(c.env.CENTRAL, c.req.raw);
+  if (!u) return json(c, { error: 'unauthorized' }, 401);
+  if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
+  const b = await c.req.json().catch(() => ({}));
+  const name = String(b.displayName || '').trim().slice(0, 40);
+  if (!name) return json(c, { error: 'display name is required' }, 400);
+  await c.env.CENTRAL.prepare('UPDATE users SET display_name=? WHERE id=?').bind(name, u.id).run();
+  return json(c, { ok: true, displayName: name });
+});
 app.post('/api/auth/password', async c => {
   const u = await sessionUser(c.env.CENTRAL, c.req.raw);
   if (!u) return json(c, { error: 'unauthorized' }, 401);

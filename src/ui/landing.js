@@ -79,7 +79,7 @@ const pj = (emoji, name, done, total, proj, note, col) => `<div class="pj"><div 
 <div class="pjbar"><i class="pr" style="width:${Math.min(100, proj / total * 100)}%;background:${col}"></i><i style="width:${done / total * 100}%;background:${col}"></i></div>
 <div class="pjm"><span><i class="sw" style="background:${col}"></i>done ${done}</span><span><i class="sw pr" style="background:${col}"></i>on pace for <b>${proj}</b></span><span><i class="sw tr"></i>target ${total}</span></div><div class="pjn">${note}</div></div>`;
 
-const STEP_NAMES = ['Name & handle', 'Time zone', 'Plan phases', 'Grind blocks', 'Categories & goals', 'Side tasks', 'Modules'];
+const STEP_NAMES = ['Name', 'Time zone', 'Plan', 'Blocks', 'Categories', 'Side tasks', 'Modules'];
 
 export const landingPage = () => shell('LockIn · the grind tracker for CS students', null, `
 <style>
@@ -212,21 +212,21 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .ld-fc .n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--grad);color:#1A0D05;font:900 15px var(--disp);margin-bottom:14px}
 .ld-fc b{display:block;font:800 17px var(--disp);margin-bottom:6px}
 .ld-fc p{color:var(--ink2);font-size:14px;line-height:1.55}
-/* the seven wizard screens as a path that snakes under the three cards */
-.snake{list-style:none;display:grid;grid-template-columns:1fr;gap:30px 26px;margin:34px 0 0;padding:0}
-.snake li{position:relative;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 16px;font:700 14px var(--body);color:var(--ink)}
-.snake li b{flex:none;width:28px;height:28px;border-radius:9px;background:var(--grad);color:#1A0D05;font:900 13px var(--disp);display:inline-flex;align-items:center;justify-content:center}
-.snake li::after{position:absolute;color:var(--ember);font:900 18px var(--disp);line-height:1}
-.snake li:not(:last-child)::after{content:'↓';left:50%;bottom:-26px;transform:translateX(-50%)}
-@media(min-width:700px){
-  .snake{grid-template-columns:repeat(4,1fr)}
-  .snake .s1{grid-area:1/1}.snake .s2{grid-area:1/2}.snake .s3{grid-area:1/3}.snake .s4{grid-area:1/4}
-  .snake .s5{grid-area:2/4}.snake .s6{grid-area:2/3}.snake .s7{grid-area:2/2}
-  .snake li.s1::after,.snake li.s2::after,.snake li.s3::after{content:'→';left:auto;right:-23px;bottom:auto;top:50%;transform:translateY(-50%)}
-  .snake li.s4::after{content:'↓';left:50%;right:auto;bottom:-26px;top:auto;transform:translateX(-50%)}
-  .snake li.s5::after,.snake li.s6::after{content:'←';left:-23px;right:auto;bottom:auto;top:50%;transform:translateY(-50%)}
-  .snake li.s7::after{content:none}
+/* the seven wizard screens, in a speech bubble hanging off card 2 */
+.snakewrap{position:relative;margin-top:26px;background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:14px 16px 16px}
+.snakewrap::before{content:'';position:absolute;top:-8px;left:50%;width:14px;height:14px;background:var(--surface);border-left:1px solid var(--line2);border-top:1px solid var(--line2);transform:translateX(-50%) rotate(45deg)}
+.snakecap{font:700 10.5px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember);margin-bottom:10px}
+.snake{list-style:none;display:flex;flex-direction:column;gap:22px;margin:0;padding:0}
+.snake li{position:relative;display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--line2);border-radius:11px;padding:8px 11px 8px 8px;font:700 12.5px var(--body);color:var(--ink);white-space:nowrap}
+.snake li b{flex:none;width:22px;height:22px;border-radius:7px;background:var(--grad);color:#1A0D05;font:900 11.5px var(--disp);display:inline-flex;align-items:center;justify-content:center}
+.snake li::after{position:absolute;color:var(--ember);font:900 15px var(--disp);line-height:1}
+.snake li:not(:last-child)::after{content:'↓';left:50%;bottom:-20px;transform:translateX(-50%)}
+@media(min-width:760px){
+  .snake{flex-direction:row;justify-content:space-between;gap:18px}
+  .snake li{flex:0 1 auto;min-width:0}
+  .snake li:not(:last-child)::after{content:'→';left:auto;right:-16px;bottom:auto;top:50%;transform:translateY(-50%)}
 }
+
 .ld-shape{display:grid;gap:12px;margin-top:28px}
 @media(min-width:700px){.ld-shape{grid-template-columns:repeat(3,1fr);gap:16px}}
 .ld-sh{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start}
@@ -430,7 +430,7 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
     <div class="ld-fc"><span class="n">2</span><b>Set up in seven steps</b><p>Each one is a single screen with a live preview. The seven screens run in the order shown below.</p></div>
     <div class="ld-fc"><span class="n">3</span><b>Open Today</b><p>Your goals, your blocks, your timer. Log a problem, press + on a ring, check in to a block. The streak starts counting.</p></div>
   </div>
-  <ol class="snake rv" aria-label="the seven setup screens, in order">${STEP_NAMES.map((s, i) => `<li class="s${i + 1}"><b>${i + 1}</b><span>${s}</span></li>`).join('')}</ol>
+  <div class="snakewrap rv"><div class="snakecap">Step 2, screen by screen</div><ol class="snake" aria-label="the seven setup screens, in order">${STEP_NAMES.map((s, i) => `<li class="s${i + 1}"><b>${i + 1}</b><span>${s}</span></li>`).join('')}</ol></div>
 </section>
 
 <section class="ld-sec">

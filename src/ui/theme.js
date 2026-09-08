@@ -31,6 +31,9 @@ h2{font:700 12px/1 var(--disp);color:var(--ink2);margin:28px 0 12px;text-transfo
 .sech{display:flex;align-items:center;gap:10px;margin:28px 0 12px}
 .sech h2{margin:0;flex:1;min-width:0}
 .sech .tiny{white-space:nowrap}
+.secd{margin:-6px 0 12px;font-size:13.5px;line-height:1.5;color:var(--ink2);max-width:62ch}
+.linkcard{margin:12px 0;padding:12px 16px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+.linkcard a{font-weight:700;display:block}
 .skel b{display:block;color:var(--ink);font:800 15px var(--disp);margin-bottom:4px}
 .empty{padding:26px 16px;text-align:center;color:var(--ink2);font-size:14px;line-height:1.55;border:1px dashed var(--line2);border-radius:var(--r)}
 .empty b{display:block;color:var(--ink);font:800 15px var(--disp);margin-bottom:4px}
@@ -431,7 +434,11 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
 .stat.open .exp-list{display:block}
 .exp-row{display:flex;gap:8px;padding:6px 2px;border-bottom:1px solid var(--line);font-size:13px;align-items:center}
 .exp-row:last-child{border-bottom:0}
-.pace-bar{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:6px}
+.pacei{padding:12px 0;border-bottom:1px solid var(--line)}
+.pacei:last-child{border-bottom:0;padding-bottom:2px}
+.recgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.recgrid .rec-chip{min-width:0}
+.pace-bar{height:10px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:8px}
 .pace-bar div{height:100%;border-radius:99px}
 .funnel-row{display:grid;grid-template-columns:minmax(64px,34%) 1fr auto;align-items:center;gap:10px;margin:9px 0}
 .funnel-row .fp{font:700 11px var(--mono);color:var(--ink3);font-variant-numeric:tabular-nums;text-align:right;min-width:32px}
@@ -440,11 +447,11 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
   padding:0 8px;font:800 12px var(--disp);color:#0B0E14}
 .delta{font:800 12px var(--disp)}
 .delta.up{color:var(--mint)}.delta.down{color:var(--rose)}.delta.flat{color:var(--ink3)}
-.heat{display:grid;grid-template-rows:repeat(7,12px);grid-auto-flow:column;grid-auto-columns:12px;gap:3px}
+.heat{display:grid;grid-template-rows:repeat(7,13px);grid-auto-flow:column;grid-auto-columns:13px;gap:3px}
 .heat div{border-radius:3px;background:var(--surface2)}
 .rec-chip{display:flex;flex-direction:column;gap:2px;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;min-width:110px}
 .rec-chip b{font:800 18px var(--disp)}
-.rec-chip span{font:700 10px var(--disp);color:var(--ink3);letter-spacing:.08em;text-transform:uppercase}
+.rec-chip span{font:700 10px var(--disp);color:var(--ink2);letter-spacing:.08em;text-transform:uppercase}
 
 /* ---------- charts ---------- */
 /* SVG units are CSS pixels in these charts (the viewBox width is the measured
@@ -462,10 +469,10 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
 .csum .ci{min-width:0;background:var(--surface2);border:1px solid var(--line);
   border-radius:10px;padding:9px 11px}
 .csum .ci b{display:block;font:800 18px/1.15 var(--disp);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.csum .ci span{display:block;font:700 9.5px var(--disp);color:var(--ink3);letter-spacing:.07em;
+.csum .ci span{display:block;font:700 9.5px var(--disp);color:var(--ink2);letter-spacing:.07em;
   text-transform:uppercase;margin-top:4px;line-height:1.3}
 .clegend{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:10px;align-items:center}
-.clegend span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink3)}
+.clegend span{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink2)}
 .clegend i{flex:none;width:10px;height:10px;border-radius:3px}
 .clegend i.lgd{width:15px;height:0;border-radius:0;border-top:2px dashed var(--ink3)}
 .clegend i.lgd.ice{border-color:var(--ice)}
@@ -524,9 +531,10 @@ svg text.cvl{font:800 10px var(--disp);fill:var(--ink2)}
 
 /* ---------- misc ---------- */
 .statgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;text-align:center}
+.stat{position:relative;overflow:hidden;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px;text-align:center}
+.stat[style*="--ac"]::before{content:'';position:absolute;left:14px;right:14px;top:0;height:3px;border-radius:0 0 3px 3px;background:var(--ac);opacity:.9}
 .stat b{font:800 34px/1.1 var(--disp);font-variant-numeric:tabular-nums;display:block}
-.stat span{font:700 11px var(--disp);color:var(--ink3);letter-spacing:.1em;text-transform:uppercase}
+.stat span{font:700 11px var(--disp);color:var(--ink2);letter-spacing:.1em;text-transform:uppercase}
 /* a phone does not need 34px numerals: the tiles were eating whole screens */
 @media(max-width:560px){
   .stat{padding:12px 10px}

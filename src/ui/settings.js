@@ -21,9 +21,36 @@ const pane = (id, first) => `${first ? '' : '</div>'}<div class="tabpane" id="ta
 export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 <style>
 .stg-h1{margin:0;font-size:22px;line-height:1.2}
-.tabwrap{position:sticky;top:0;z-index:5;background:transparent;margin:0 -16px;padding:12px 16px 12px;border-bottom:1px solid transparent;transition:background .25s,border-color .25s}
-.tabwrap.stuck{background:rgba(11,14,20,.74);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom-color:rgba(38,48,69,.6)}
-@media(min-width:900px){.tabwrap{margin:0 -34px;padding-left:34px;padding-right:34px}}
+.tabwrap{position:sticky;top:0;z-index:5;background:transparent;margin:0 -16px -16px;padding:12px 16px 28px;-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent);transition:background .25s}
+.tabwrap.stuck{background:rgba(11,14,20,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+
+/* account rows: icon + title + description on the left, the controls on the right */
+.stg .card.acct{padding:0;overflow:hidden}
+.acct .idrow{padding:18px 20px}
+.acct .idrow .who b{font-size:17px}
+.acrow{display:grid;grid-template-columns:1fr;gap:14px;padding:18px 20px;border-top:1px solid var(--line)}
+@media(min-width:760px){.acrow{grid-template-columns:minmax(0,.85fr) minmax(0,1.45fr);gap:28px;align-items:start}}
+.acl{display:flex;gap:14px;align-items:flex-start}
+.acl b{display:block;font:800 15px var(--disp);margin-bottom:4px}
+.acl p{font-size:13.5px;color:var(--ink2);line-height:1.5}
+.acl .tile{width:44px;height:44px;border-radius:12px}
+.acl .tile.rose{background:#FF5D7318;border-color:#FF5D7355}
+.stg .acr label.fld{margin:0 0 6px;text-transform:none;letter-spacing:0;font:600 13px var(--body);color:var(--ink2)}
+.acr .fgrid{grid-template-columns:1fr;gap:12px}
+.acr-end{display:flex;justify-content:flex-end;align-items:center}
+button.rose.outl{background:transparent;color:var(--rose);border:1px solid var(--rose);padding:9px 18px}
+button.rose.outl:hover{background:#FF5D7318}
+.drop{display:flex;align-items:center;gap:14px;border:1px dashed var(--line2);border-radius:12px;padding:14px;cursor:pointer;background:var(--well)}
+.drop:hover{border-color:var(--ink3)}
+.drop input{display:none}
+.drop b{display:block;font:700 14px var(--body)}
+.note{display:flex;gap:10px;align-items:flex-start;margin-top:12px;padding:12px 14px;border-radius:10px;background:#5EA2FF12;border:1px solid #5EA2FF40;font-size:13px;color:var(--ink2);line-height:1.5}
+.note b{color:var(--ice)}
+.meter{display:flex;align-items:center;gap:4px;margin-top:8px}
+.meter i{width:26px;height:4px;border-radius:2px;background:var(--surface3)}
+.meter i.on{background:var(--mint)}.meter.weak i.on{background:var(--rose)}.meter.mid i.on{background:var(--ember2)}
+.meter span{margin-left:8px;font-size:12px;color:var(--ink2)}
+@media(min-width:900px){.tabwrap{margin:0 -34px -16px;padding-left:34px;padding-right:34px}}
 .tabbar{margin:10px 0 0}
 .regrow{display:flex;flex-direction:column;gap:10px;align-items:flex-start;margin-top:14px}
 @media(min-width:560px){.regrow{flex-direction:row;align-items:center}}
@@ -225,18 +252,39 @@ ${sec('read', 'Read-only API · for Claude', 'Lets Claude read your LeetCode log
 
 ${pane('account')}
 ${sec('account', 'Account', '', `
-<div class="card">
-  <div class="idrow"><span id="accAvatar"></span><div class="who"><b id="accEmail"></b><div class="tiny">Handle: <span id="accHandle" class="num"></span></div></div><a class="btnlink" href="/api/export">⬇ Export my data</a></div>
-  <div class="fg"><label class="fld">Change password</label><div class="fgrid"><div><input id="p-cur" type="password" autocomplete="current-password" placeholder="current"></div><div><input id="p-new" type="password" autocomplete="new-password" placeholder="new, 10+ characters"></div></div><div class="row" style="margin-top:10px"><button class="pri sm" onclick="changePw()">Change password</button></div><div class="hint">Every other signed-in device is signed out.</div></div>
-  <div class="fg"><label class="fld">Import a LockIn export</label>
-    <label class="filebtn"><input type="file" id="impFile" accept="application/json,.json" onchange="$('impName').textContent=this.files[0]?this.files[0].name:'no file chosen'"><span class="btnlink">Choose file</span><span class="fname" id="impName">no file chosen</span></label>
-    <div class="row" style="flex-wrap:wrap;margin-top:10px;gap:8px"><input id="p-imp" type="password" placeholder="your password" style="flex:1;min-width:140px"><button class="rose sm" onclick="importFile()">Replace everything</button></div>
-    <div class="hint">Replaces every table with the file. Export first if you are unsure. Keys and PINs are never in an export.</div></div>
-  <div class="fg"><button class="ghost sm" onclick="logout()">Sign out</button></div>
+<div class="card acct">
+  <div class="idrow"><span id="accAvatar"></span><div class="who"><b id="accEmail"></b><div class="tiny">Handle: <span id="accHandle" class="num"></span> · <span id="accName"></span></div></div><button class="sm" onclick="toggleProfile()">✎ Edit profile</button></div>
+  <div class="acrow" id="profileEd" style="display:none">
+    <div class="acl"><span class="tile">🪪</span><div><b>Profile</b><p>Your display name shows on your shared progress and booking pages. The handle is fixed, it is part of those links.</p></div></div>
+    <div class="acr"><label class="fld" for="p-name">Display name</label><div class="row" style="gap:8px;flex-wrap:wrap"><input id="p-name" maxlength="40" style="flex:1;min-width:160px"><button class="pri sm" onclick="saveProfile()">Save name</button><button class="ghost sm" onclick="toggleProfile()">Cancel</button></div></div>
+  </div>
+  <div class="acrow">
+    <div class="acl"><span class="tile">⬇</span><div><b>Export my data</b><p>One JSON file with every table. Keys and PINs are never included.</p></div></div>
+    <div class="acr acr-end"><a class="btnlink" href="/api/export">Download export</a></div>
+  </div>
+  <div class="acrow">
+    <div class="acl"><span class="tile">🔒</span><div><b>Change password</b><p>Choose a strong password to keep your account secure. Every other signed-in device is signed out.</p></div></div>
+    <div class="acr"><div class="fgrid"><div><label class="fld" for="p-cur">Current password</label><div class="pwwrap"><input id="p-cur" type="password" autocomplete="current-password" placeholder="Enter current password"><button type="button" data-eye="p-cur" aria-label="show password">Show</button></div></div>
+      <div><label class="fld" for="p-new">New password</label><div class="pwwrap"><input id="p-new" type="password" autocomplete="new-password" placeholder="At least 10 characters" oninput="pwMeter(this.value)"><button type="button" data-eye="p-new" aria-label="show password">Show</button></div><div class="meter" id="pwMeter"><i></i><i></i><i></i><i></i><span>Use 10+ characters</span></div></div></div>
+      <button class="pri sm" style="margin-top:14px" onclick="changePw()">Update password ›</button></div>
+  </div>
+  <div class="acrow">
+    <div class="acl"><span class="tile">📥</span><div><b>Import a LockIn export</b><p>Replace all your data with the contents of an export file.</p></div></div>
+    <div class="acr"><label class="drop"><input type="file" id="impFile" accept="application/json,.json" onchange="impPick(this)"><span class="tile">📄</span><div><b id="impName">Choose file</b><div class="tiny" id="impSub">No file chosen</div></div></label>
+      <div class="note">ℹ️ <span>This replaces every table with the file. <b>Export first if you are unsure.</b></span></div>
+      <div class="row" style="margin-top:12px;gap:8px;flex-wrap:wrap"><input id="p-imp" type="password" placeholder="Your password" style="flex:1;min-width:140px"><button class="rose sm" onclick="importFile()">Replace everything</button></div></div>
+  </div>
+  <div class="acrow">
+    <div class="acl"><span class="tile rose">⏏</span><div><b style="color:var(--rose)">Sign out</b><p>Signs out this device only. Other devices stay signed in.</p></div></div>
+    <div class="acr acr-end"><button class="rose outl" onclick="logout()">Sign out</button></div>
+  </div>
 </div>`)}
 ${sec('danger', 'Danger zone', 'There is no undo below. Export first if you want a copy.', `
-<div class="card danger">
-  <div class="fg"><label class="fld" for="p-del" style="color:var(--rose)">Delete account</label><div class="row" style="flex-wrap:wrap;gap:8px"><input id="p-del" type="password" placeholder="your password" style="flex:1;min-width:140px"><button class="rose sm" onclick="delAccount()">Delete everything</button></div><div class="hint">Removes your account and your entire database.</div></div>
+<div class="card acct danger">
+  <div class="acrow" style="border-top:0">
+    <div class="acl"><span class="tile rose">🗑️</span><div><b style="color:var(--rose)">Delete account</b><p>Removes your account and your entire database. Nothing is kept.</p></div></div>
+    <div class="acr"><label class="fld" for="p-del">Confirm with your password</label><div class="row" style="gap:8px;flex-wrap:wrap"><input id="p-del" type="password" placeholder="Your password" style="flex:1;min-width:140px"><button class="rose sm" onclick="delAccount()">Delete everything</button></div></div>
+  </div>
 </div>`)}
 </div>
 
@@ -352,7 +400,16 @@ $('readKey').value=S.readKey;
 $('readLc').value=S.readEndpoints.leetcode;$('readJb').value=S.readEndpoints.jobs;$('readPr').value=S.readEndpoints.progress;
 renderSnips();
 const u=S.user||{};
-$('accEmail').textContent=u.email||'';$('accHandle').textContent=u.handle||'';$('accAvatar').innerHTML=avatar(u.displayName||u.handle||'?');}
+$('accEmail').textContent=u.email||'';$('accHandle').textContent=u.handle||'';$('accName').textContent=u.displayName||'';$('accAvatar').innerHTML=avatar(u.displayName||u.handle||'?');
+$('p-name').value=u.displayName||'';}
+function toggleProfile(){const el=$('profileEd');el.style.display=el.style.display==='none'?'':'none';if(el.style.display!=='none')$('p-name').focus();}
+async function saveProfile(){const name=$('p-name').value.trim();if(!name)return toast('Type a name');
+try{await api('/api/auth/profile',{body:{displayName:name}});toast('Name saved');$('profileEd').style.display='none';refreshStatic();}catch(e){toast(String(e))}}
+function impPick(inp){const f=inp.files[0];$('impName').textContent=f?f.name:'Choose file';$('impSub').textContent=f?Math.round(f.size/1024)+' KB · ready to import':'No file chosen';}
+function pwMeter(v){const m=$('pwMeter');if(!m)return;let n=0;if(v.length>=10)n++;if(/[A-Z]/.test(v)&&/[a-z]/.test(v))n++;if(/[0-9]/.test(v))n++;if(/[^A-Za-z0-9]/.test(v))n++;if(v.length<10)n=Math.min(n,1);
+m.className='meter '+(n<=1?'weak':n<=2?'mid':'');m.querySelectorAll('i').forEach((i,k)=>i.classList.toggle('on',k<n));
+m.querySelector('span').textContent=!v?'Use 10+ characters':v.length<10?(10-v.length)+' more character'+(10-v.length>1?'s':''):n>=3?'Strong':'Add a number or a symbol';}
+document.querySelectorAll('[data-eye]').forEach(b=>b.onclick=()=>{const i=$(b.dataset.eye);const show=i.type==='password';i.type=show?'text':'password';b.textContent=show?'Hide':'Show';});
 async function refreshStatic(){S=await api('/api/settings');renderStatic();}
 
 // small binders: every control writes into D and calls mark()
@@ -580,7 +637,7 @@ $('ccSnip').value=
 // ---- account ----
 async function changePw(){
 try{await api('/api/auth/password',{body:{current:$('p-cur').value,next:$('p-new').value}});
-$('p-cur').value='';$('p-new').value='';toast('Password changed');}
+$('p-cur').value='';$('p-new').value='';pwMeter('');toast('Password changed');}
 catch(e){toast(String(e))}}
 async function logout(){await api('/api/auth/logout',{});location.href='/login';}
 async function importFile(){
