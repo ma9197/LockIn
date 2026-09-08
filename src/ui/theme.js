@@ -67,6 +67,42 @@ h2{font:700 12px/1 var(--disp);color:var(--ink2);margin:28px 0 12px;text-transfo
 .kv button{flex:none}
 .disc{display:flex;align-items:center;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
+/* ---------- quiet animated background for the public pages ---------- */
+.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bgfx:before,.bgfx:after{content:'';position:absolute;width:70vmax;height:70vmax;border-radius:50%;filter:blur(90px);opacity:.26;will-change:transform}
+.bgfx:before{left:-28vmax;top:-32vmax;background:radial-gradient(circle,#FF6B35 0%,rgba(255,107,53,0) 62%);animation:bgdrift1 52s ease-in-out infinite alternate}
+.bgfx:after{right:-30vmax;bottom:-34vmax;background:radial-gradient(circle,#5EA2FF 0%,rgba(94,162,255,0) 62%);animation:bgdrift2 68s ease-in-out infinite alternate}
+.bgfx i{position:absolute;inset:0;background-image:radial-gradient(rgba(237,241,247,.075) 1px,transparent 1.3px);background-size:26px 26px;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 50%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 50%,transparent 100%)}
+@keyframes bgdrift1{from{transform:translate(0,0) scale(1)}to{transform:translate(12vw,10vh) scale(1.12)}}
+@keyframes bgdrift2{from{transform:translate(0,0) scale(1)}to{transform:translate(-10vw,-12vh) scale(1.08)}}
+@media(prefers-reduced-motion:reduce){.bgfx:before,.bgfx:after{animation:none}}
+
+/* ---------- auth + public single-card pages ---------- */
+.auth{max-width:440px;margin:5vh auto 0;padding:0 2px}
+.auth .logo{font-size:30px;margin-bottom:22px;display:block;text-align:center}
+.auth .card{padding:24px 20px;margin:0;box-shadow:0 30px 80px #0007}
+@media(min-width:600px){.auth .card{padding:30px 28px}}
+.auth h1{font-size:24px;margin:0 0 6px;letter-spacing:-.01em}
+.auth .lead{color:var(--ink2);font-size:14px;line-height:1.5;margin:0}
+.auth .fg{margin-top:18px}
+.auth button.pri{width:100%;margin-top:22px;padding:14px;font:800 16px var(--disp);border-radius:14px}
+.auth .alt{text-align:center;margin-top:18px;font-size:13.5px;color:var(--ink2)}
+.auth .alt a{font-weight:700}
+.auth .foot{text-align:center;margin-top:22px;font-size:12.5px;color:var(--ink3)}
+.auth .foot a{color:var(--ink3);font-weight:700}
+.pwwrap{position:relative}
+.pwwrap input{padding-right:70px}
+.pwwrap button{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:6px 10px;font:700 12px var(--disp);background:var(--surface3);border-color:transparent;color:var(--ink2)}
+.ferr{color:var(--rose);font-size:13px;min-height:18px;margin-top:12px;font-weight:700}
+.ferr.ok{color:var(--mint)}
+.pub{max-width:640px;margin:0 auto}
+.pub-hd{text-align:center;padding:14px 0 6px}
+.pub-hd .tile{width:64px;height:64px;font-size:32px;border-radius:20px;margin-bottom:12px}
+.pub-hd h1{font-size:24px;margin:6px 0 0}
+.pub-hd p{color:var(--ink2);font-size:14px;line-height:1.55;max-width:44ch;margin:8px auto 0}
+.pub .foot{text-align:center;margin:30px 0 8px;font-size:12.5px;color:var(--ink3)}
+.pub .foot a{color:var(--ink3);font-weight:700}
+
 /* ---------- Today header ---------- */
 .dh-top{display:flex;align-items:center;gap:10px}
 .dh-title{flex:1;min-width:0}
@@ -769,7 +805,7 @@ const ICONS = {
   copy: 'M9 9V5a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2h-4M5 9h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2z',
 };
 const NAVITEMS = [['/', 'Today', 'today'], ['/calendar', 'Calendar', 'calendar'], ['/progress', 'Progress', 'progress'], ['/leetcode', 'LeetCode', 'leetcode'], ['/jobs', 'Jobs', 'jobs'], ['/copy', 'Copy', 'copy'], ['/friends', 'Friends', 'friends'], ['/settings', 'Settings', 'settings']];
-const ic = (name, size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[name]}"/></svg>`;
+export const ic = (name, size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[name]}"/></svg>`;
 
 // which nav items belong to which optional module
 const MODULE_OF_PATH = { '/leetcode': 'leetcode', '/jobs': 'jobs', '/copy': 'copy', '/friends': 'friends' };

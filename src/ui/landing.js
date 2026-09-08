@@ -1,29 +1,46 @@
-import { shell } from './theme.js';
+import { shell, ic } from './theme.js';
 
 // The public home page. Every panel is a working mock of the real UI, built from the same CSS
 // classes the app uses, driven by sample data on the client. Nothing here touches the server.
+// The hero is a "device stage": a laptop mock of Today in front, the phone mock behind it on the
+// right, dimmed. Tap the phone and the two swap. Both mocks share one state: bump a ring or run
+// the timer on one and the other follows.
 // Page-script rules: no backticks, no ${ } and no quotes inside inline onclick attributes.
 
 const CF = 289;
 const ring = (key, emoji, label, done, goal, color) => {
   const pct = Math.min(1, done / goal), hit = done >= goal;
   return `<div class="ld-ring" data-k="${key}" data-goal="${goal}" data-color="${color}" style="text-align:center">
-<div class="tiny" style="font:700 11px var(--disp);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">${emoji} ${label}</div>
-<div class="ring" style="width:96px;height:96px"><svg width="96" height="96" viewBox="0 0 112 112">
+<div class="ringlab">${emoji} ${label}</div>
+<div class="ring"><svg viewBox="0 0 112 112">
 <circle cx="56" cy="56" r="46" fill="none" stroke="var(--surface2)" stroke-width="8"/>
 <circle class="arc" cx="56" cy="56" r="46" fill="none" stroke="${hit ? 'var(--mint)' : color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${CF}" stroke-dashoffset="${CF}" data-off="${CF * (1 - pct)}" style="transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1),stroke .3s"/>
-</svg><div class="val"><b class="num" style="font-size:26px">${done}</b><span>OF ${goal}</span></div></div>
+</svg><div class="val"><b class="num">${done}</b><span>OF ${goal}</span></div></div>
 <div class="extra">${hit ? 'GOAL HIT ✓' : '&nbsp;'}</div>
-<div class="row" style="justify-content:center;gap:10px;margin-top:2px"><button class="sm" data-bump="${key}" data-d="-1" aria-label="minus">−</button><button class="sm pri" style="padding:6px 18px" data-bump="${key}" data-d="1" aria-label="plus">+</button></div></div>`;
+<div class="ringbtns"><button class="sm" data-bump="${key}" data-d="-1" aria-label="one less">−</button><button class="sm pri" data-bump="${key}" data-d="1" aria-label="one more">+</button></div></div>`;
 };
+const rings = () => ring('lc', '🧩', 'LeetCode', 2, 3, '#FF6B35') + ring('ap', '📨', 'Apps', 1, 2, '#5EA2FF') + ring('sd', '🏗️', 'Design', 0, 1, '#9B6EF3');
 
 const RAIL = { grind: '#FF6B35', free: '#5EA2FF', side: '#3DDC97' };
 const tl = (a, b, dur, kind, emoji, label, sub) => `<div class="tl2-item"><div class="tl2-rail"><span class="bub">${a}</span><div class="tl2-line" style="--rk:${RAIL[kind]}"><span class="tl2-dur">${dur}</span></div><span class="bub">${b}</span></div>
 <div class="tl2-body"><div class="tl2-head"><span>${emoji}</span><span class="lab">${label}</span></div><div class="tl2-sub">${sub}</div></div></div>`;
+const timeline = () => tl('9:00 AM', '12:00 PM', '3h', 'grind', '🔥', 'Block 1', '🧩 2h · 📨 1h')
+  + tl('12:00 PM', '3:00 PM', '3h', 'free', '🎮', 'Free · friends can book', '💬 Jordan · 1:00 PM – 2:00 PM')
+  + tl('3:00 PM', '6:00 PM', '3h', 'grind', '🔥', 'Block 2', '🧩 1h 30m · 🏗️ 1h 30m')
+  + tl('6:00 PM', '7:30 PM', '1h 30m', 'side', '🏋️', 'Gym', 'side task · grind steps around it');
+
+const timer = (size) => `<div class="ld-tmr"><div class="tring" style="width:${size}px;height:${size}px"><svg width="${size}" height="${size}" viewBox="0 0 190 190"><circle cx="95" cy="95" r="85" fill="none" stroke="var(--surface2)" stroke-width="10"/><circle class="dmArc" cx="95" cy="95" r="85" fill="none" stroke="var(--ember)" stroke-width="10" stroke-linecap="round" stroke-dasharray="534" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/></svg><div class="tv"><span class="dmT">25:00</span><span class="tsub dmSub">25 min</span></div></div>
+<div class="btns"><button class="pri dmGo" data-act="go">Start</button><button class="dmPause" data-act="pause" style="display:none">⏸ Pause</button><button class="ghost sm" data-act="reset">Reset</button></div></div>`;
+
+const task = (emoji, title, sub, done, goal) => `<div class="task"><div class="box">✓</div><div class="grow"><div class="t"><span class="track-ic">${emoji}</span>${title}</div><div class="d">${sub}</div></div><b class="num" style="min-width:40px;text-align:right">${done}/${goal}</b></div>`;
 
 // plan: 4 phases over 112 days, today is day 14
 const PH = [['#5EA2FF', 28], ['#FF6B35', 42], ['#9B6EF3', 7], ['#3DDC97', 35]];
-const race = () => { let out = '', i = 0; for (const [c, n] of PH) for (let k = 0; k < n; k++, i++) out += `<div class="race-seg ${i < 13 ? 'past' : i === 13 ? 'today' : ''}" style="--seg:${c}"></div>`; return out; };
+const race = (h) => { let out = '', i = 0; for (const [c, n] of PH) for (let k = 0; k < n; k++, i++) out += `<div class="race-seg ${i < 13 ? 'past' : i === 13 ? 'today' : ''}" style="--seg:${c}"></div>`; return `<div class="race"><div class="race-track" style="height:${h}px">${out}</div><div class="race-cap"><span>AUG 26</span><b>DAY 14 OF 112</b><span>DEC 15</span></div></div>`; };
+const header = () => `<div class="dh-top"><button class="dh-nav" aria-label="previous day" tabindex="-1">‹</button><div class="dh-title"><h1>Today</h1><div class="dh-date">Tue, September 8</div></div><button class="dh-nav" aria-label="next day" tabindex="-1">›</button></div>
+<div class="dh-chips"><span class="pill" style="background:#FF6B3522;color:var(--ember)">🎯 Interview prep</span><span class="chip">🔥 12 day streak</span><span class="chip">☀️ morning</span><span class="chip">💤 Off day</span></div>`;
+
+const NAV = [['today', 'Today', 1], ['calendar', 'Calendar'], ['progress', 'Progress'], ['leetcode', 'LeetCode'], ['jobs', 'Jobs'], ['copy', 'Copy'], ['friends', 'Friends'], ['settings', 'Settings']];
 
 const LC = [
   ['medium', 'Coin Change', 2, 2, 31], ['easy', 'Two Sum', 1, 1, 9], ['medium', 'Longest Substring Without Repeating', 1, 1, 22],
@@ -37,8 +54,7 @@ const JOBS = [['Stripe', 'Software Engineer, New Grad', 'LinkedIn', 'interview']
   ['Cloudflare', 'Systems Engineer I', 'Company site', 'applied'], ['Figma', 'Early Career Engineer', 'Handshake', 'offer'],
   ['Ramp', 'Backend Engineer', 'LinkedIn', 'rejected'], ['Notion', 'Software Engineer, 2027', 'Company site', 'applied']];
 const STAT = { applied: ['Applied', '#5EA2FF'], oa: ['OA', '#FFB347'], interview: ['Interview', '#9B6EF3'], offer: ['Offer', '#3DDC97'], rejected: ['Rejected', '#FF5D73'] };
-const jobCard = (j, i) => `<div class="jcard" style="display:block"><div class="row" style="align-items:flex-start;gap:8px"><div class="grow" style="min-width:0"><b style="display:block">${j[0]}</b><div class="tiny" style="margin-top:2px">${j[1]}</div><div class="row" style="gap:6px;margin-top:8px;flex-wrap:wrap"><span class="chip" style="padding:3px 9px;font-size:11px">${j[2]}</span><span class="tiny">Sep ${8 - i}</span></div></div>
-<select data-job="${i}" style="width:auto;padding:6px 8px;font-size:12px">${Object.keys(STAT).map(k => `<option value="${k}"${k === j[3] ? ' selected' : ''}>${STAT[k][0]}</option>`).join('')}</select></div></div>`;
+const jobCard = (j, i) => `<div class="item" style="--ac:${STAT[j[3]][1]}"><b style="display:block;font:700 15px/1.3 var(--body)">${j[0]}</b><div class="tiny" style="margin-top:2px">${j[1]}</div><div class="row" style="gap:8px;margin-top:10px;flex-wrap:wrap"><select data-job="${i}" style="flex:1;min-width:120px;width:auto;padding:7px 9px;font-size:12.5px;background:var(--well)">${Object.keys(STAT).map(k => `<option value="${k}"${k === j[3] ? ' selected' : ''}>${STAT[k][0]}</option>`).join('')}</select><span class="chip" style="padding:3px 9px;font-size:11px">${j[2]}</span><span class="tiny num">Sep ${8 - i}</span></div></div>`;
 
 const DOW = [['Sun', 2.1], ['Mon', 5.4], ['Tue', 6.2], ['Wed', 5.8], ['Thu', 4.9], ['Fri', 5.1], ['Sat', 3.0]];
 const heat = () => { let s = 7, out = ''; for (let i = 0; i < 84; i++) { s = (s * 1103515245 + 12345) & 0x7fffffff; const v = (s >> 8) % 7; const dow = i % 7; const a = i > 76 ? 0 : (dow === 0 || dow === 6 ? [0, .15, .3][v % 3] : [0, .3, .55, .8, 1, .7, .45][v]); out += `<div style="background:${a ? 'rgba(255,107,53,' + (0.15 + a * .85).toFixed(2) + ')' : 'var(--surface2)'}"></div>`; } return out; };
@@ -52,83 +68,146 @@ const STEP_NAMES = ['Name & handle', 'Time zone', 'Plan phases', 'Grind blocks',
 export const landingPage = () => shell('LockIn · the grind tracker for CS students', null, `
 <style>
 .liveclock,.refresh-fab{display:none}
-.wrap{max-width:1100px;padding:0 16px 40px}
-@media(min-width:900px){.wrap{padding:0 34px 60px}}
-.ld-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:16px 0}
-.ld-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;font:800 14px var(--disp);color:var(--ink);background:var(--surface2);border:1px solid var(--line2);white-space:nowrap;transition:transform .08s,filter .15s}
+.wrap{max-width:1160px;padding:0 16px 40px}
+@media(min-width:900px){.wrap{padding:0 34px 70px}}
+.ld-top{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:18px 0}
+.ld-top .logo{white-space:nowrap}
+.ld-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:12px;font:800 14px var(--disp);color:var(--ink);background:var(--surface2);border:1px solid var(--line2);white-space:nowrap;transition:transform .08s,filter .15s,border-color .15s}
+.ld-btn:hover{border-color:var(--ink3)}
 .ld-btn:active{transform:scale(.97)}
 .ld-btn.pri{background:var(--grad);border:0;color:#1A0D05}
 .ld-btn.ghost{background:transparent;border-color:transparent;color:var(--ink2)}
-.ld-btn.big{padding:14px 22px;font-size:16px;border-radius:14px}
-.ld-hero{display:grid;gap:28px;padding:18px 0 10px;align-items:center}
-@media(min-width:900px){.ld-hero{grid-template-columns:1.05fr .95fr;gap:40px;padding:36px 0 30px}}
+.ld-btn.big{padding:15px 24px;font-size:16px;border-radius:14px}
+
+/* hero */
+.ld-hero{padding:22px 0 0;text-align:left}
 .ld-eyebrow{display:inline-flex;align-items:center;gap:8px;font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember2);background:#FF6B3514;border:1px solid #FF6B3540;border-radius:99px;padding:6px 12px}
-.ld-h1{font:900 clamp(38px,7vw,64px)/1.02 var(--disp);letter-spacing:-.03em;margin:16px 0 14px}
+.ld-h1{font:900 clamp(38px,7vw,68px)/1.02 var(--disp);letter-spacing:-.03em;margin:18px 0 16px;max-width:14ch}
 .ld-h1 em{font-style:normal;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
-.ld-lead{color:var(--ink2);font-size:17px;line-height:1.6;max-width:540px}
+.ld-lead{color:var(--ink2);font-size:17px;line-height:1.6;max-width:58ch}
 .ld-lead b{color:var(--ink)}
-.ld-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
-.ld-trust{display:flex;gap:6px 14px;flex-wrap:wrap;margin-top:18px;font-size:12.5px;color:var(--ink3)}
+.ld-cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:26px}
+.ld-trust{display:flex;gap:6px 16px;flex-wrap:wrap;margin-top:18px;font-size:12.5px;color:var(--ink3)}
 .ld-trust span{display:flex;align-items:center;gap:6px}
 .ld-trust i{width:6px;height:6px;border-radius:99px;background:var(--mint);flex:none}
-.phone{position:relative;width:100%;max-width:400px;margin:0 auto;background:var(--bg);border:1px solid var(--line2);border-radius:30px;padding:14px 12px 16px;box-shadow:0 40px 90px #0009,inset 0 0 0 1px #ffffff08}
+@media(min-width:900px){
+  .ld-hero{text-align:center;padding:40px 0 0}
+  .ld-h1{margin:20px auto 18px}
+  .ld-lead{margin:0 auto}
+  .ld-cta,.ld-trust{justify-content:center}
+}
+
+/* device stage */
+.stage{position:relative;display:flex;flex-direction:column;align-items:stretch;gap:28px;margin-top:38px}
+.stagecap{display:flex;justify-content:center;gap:6px;margin-top:18px}
+.stagecap button{padding:8px 14px;font:700 12.5px var(--disp);border-radius:99px}
+.stagecap button.on{background:var(--surface3);border-color:var(--ink3);color:var(--ember)}
+.laptop{position:relative;width:100%;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:left bottom}
+.lp-screen{position:relative;background:#0A0D13;border:1px solid var(--line2);border-radius:16px 16px 4px 4px;padding:9px 9px 10px;box-shadow:0 40px 90px #000b,inset 0 0 0 1px #ffffff08}
+.lp-screen:before{content:'';position:absolute;left:50%;top:3px;width:5px;height:5px;border-radius:99px;background:#232C3E;transform:translateX(-50%)}
+.lp-view{position:relative;overflow:hidden;border-radius:6px;background:var(--bg);height:calc(720px * var(--lps,.6))}
+.lp-canvas{position:absolute;left:0;top:0;width:1180px;height:720px;transform:scale(var(--lps,.6));transform-origin:0 0;display:grid;grid-template-columns:196px 1fr;pointer-events:auto}
+.lp-base{height:13px;margin:0 -2.5%;background:linear-gradient(180deg,#2A3447,#141a26);border:1px solid var(--line2);border-top:0;border-radius:0 0 12px 12px}
+.lp-base:after{content:'';display:block;width:110px;height:4px;margin:0 auto;background:#0B0E14;border-radius:0 0 6px 6px}
+.lp-side{background:var(--surface);border-right:1px solid var(--line);padding:22px 12px;display:flex;flex-direction:column;gap:4px}
+.lp-side .logo{padding:0 12px 20px}
+.lp-side a{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px;color:var(--ink2);font:700 14px var(--disp)}
+.lp-side a.on{background:var(--surface2);color:var(--ember)}
+.lp-main{padding:22px 28px;min-width:0}
+.lp-cols{display:grid;grid-template-columns:1fr 372px;gap:22px;align-items:start;margin-top:6px}
+.lp-cols h2{margin:22px 0 10px}
+.lp-cols>div>h2:first-child{margin-top:16px}
+.lp-main .card{margin:0}
+.lp-main .ringrow{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow:visible}
+.lp-main .ringrow .ring{width:92px;height:92px}
+.lp-main .ringrow .ring .val b{font-size:26px}
+.lp-main .dstat-top{grid-template-columns:repeat(2,1fr)}
+.lp-main .ld-tmr{display:flex;align-items:center;gap:16px}
+.lp-main .ld-tmr .btns{display:flex;flex-direction:column;gap:8px;flex:1}
+.lp-main .ld-tmr .tring .tv{font-size:30px}
+
+.phwrap{display:flex;justify-content:center}
+.phone{position:relative;width:min(100%,360px);background:var(--bg);border:1px solid var(--line2);border-radius:30px;padding:16px 12px;box-shadow:0 40px 90px #000a,inset 0 0 0 1px #ffffff08;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:right bottom}
 .phone:before{content:'';position:absolute;left:50%;top:9px;width:86px;height:5px;border-radius:99px;background:var(--surface3);transform:translateX(-50%)}
+.ph-scroll{padding-top:4px}
 .phone .card{margin:8px 0;padding:14px}
 .phone h2{margin:14px 0 6px}
-.ld-dh{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px}
-.ld-dh b{font:800 18px var(--disp)}
-.ld-rings{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
-.ld-tmr{display:flex;align-items:center;gap:14px}
-.ld-tmr .tring{width:118px;height:118px;flex:none}
-.ld-tmr .tring .tv{font-size:28px}
-.ld-tmr .tring .tsub{font-size:11px}
-.ld-tmr .btns{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0}
-.ld-tmr .btns button{width:100%}
+.phone .ringrow{grid-auto-flow:row;grid-template-columns:repeat(3,1fr);overflow:visible;gap:6px}
+.phone .ringrow .ringcard{padding:10px 4px 8px}
+.phone .ringrow .ring{width:72px;height:72px}
+.phone .ringrow .ring .val b{font-size:20px}
+.phone .ringrow .ring .val span{font-size:8.5px}
+.phone .ringbtns button{min-width:36px;padding:6px 0}
+.phone .ld-tmr{display:flex;align-items:center;gap:14px}
+.phone .ld-tmr .btns{display:flex;flex-direction:column;gap:8px;flex:1;min-width:0}
+.phone .ld-tmr .tring .tv{font-size:26px}
+.phone .ld-tmr .tring .tsub{font-size:11px}
 .phone .tl2{gap:14px}
 .phone .tl2-item{grid-template-columns:84px 1fr;gap:10px}
 .phone .tl2-rail{min-width:84px}
 .phone .tl2-line{min-height:22px}
-.ld-sec{padding:44px 0 10px}
-.ld-h2{font:900 clamp(26px,4.5vw,40px)/1.1 var(--disp);letter-spacing:-.02em;margin:8px 0 10px;color:var(--ink);text-transform:none}
+.phone .dh-title h1{font-size:24px}
+.phone .dh-chips .chip,.phone .dh-chips .pill{padding:5px 10px;font-size:11.5px}
+.devhint{display:none}
+@media(min-width:900px){
+  .stage{flex-direction:row;align-items:flex-end;gap:0}
+  .stage .laptop{flex:1;min-width:0;z-index:2}
+  .stage .phwrap{flex:none;width:300px;margin-left:-120px;justify-content:flex-end;z-index:3;position:relative}
+  .stage .phone{width:300px;height:clamp(420px,calc(720px * var(--lps,.6) + 24px),640px);overflow:hidden;display:flex;flex-direction:column;transform:scale(.8);opacity:.5;filter:saturate(.5);cursor:pointer}
+  .stage .phone:hover{opacity:.82;filter:saturate(.9);transform:scale(.82) translateY(-6px)}
+  .stage .ph-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
+  .stage .ph-scroll::-webkit-scrollbar{display:none}
+  .stage .ph-scroll{pointer-events:none}
+  .stage.front .phone{transform:none;opacity:1;filter:none;cursor:default;box-shadow:0 50px 110px #000c}
+  .stage.front .phone:hover{transform:none}
+  .stage.front .ph-scroll{pointer-events:auto}
+  .stage.front .laptop{opacity:.42;filter:saturate(.4);transform:translateX(-3%) scale(.94);cursor:pointer;z-index:1}
+  .stage.front .laptop:hover{opacity:.62}
+  .stage.front .lp-canvas{pointer-events:none}
+  .devhint{display:block;text-align:center;margin-top:12px;font-size:12.5px;color:var(--ink3)}
+}
+@media(max-width:899px){.stagecap{display:none}}
+
+/* sections */
+.ld-sec{padding:64px 0 0}
+@media(min-width:900px){.ld-sec{padding:96px 0 0}}
+.ld-h2{font:900 clamp(26px,4.5vw,42px)/1.08 var(--disp);letter-spacing:-.02em;margin:8px 0 12px;color:var(--ink);text-transform:none}
 .ld-kick{font:700 11px var(--disp);letter-spacing:.14em;text-transform:uppercase;color:var(--ember)}
 .ld-sub{color:var(--ink2);font-size:16px;line-height:1.6;max-width:640px}
-.ld-tabs{margin:20px 0 12px;position:sticky;top:8px;z-index:6}
-.ld-tabs button{padding:9px 14px}
-.ld-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:16px}
-@media(min-width:760px){.ld-panel{padding:22px}}
-.ld-two{display:grid;gap:16px}
+.ld-tabs{margin:26px 0 14px;position:sticky;top:8px;z-index:6}
+.ld-tabs button{padding:10px 16px}
+.ld-panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px 16px}
+@media(min-width:760px){.ld-panel{padding:26px}}
+.ld-two{display:grid;gap:18px}
 .ld-two>*{min-width:0}
 .ld-panel,.ld-panel .card{min-width:0;overflow:hidden}
 .ld-panel .codewrap{max-width:100%}
 .ld-panel .codearea{max-width:100%;overflow-x:auto}
-@media(min-width:760px){.ld-two{grid-template-columns:1fr 1fr;gap:22px}}
-.ld-top .logo{white-space:nowrap}
-.ld-dh b{white-space:nowrap}
-.ld-ring .tiny{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(min-width:760px){.ld-two{grid-template-columns:1fr 1fr;gap:26px}}
 .ld-panel .card{background:var(--surface2);border-color:var(--line2)}
-.ld-feat{display:grid;gap:12px;margin-top:22px}
-@media(min-width:700px){.ld-feat{grid-template-columns:repeat(3,1fr)}}
-.ld-fc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:18px}
-.ld-fc .n{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:10px;background:var(--grad);color:#1A0D05;font:900 15px var(--disp);margin-bottom:12px}
+.ld-feat{display:grid;gap:14px;margin-top:28px}
+@media(min-width:700px){.ld-feat{grid-template-columns:repeat(3,1fr);gap:18px}}
+.ld-fc{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:22px 20px}
+.ld-fc .n{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:var(--grad);color:#1A0D05;font:900 15px var(--disp);margin-bottom:14px}
 .ld-fc b{display:block;font:800 17px var(--disp);margin-bottom:6px}
 .ld-fc p{color:var(--ink2);font-size:14px;line-height:1.55}
-.ld-steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.ld-steps{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
 .ld-steps span{background:var(--surface2);border:1px solid var(--line2);border-radius:99px;padding:5px 10px;font:700 11.5px var(--disp);color:var(--ink2)}
 .ld-steps span b{color:var(--ember);margin-right:4px}
-.ld-shape{display:grid;gap:10px;margin-top:22px}
-@media(min-width:700px){.ld-shape{grid-template-columns:repeat(3,1fr)}}
-.ld-sh{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start}
+.ld-shape{display:grid;gap:12px;margin-top:28px}
+@media(min-width:700px){.ld-shape{grid-template-columns:repeat(3,1fr);gap:16px}}
+.ld-sh{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;display:flex;gap:12px;align-items:flex-start}
 .ld-sh .e{font-size:22px;flex:none;line-height:1.2}
-.ld-sh b{display:block;font:800 15px var(--disp);margin-bottom:3px}
+.ld-sh b{display:block;font:800 15px var(--disp);margin-bottom:4px}
 .ld-sh p{color:var(--ink2);font-size:13.5px;line-height:1.5}
-.ld-priv{background:linear-gradient(135deg,#FF6B3512,#5EA2FF0e);border:1px solid var(--line2);border-radius:var(--r);padding:22px;margin-top:22px;display:grid;gap:18px}
-@media(min-width:760px){.ld-priv{grid-template-columns:1.2fr 1fr;padding:30px}}
-.ld-priv ul{list-style:none;display:grid;gap:10px}
+.ld-priv{background:linear-gradient(135deg,#FF6B3512,#5EA2FF0e);border:1px solid var(--line2);border-radius:var(--r);padding:24px 20px;margin-top:8px;display:grid;gap:20px}
+@media(min-width:760px){.ld-priv{grid-template-columns:1.2fr 1fr;padding:36px;gap:34px}}
+.ld-priv ul{list-style:none;display:grid;gap:12px}
 .ld-priv li{display:flex;gap:10px;color:var(--ink2);font-size:14px;line-height:1.5}
 .ld-priv li i{flex:none;width:22px;height:22px;border-radius:99px;background:#3DDC9722;color:var(--mint);display:inline-flex;align-items:center;justify-content:center;font:800 12px var(--disp);margin-top:2px}
-.ld-foot{margin-top:50px;padding:34px 0 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
+.ld-foot{margin-top:70px;padding:40px 0 10px;border-top:1px solid var(--line);display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px}
 .ld-foot .tiny a{color:var(--ink3)}
-.ld-code{background:#0E121B;border:1px solid var(--line2);border-radius:var(--rs);padding:14px;font:12.5px/1.6 var(--mono);color:#CFE3FF;overflow-x:auto;white-space:pre;margin-top:10px}
+.ld-code{background:#0E121B;border:1px solid var(--line2);border-radius:var(--rs);padding:14px;font:12.5px/1.6 var(--mono);color:#CFE3FF;overflow-x:auto;white-space:pre;margin-top:12px}
 .ld-code .k{color:var(--ember2)}.ld-code .s{color:var(--mint)}.ld-code .c{color:var(--ink3)}
 .ld-slot{padding:9px 12px;font:700 13px var(--disp)}
 .ld-slot.on{background:var(--mint);border-color:var(--mint);color:#062A1C}
@@ -136,41 +215,62 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .ld-modal.on{display:flex}
 .rv{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
 .rv.in{opacity:1;transform:none}
-@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none}}
-.ld-stat b{transition:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none}.laptop,.phone{transition:none}}
 </style>
+<div class="bgfx" aria-hidden="true"><i></i></div>
 
 <header class="ld-top">
-  <div class="logo" style="font-size:22px">LOCK<em>IN</em> 🔥</div>
+  <a class="logo" href="/" style="font-size:22px">LOCK<em>IN</em> 🔥</a>
   <div class="row" style="gap:4px"><a href="/login" class="ld-btn ghost" style="padding:10px 12px">Sign in</a><a href="/signup" class="ld-btn pri" style="padding:10px 14px">Create account</a></div>
 </header>
 
 <section class="ld-hero">
-  <div>
-    <span class="ld-eyebrow">🎓 For CS students on the job hunt</span>
-    <h1 class="ld-h1">Lock in.<br>Track the grind.<br><em>Land the offer.</em></h1>
-    <p class="ld-lead">Daily goals for every category you grind, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, schedule blocks that step around your gym and classes, streaks, pace against your plan and a finish-line forecast. <b>Phone first.</b></p>
-    <div class="ld-cta"><a class="ld-btn pri big" href="/signup">Create your account</a><a class="ld-btn big" href="#tour">See every tab ↓</a></div>
-    <div class="ld-trust"><span><i></i>Free</span><span><i></i>Open source, MIT</span><span><i></i>Your own private database</span><span><i></i>Set up in three minutes</span></div>
-  </div>
+  <span class="ld-eyebrow">🎓 For CS students on the job hunt</span>
+  <h1 class="ld-h1">Lock in. Track the grind. <em>Land the offer.</em></h1>
+  <p class="ld-lead">Daily goals for every category you grind, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, schedule blocks that step around your gym and classes, streaks, pace against your plan and a finish-line forecast. <b>Phone first, laptop ready.</b></p>
+  <div class="ld-cta"><a class="ld-btn pri big" href="/signup">Create your account</a><a class="ld-btn big" href="#tour">See every tab ↓</a></div>
+  <div class="ld-trust"><span><i></i>Free</span><span><i></i>Open source, MIT</span><span><i></i>Your own private database</span><span><i></i>Set up in three minutes</span></div>
 
-  <div class="phone rv" id="demoToday">
-    <div class="ld-dh"><div class="grow"><b>Tuesday, Sep 8</b><div class="tiny" style="margin-top:2px">🎯 Interview prep · 98 days to the finish line</div></div><span class="pill" style="background:#FFB34722;color:var(--ember2)">🔥 12 days</span></div>
-    <div class="race"><div class="race-track" style="height:18px">${race()}</div><div class="race-cap"><span>AUG 26</span><b>DAY 14 OF 112</b><span>DEC 15</span></div></div>
-    <h2>Today's goals</h2>
-    <div class="card"><div class="ld-rings">${ring('lc', '🧩', 'LeetCode', 2, 3, '#FF6B35')}${ring('ap', '📨', 'Apps', 1, 2, '#5EA2FF')}${ring('sd', '🏗️', 'Design', 0, 1, '#9B6EF3')}</div><p class="tiny" style="text-align:center;margin-top:6px">Tap + to log. Try it.</p></div>
-    <h2>Focus timer</h2>
-    <div class="card"><div class="ld-tmr"><div class="tring"><svg width="118" height="118" viewBox="0 0 190 190"><circle cx="95" cy="95" r="85" fill="none" stroke="var(--surface2)" stroke-width="10"/><circle id="dmArc" cx="95" cy="95" r="85" fill="none" stroke="var(--ember)" stroke-width="10" stroke-linecap="round" stroke-dasharray="534" stroke-dashoffset="0" style="transition:stroke-dashoffset 1s linear"/></svg><div class="tv"><span id="dmT">25:00</span><span class="tsub" id="dmSub">25 min</span></div></div>
-      <div class="btns"><button class="pri" id="dmGo" data-act="go">Start</button><button id="dmPause" data-act="pause" style="display:none">⏸ Pause</button><button class="ghost sm" data-act="reset">Reset</button></div></div>
-      <p class="tiny" id="dmHint" style="text-align:center;margin-top:10px">The same clock follows you to every tab. Press Done and it asks how the problem went.</p></div>
-    <h2>Schedule</h2>
-    <div class="card"><div class="tl2">
-      ${tl('9:00 AM', '12:00 PM', '3h', 'grind', '🔥', 'Block 1', '🧩 2h · 📨 1h')}
-      ${tl('12:00 PM', '3:00 PM', '3h', 'free', '🎮', 'Free · friends can book', '💬 Jordan · 1:00 PM – 2:00 PM')}
-      ${tl('3:00 PM', '6:00 PM', '3h', 'grind', '🔥', 'Block 2', '🧩 1h 30m · 🏗️ 1h 30m')}
-      ${tl('6:00 PM', '7:30 PM', '1h 30m', 'side', '🏋️', 'Gym', 'side task · grind steps around it')}
-    </div></div>
+  <div class="stage rv" id="stage">
+    <div class="laptop" id="devLaptop" title="Show the laptop view">
+      <div class="lp-screen"><div class="lp-view"><div class="lp-canvas">
+        <aside class="lp-side"><div class="logo">LOCK<em>IN</em> 🔥</div>${NAV.map(([i, l, on]) => `<a class="${on ? 'on' : ''}">${ic(i, 18)}${l}</a>`).join('')}</aside>
+        <main class="lp-main">
+          ${header()}
+          ${race(22)}
+          <div class="lp-cols">
+            <div>
+              <h2>Schedule</h2>
+              <div class="card"><div class="tl2">${timeline()}</div><div class="cardfoot"><button class="sm ghost" tabindex="-1">✍️ Log a past grind</button><button class="sm pri" tabindex="-1">🔥 Start grind now</button></div></div>
+              <h2>Tasks</h2>
+              <div class="card">${task('🧩', '3 LeetCode problems', 'Attempts count here too', 2, 3)}${task('📨', '2 applications', 'Auto-checks when the counter hits 2', 1, 2)}${task('🏗️', 'System design · 1', 'Auto-checks when the counter hits 1', 0, 1)}</div>
+            </div>
+            <div>
+              <h2>Goals</h2>
+              <div class="ringrow">${rings().replace(/<div class="ld-ring"/g, '<div class="card ringcard ld-ring"')}</div>
+              <h2>Focus timer</h2>
+              <div class="card">${timer(132)}</div>
+              <h2>Today in numbers</h2>
+              <div class="card"><div class="dstat-top"><div class="dstat"><b class="num">4h 10m</b><span>grind time 🔥</span></div><div class="dstat"><b class="num">2<small>/3</small></b><span>🧩 problems</span></div><div class="dstat"><b class="num">1<small>/2</small></b><span>📨 applications</span></div><div class="dstat"><b class="num">2</b><span>sessions</span></div></div></div>
+            </div>
+          </div>
+        </main>
+      </div></div></div>
+      <div class="lp-base"></div>
+    </div>
+    <div class="phwrap"><div class="phone" id="devPhone" title="Show the phone view"><div class="ph-scroll">
+      ${header()}
+      ${race(18)}
+      <h2>Goals</h2>
+      <div class="ringrow">${rings().replace(/<div class="ld-ring"/g, '<div class="card ringcard ld-ring"')}</div>
+      <h2>Focus timer</h2>
+      <div class="card">${timer(108)}<p class="tiny" style="text-align:center;margin-top:10px" id="dmHint">The same clock follows you to every tab. Press Done and it asks how the problem went.</p></div>
+      <h2>Schedule</h2>
+      <div class="card"><div class="tl2">${timeline()}</div></div>
+    </div></div></div>
   </div>
+  <div class="stagecap" role="tablist" aria-label="device"><button class="on" data-dev="laptop">💻 Laptop</button><button data-dev="phone">📱 Phone</button></div>
+  <p class="devhint">Tap the phone to bring it forward. Tap + on a ring, start the timer: both screens follow.</p>
 </section>
 
 <section class="ld-sec" id="tour">
@@ -182,11 +282,11 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   <div class="tabpane on ld-panel" id="ldp-lc">
     <div class="ld-two">
       <div>
-        <div class="row" style="margin-bottom:10px"><b style="font:800 17px var(--disp)" class="grow">Attempts</b><button class="pri sm" data-act="log">＋ Log attempt</button></div>
+        <div class="row" style="margin-bottom:12px"><b style="font:800 17px var(--disp)" class="grow">Attempts</b><button class="pri sm" data-act="log">＋ Log attempt</button></div>
         <div class="tiny" style="margin-bottom:8px">Come back to these</div>
-        <div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:12px"><span class="chip">${outb(2)} Coin Change <span class="tiny">×2 · 48m</span></span><span class="chip">${outb(0)} LRU Cache <span class="tiny">×1 · 25m</span></span></div>
+        <div class="row" style="flex-wrap:wrap;gap:6px;margin-bottom:14px"><span class="chip">${outb(2)} Coin Change <span class="tiny">×2 · 48m</span></span><span class="chip">${outb(0)} LRU Cache <span class="tiny">×1 · 25m</span></span></div>
         <div id="ldLcRows">${LC.map(lcRow).join('')}</div>
-        <p class="tiny" style="margin-top:10px">A problem's state is its <b>newest</b> attempt. Reruns stack on the same name, so "solved" means solved clean, not "touched once".</p>
+        <p class="hint">A problem's state is its <b>newest</b> attempt. Reruns stack on the same name, so "solved" means solved clean, not "touched once".</p>
       </div>
       <div>
         <div class="card" style="margin:0"><div class="row" style="flex-wrap:wrap;gap:8px"><span class="diff medium">MEDIUM</span><b style="font:800 16px var(--disp)">Coin Change</b><span class="grow"></span><span class="savetick on">SAVED</span></div>
@@ -199,7 +299,7 @@ for a in range(1, amount + 1):
 return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
           <div class="row" style="gap:6px;flex-wrap:wrap"><span class="chip" style="font-size:12px">⏱ median 18m</span><span class="chip" style="font-size:12px;color:var(--mint)">↓ 4m vs last week</span><span class="chip" style="font-size:12px">38 solved · 150 target</span></div>
         </div>
-        <p class="tiny" style="margin-top:10px">One living note per problem, with a code block and an array visualiser for pointer problems. The timer's "Done" opens the log with the minutes filled in.</p>
+        <p class="hint">One living note per problem, with a code block and an array visualiser for pointer problems. The timer's "Done" opens the log with the minutes filled in.</p>
       </div>
     </div>
   </div>
@@ -208,11 +308,11 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
     <div class="ld-two">
       <div>
         <b style="font:800 17px var(--disp)">Funnel</b>
-        <div id="ldFunnel" style="margin-top:8px"></div>
-        <p class="tiny" style="margin-top:8px">Change a status on the right and watch it move.</p>
-        <div class="tiny" style="margin:16px 0 6px">Platforms</div>
+        <div id="ldFunnel" style="margin-top:10px"></div>
+        <p class="hint">Change a status on the right and watch it move.</p>
+        <div class="tiny" style="margin:18px 0 6px">Platforms</div>
         <div class="row" style="flex-wrap:wrap;gap:6px"><span class="chip">LinkedIn <b class="num">11</b></span><span class="chip">Handshake <b class="num">6</b></span><span class="chip">Company site <b class="num">5</b></span><span class="chip">Referral <b class="num">2</b></span></div>
-        <div class="card" style="margin:16px 0 0"><b style="font:800 14px var(--disp)">🤖 Let an agent do the typing</b><p class="tiny" style="margin-top:4px">A separate API key gives Claude Code full access to this tab only: log, find, edit, change status, delete. Adding bumps today's counter, deleting takes it back.</p></div>
+        <div class="card" style="margin:18px 0 0"><b style="font:800 14px var(--disp)">🤖 Let an agent do the typing</b><p class="tiny" style="margin-top:4px">A separate API key gives Claude Code full access to this tab only: log, find, edit, change status, delete. Adding bumps today's counter, deleting takes it back.</p></div>
       </div>
       <div id="ldJobs">${JOBS.map(jobCard).join('')}</div>
     </div>
@@ -225,16 +325,16 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
         <b style="font:800 15px var(--disp)">Pace vs plan</b>
         <div class="tiny" style="margin-top:2px">38 clean solves · the plan asked for 34 by today</div>
         <div class="pace-bar"><div style="width:78%;background:var(--grad)"></div></div>
-        <b style="display:block;font:800 15px var(--disp);margin-top:18px">When you actually grind</b>
+        <b style="display:block;font:800 15px var(--disp);margin-top:22px">When you actually grind</b>
         <div class="dow">${DOW.map(([d, h]) => `<div class="dw"><div class="bar"><i style="height:${Math.round(h / 6.2 * 100)}%;background:${h >= 5 ? 'var(--ember)' : h >= 3 ? 'var(--ember2)' : 'var(--surface3)'}"></i></div><b>${h}</b><span>${d}</span></div>`).join('')}</div>
-        <b style="display:block;font:800 15px var(--disp);margin-top:18px">Last 12 weeks</b>
+        <b style="display:block;font:800 15px var(--disp);margin-top:22px">Last 12 weeks</b>
         <div style="overflow-x:auto;padding-bottom:4px;margin-top:8px"><div class="heat">${heat()}</div></div>
       </div>
       <div>
         <b style="font:800 15px var(--disp)">Finish line · Dec 15</b>
         ${pj('🧩', 'LeetCode', 38, 150, 152, 'At this pace you cross <b>150</b> with two days to spare.', '#FF6B35')}
         ${pj('📨', 'Applications', 24, 120, 96, 'On pace for <b>96</b>. One extra application a week closes the gap.', '#5EA2FF')}
-        <p class="tiny" style="margin-top:10px">Pace counts clean solves only. Attempts count for the daily goal. Solve-time stats count solved and slow. Three questions, three sets.</p>
+        <p class="hint">Pace counts clean solves only. Attempts count for the daily goal. Solve-time stats count solved and slow. Three questions, three sets.</p>
       </div>
     </div>
   </div>
@@ -260,7 +360,7 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
         <div id="ldBookMsg" class="tiny" style="margin-top:10px;min-height:16px;color:var(--mint)"></div>
       </div>
     </div>
-    <p class="tiny" style="margin-top:12px">Both live under your handle. Turn the Friends module off and the booking page disappears entirely. The share link stops working the moment you clear the PIN.</p>
+    <p class="hint" style="margin-top:14px">Both live under your handle. Turn the Friends module off and the booking page disappears entirely. The share link stops working the moment you clear the PIN.</p>
   </div>
 
   <div class="tabpane ld-panel" id="ldp-api">
@@ -268,7 +368,7 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
       <div>
         <b style="font:800 17px var(--disp)">Let Claude read your log</b>
         <p class="ld-sub" style="font-size:14.5px;margin-top:6px">A read-only key exposes three endpoints: LeetCode, jobs, progress. Every response starts with a <b>guide</b> that spells out the counting rules for your account, so the model reads the numbers the way the app counts them. Works in Claude Code and in claude.ai chat.</p>
-        <div class="seg-ctl" style="margin-top:14px;max-width:320px" id="ldApiSeg"><button class="on" data-api="cc">Claude Code</button><button data-api="web">Browser Claude</button></div>
+        <div class="seg-ctl" style="margin-top:16px;max-width:320px" id="ldApiSeg"><button class="on" data-api="cc">Claude Code</button><button data-api="web">Browser Claude</button></div>
         <div class="ld-code" id="ldApiCode"></div>
       </div>
       <div>
@@ -283,7 +383,7 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
   <span class="k">"stats"</span>: { <span class="k">"totals"</span>: { <span class="k">"solvedTotal"</span>: 38, <span class="k">"slow"</span>: 3, <span class="k">"open"</span>: 6 }, <span class="k">"medianMin"</span>: 18 },
   <span class="k">"attempts"</span>: [ { <span class="k">"date"</span>: <span class="s">"2026-09-08"</span>, <span class="k">"name"</span>: <span class="s">"Coin Change"</span>, <span class="k">"finished"</span>: 1, <span class="k">"minutes"</span>: 31 }, … ]
 }</div>
-        <p class="tiny" style="margin-top:8px">Notes are never returned. The key cannot write. Regenerate it any time from Settings.</p>
+        <p class="hint">Notes are never returned. The key cannot write. Regenerate it any time from Settings.</p>
       </div>
     </div>
   </div>
@@ -338,52 +438,71 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
 
 <div class="ld-modal" id="ldModal"></div>
 `, `<script>
+// ---- laptop mock: render the desktop layout at 1180x720 and scale it to the frame ----
+function lpScale(){document.querySelectorAll('.laptop').forEach(l=>{const v=l.querySelector('.lp-view');if(!v)return;const s=(v.clientWidth/1180).toFixed(4);l.style.setProperty('--lps',s);const st=l.closest('.stage');if(st)st.style.setProperty('--lps',s);});}
+window.addEventListener('resize',lpScale);lpScale();
+setTimeout(lpScale,700);
+
+// ---- device stage: tap the phone to bring it forward, tap the laptop to send it back ----
+const STG=$('stage');
+function ldDev(which){const front=which==='phone';STG.classList.toggle('front',front);
+document.querySelectorAll('.stagecap button').forEach(b=>b.classList.toggle('on',b.dataset.dev===which));
+setTimeout(lpScale,650);}
+$('devPhone').addEventListener('click',e=>{if(!STG.classList.contains('front')&&window.innerWidth>=900){ldDev('phone');}});
+$('devLaptop').addEventListener('click',e=>{if(STG.classList.contains('front')){ldDev('laptop');}});
+document.querySelectorAll('.stagecap button').forEach(b=>b.onclick=()=>ldDev(b.dataset.dev));
+
 // ---- reveal on scroll ----
 (function(){const els=document.querySelectorAll('.rv');
 if(!('IntersectionObserver' in window)){els.forEach(e=>e.classList.add('in'));ldRingsIn();ldCount();return;}
 const io=new IntersectionObserver(en=>{en.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);
-if(x.target.id==='demoToday')ldRingsIn();}})},{threshold:.15});
+if(x.target.id==='stage')ldRingsIn();}})},{threshold:.12});
 els.forEach(e=>io.observe(e));})();
 function ldRingsIn(){document.querySelectorAll('.ld-ring .arc').forEach(a=>{setTimeout(()=>{a.style.strokeDashoffset=a.dataset.off;},120);});}
 
-// ---- goal rings ----
+// ---- goal rings (both devices share the numbers) ----
 const LDR={lc:2,ap:1,sd:0};
-function ldRing(k,done){const el=document.querySelector('.ld-ring[data-k="'+k+'"]');if(!el)return;
+function ldRing(k,done){document.querySelectorAll('.ld-ring[data-k="'+k+'"]').forEach(el=>{
 const goal=+el.dataset.goal,col=el.dataset.color,hit=done>=goal,pct=Math.min(1,done/goal);
 const arc=el.querySelector('.arc');arc.style.strokeDashoffset=String(289*(1-pct));arc.style.stroke=hit?'var(--mint)':col;
 el.querySelector('.val b').textContent=done;
-el.querySelector('.extra').innerHTML=done>goal?'+'+(done-goal)+' EXTRA \\uD83D\\uDCAA':hit?'GOAL HIT \\u2713':'&nbsp;';}
+el.querySelector('.extra').innerHTML=done>goal?'+'+(done-goal)+' EXTRA \\uD83D\\uDCAA':hit?'GOAL HIT \\u2713':'&nbsp;';});}
 function ldBump(k,d){LDR[k]=Math.max(0,LDR[k]+d);ldRing(k,LDR[k]);
-if(d>0&&LDR[k]===+document.querySelector('.ld-ring[data-k="'+k+'"]').dataset.goal)toast('Goal hit. The streak keeps counting.');}
+const goal=+document.querySelector('.ld-ring[data-k="'+k+'"]').dataset.goal;
+if(d>0&&LDR[k]===goal)toast('Goal hit. The streak keeps counting.');}
 
-// ---- focus timer (its own clock, so it never touches the real one) ----
+// ---- focus timer (its own clock, mirrored on both devices) ----
 let DM={len:25,left:1500,run:false,paused:false,int:null,elapsed:0};
 const dmFmt=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-function dmDraw(){$('dmT').textContent=(DM.left>=0?'':'+')+dmFmt(Math.abs(DM.left));$('dmT').style.color=DM.left<0?'var(--rose)':'';
-$('dmArc').style.strokeDashoffset=String(534*(1-Math.max(0,DM.left)/(DM.len*60)));$('dmArc').style.stroke=DM.left<0?'var(--rose)':'var(--ember)';
-$('dmSub').textContent=DM.run?(dmFmt(DM.elapsed)+' elapsed'):(DM.len+' min');
-$('dmGo').textContent=DM.run?'\\u2713 Done':'Start';$('dmPause').style.display=DM.run?'':'none';$('dmPause').textContent=DM.paused?'\\u25B6 Resume':'\\u23F8 Pause';}
+const all=(c,f)=>document.querySelectorAll('.'+c).forEach(f);
+function dmDraw(){const t=(DM.left>=0?'':'+')+dmFmt(Math.abs(DM.left));
+all('dmT',el=>{el.textContent=t;el.style.color=DM.left<0?'var(--rose)':'';});
+all('dmArc',el=>{el.style.strokeDashoffset=String(534*(1-Math.max(0,DM.left)/(DM.len*60)));el.style.stroke=DM.left<0?'var(--rose)':'var(--ember)';});
+all('dmSub',el=>{el.textContent=DM.run?(dmFmt(DM.elapsed)+' elapsed'):(DM.len+' min');});
+all('dmGo',el=>{el.textContent=DM.run?'\\u2713 Done':'Start';});
+all('dmPause',el=>{el.style.display=DM.run?'':'none';el.textContent=DM.paused?'\\u25B6 Resume':'\\u23F8 Pause';});}
+function hint(t){const h=$('dmHint');if(h)h.innerHTML=t;}
 function dmTick(){if(DM.paused)return;DM.left--;DM.elapsed++;dmDraw();
-if(DM.left===0)$('dmHint').textContent='\\u23F0 Past the timer. Still counting, press Done when you finish.';}
+if(DM.left===0)hint('\\u23F0 Past the timer. Still counting, press Done when you finish.');}
 function dmGo(){if(DM.run){dmDone();return;}
 DM.run=true;DM.paused=false;DM.elapsed=0;DM.left=DM.len*60;clearInterval(DM.int);DM.int=setInterval(dmTick,1000);dmDraw();
-$('dmHint').textContent='\\uD83E\\uDDE9 Recording \\u00b7 press Done when the problem is solved';}
+hint('\\uD83E\\uDDE9 Recording \\u00b7 press Done when the problem is solved');}
 function dmPause(){if(!DM.run)return;DM.paused=!DM.paused;dmDraw();
-$('dmHint').textContent=DM.paused?'\\u23F8 Paused \\u00b7 still yours when you come back':'Back at it.';}
+hint(DM.paused?'\\u23F8 Paused \\u00b7 still yours when you come back':'Back at it.');}
 function dmReset(){clearInterval(DM.int);DM.run=false;DM.paused=false;DM.left=DM.len*60;DM.elapsed=0;dmDraw();
-$('dmHint').textContent='Stuck at 25? Read the solution. Do not grind for 2 hours.';}
+hint('Stuck at 25? Read the solution. Do not grind for 2 hours.');}
 function dmDone(){const mins=Math.max(1,Math.round(DM.elapsed/60));clearInterval(DM.int);DM.run=false;DM.paused=false;DM.left=DM.len*60;DM.elapsed=0;dmDraw();
-$('dmHint').innerHTML='\\u2705 Finished \\u00b7 <b class="num">'+mins+'m</b> \\u00b7 now log it';ldLogOpen(mins);}
+hint('\\u2705 Finished \\u00b7 <b class="num">'+mins+'m</b> \\u00b7 now log it');ldLogOpen(mins);}
 
 // ---- log modal ----
 let LDLOG={diff:'medium'};
 function ldLogOpen(mins){LDLOG={diff:'medium'};
 $('ldModal').innerHTML='<div class="modal" onclick="event.stopPropagation()"><h1 style="font-size:19px">\\uD83E\\uDDE9 Log a LeetCode problem</h1>'
 +'<p class="muted" style="margin-top:4px">All three count for today. \\u26a1 Solved, slow is not counted as solved and stays in your come-back list.</p>'
-+'<label class="fld">Difficulty</label><div class="seg-ctl" id="ldDiff"><button data-diff="easy">Easy</button><button data-diff="medium" class="on">Medium</button><button data-diff="hard">Hard</button></div>'
-+'<label class="fld">Minutes spent</label><input id="ldMin" type="number" inputmode="numeric" value="'+(mins||'')+'" placeholder="e.g. 22">'
-+'<label class="fld">Problem name</label><input id="ldName" placeholder="Start typing, past attempts match here" value="Merge Intervals">'
-+'<div class="tiny" style="margin-top:6px;color:var(--ink3)">New problem, nothing like it logged before.</div>'
++'<div class="fg" style="margin-top:14px"><label class="fld">Difficulty</label><div class="seg-ctl" id="ldDiff"><button data-diff="easy">Easy</button><button data-diff="medium" class="on">Medium</button><button data-diff="hard">Hard</button></div></div>'
++'<div class="fg"><label class="fld">Minutes spent</label><input id="ldMin" type="number" inputmode="numeric" value="'+(mins||'')+'" placeholder="e.g. 22"></div>'
++'<div class="fg"><label class="fld">Problem name</label><input id="ldName" placeholder="Start typing, past attempts match here" value="Merge Intervals">'
++'<div class="hint">New problem, nothing like it logged before.</div></div>'
 +'<div class="row" style="margin-top:18px;flex-wrap:wrap"><button class="mint grow" data-out="1">\\u2713 Solved \\u00b7 +1</button><button class="grow" style="border-color:#9B6EF388;color:var(--violet)" data-out="2">\\u26a1 Solved, slow</button><button class="grow" data-out="0">\\u2715 Did not finish</button></div>'
 +'<button class="ghost" style="width:100%;margin-top:10px" data-act="close">Cancel</button></div>';
 $('ldModal').classList.add('on');}
@@ -405,15 +524,16 @@ if(t==='prog')ldCount();}
 const LDJ=${JSON.stringify(JOBS.map(j => j[3]))};
 const LDBASE={applied:24,oa:9,interview:4,offer:1,rejected:6};
 const STC={applied:['Applied','#5EA2FF'],oa:['OA','#FFB347'],interview:['Interview','#9B6EF3'],offer:['Offer','#3DDC97'],rejected:['Rejected','#FF5D73']};
+const LDJ0=${JSON.stringify(JOBS.map(j => j[3]))};
 function ldFunnel(){const c={applied:0,oa:0,interview:0,offer:0,rejected:0};
 LDJ.forEach(s=>c[s]++);
-// the sample account has more rows than the six shown; the six move the totals
-const base=${JSON.stringify(JOBS.map(j => j[3]))}.reduce((a,s)=>{a[s]=(a[s]||0)+1;return a;},{});
+const base=LDJ0.reduce((a,s)=>{a[s]=(a[s]||0)+1;return a;},{});
 const tot={};for(const k of Object.keys(c))tot[k]=LDBASE[k]-(base[k]||0)+c[k];
 const reached={applied:tot.applied+tot.oa+tot.interview+tot.offer+tot.rejected,oa:tot.oa+tot.interview+tot.offer,interview:tot.interview+tot.offer,offer:tot.offer};
 const max=reached.applied||1;
 $('ldFunnel').innerHTML=['applied','oa','interview','offer'].map(k=>'<div class="funnel-row"><span class="fl">'+STC[k][0]+'</span><div><div class="fb" style="width:'+Math.max(8,Math.round(reached[k]/max*100))+'%;background:'+STC[k][1]+'">'+reached[k]+'</div></div><span class="fp">'+Math.round(reached[k]/max*100)+'%</span></div>').join('')
-+'<div class="tiny" style="margin-top:6px">'+tot.rejected+' rejected \\u00b7 '+Math.round(reached.interview/max*100)+'% of applications reach an interview</div>';}
++'<div class="tiny" style="margin-top:6px">'+tot.rejected+' rejected \\u00b7 '+Math.round(reached.interview/max*100)+'% of applications reach an interview</div>';
+document.querySelectorAll('#ldJobs .item').forEach((el,i)=>{el.style.setProperty('--ac',STC[LDJ[i]][1]);});}
 ldFunnel();
 
 // ---- API snippets ----

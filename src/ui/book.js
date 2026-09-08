@@ -1,17 +1,23 @@
 import { shell } from './theme.js';
 
 export const bookPage = (cfg) => { const who = (cfg && cfg.user && cfg.user.displayName) || 'me'; return shell('Book time with ' + who, null, `
-<div style="text-align:center;margin:26px 0 10px">
-  <div style="font-size:46px">🎮</div>
-  <div class="logo" style="font-size:28px;margin:8px 0 4px">LOCK<em>IN</em></div>
-  <h1 style="font-size:21px">Book time with ${who}</h1>
-  <p class="muted" style="max-width:420px;margin:10px auto 0">These are the free windows in a busy schedule. First come, first served: you can still join a taken slot, you are just next in line.</p>
+<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:18px}
+.win{background:var(--surface2);border:1px solid var(--line2);border-left:4px solid var(--ice);border-radius:14px;padding:14px;margin:12px 0}
+.win select{background:var(--well)}</style>
+<div class="bgfx" aria-hidden="true"><i></i></div>
+<div class="pub">
+  <div class="pub-hd">
+    <a class="logo" href="/" style="display:block;font-size:22px;margin-bottom:14px">LOCK<em>IN</em> 🔥</a>
+    <span class="tile">🎮</span>
+    <h1>Book time with ${who}</h1>
+    <p>These are the free windows in a busy schedule. First come, first served: you can still join a taken slot, you are just next in line.</p>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="ihead"><span class="tile">👤</span><div class="who"><label class="fld" for="nm" style="margin:0 0 6px">Your name</label><input id="nm" placeholder="So they know who booked" aria-label="Your name"></div></div>
+  </div>
+  <div id="days"><div class="skel">Loading…</div></div>
+  <p class="foot"><a href="/">Made with LockIn</a> · a grind tracker for CS students</p>
 </div>
-<div class="card row">
-  <span style="font-size:18px">👤</span>
-  <input id="nm" placeholder="Your name" aria-label="Your name">
-</div>
-<div id="days"><div class="skel card">Loading…</div></div>
 `, `<script>
 const B=(window.__U&&window.__U.base)||'';
 const OTZ=(window.__U&&window.__U.tz)||'UTC';
@@ -23,7 +29,7 @@ async function load(){
 const j=await api(B+'/api/book/slots');
 MINE=j.mine||null;
 if(j.disabled||!j.days.some(d=>d.windows.length)){
-$('days').innerHTML='<div class="card skel">No open windows right now. Check back later. 🔒</div>';return;}
+$('days').innerHTML='<div class="empty" style="margin-top:14px"><b>No open windows right now</b>Everything bookable is taken or the calendar is closed for a while. Check back later.</div>';return;}
 const skewMin=j.serverNow?Math.round((Date.now()-j.serverNow)/60000):0;
 const skewNote=Math.abs(skewMin)>=5?'<div class="card row" style="border-color:#FFB34755"><span>⏰</span><div class="tiny grow">Heads up: your device clock looks off by about '+Math.abs(skewMin)+' minutes. Slot times shown are still correct, they follow your time zone, not your clock.</div></div>':'';
 const banner=skewNote+(MINE?'<div class="banner" style="cursor:default"><span style="font-size:20px">🔒</span><div class="grow">'
@@ -81,5 +87,5 @@ toast(j.position===1?'🔥 Booked! You are first in this slot':'Requested. You a
 load();}
 catch(e){toast(String(e))}}
 load();
-</script>`, { public: true });
+</script>`, { cfg, public: true });
 };

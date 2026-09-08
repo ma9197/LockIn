@@ -12,7 +12,7 @@ const firstTab = !SH ? 'overview'
   : (SH.overview ? 'overview' : SH.lc ? 'lc' : SH.grind ? 'grind' : SH.jobs ? 'jobs' : SH.friends ? 'friends' : 'overview');
 const pane = (k, html) => on(k) ? html : '';
 return shell(SH ? hesc(SH.title) : 'LockIn · Progress', SH ? null : '/progress', `
-${SH ? `<h1>🔥 ${hesc(SH.title)}</h1><div class="race" id="race"></div>` : '<div class="ph"><div class="ph-t"><h1>Progress</h1><p class="ph-d">Streak, pace against the plan, and where the hours went. Every number here follows the same counting rules as the tabs it comes from.</p></div></div>'}
+${SH ? `<style>.refresh-fab{display:none}</style><div class="bgfx" aria-hidden="true"><i></i></div><div class="ph"><div class="ph-t"><h1>🔥 ${hesc(SH.title)}</h1><p class="ph-d">Shared progress, read only. The numbers follow the same counting rules as the owner's own tabs.</p></div><div class="ph-a"><a class="chip" href="/" style="text-decoration:none;color:var(--ink2)">Made with LockIn</a></div></div><div class="race" id="race"></div>` : '<div class="ph"><div class="ph-t"><h1>Progress</h1><p class="ph-d">Streak, pace against the plan, and where the hours went. Every number here follows the same counting rules as the tabs it comes from.</p></div></div>'}
 <div class="tabbar" id="tabs">
   ${tab('overview', 'overview', 'Overview')}
   ${tab('lc', 'lc', '🧩 LeetCode')}

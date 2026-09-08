@@ -2,16 +2,26 @@ import { shell } from './theme.js';
 
 // The friends-facing gate for a shared progress page: its own PIN, and it says whose page this is.
 // Lives under /u/<handle>/share, so every call is relative to window.__U.base.
-export const sharePinPage = (cfg, locked) => shell('LockIn', null, `
-<div style="max-width:340px;margin:14vh auto 0;text-align:center">
-<div style="font-size:56px">🔥</div>
-<div class="logo" style="font-size:26px;margin:10px 0 4px">${(cfg && cfg.share && cfg.share.title) || 'Shared progress'}</div>
-<p class="muted" style="margin:6px 0 22px">Enter the PIN to see the stats.</p>
-<form id="f"><input id="pin" type="password" inputmode="numeric" placeholder="••••" autofocus
-  style="text-align:center;font-size:26px;letter-spacing:10px;font-family:var(--disp)">
-<button class="pri" style="width:100%;margin-top:12px">View</button>
-<p id="err" style="color:var(--rose);margin-top:12px;font-weight:700;min-height:20px">${locked || ''}</p></form>
-<p class="tiny" style="margin-top:18px">Read only. Nothing here can be changed.</p></div>
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+
+export const sharePinPage = (cfg, locked) => shell('LockIn · shared progress', null, `
+<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:18px}</style>
+<div class="bgfx" aria-hidden="true"><i></i></div>
+<div class="auth">
+  <a class="logo" href="/">LOCK<em>IN</em> 🔥</a>
+  <div class="card" style="text-align:center">
+    <span class="tile" style="width:64px;height:64px;font-size:30px;border-radius:20px">🔒</span>
+    <h1 style="margin-top:14px">${esc((cfg && cfg.share && cfg.share.title) || 'Shared progress')}</h1>
+    <p class="lead">A read-only look at the grind. Enter the PIN you were given.</p>
+    <form id="f">
+      <div class="fg"><input id="pin" type="password" inputmode="numeric" placeholder="••••" autofocus aria-label="PIN" style="text-align:center;font-size:28px;letter-spacing:12px;font-family:var(--disp);padding:14px"></div>
+      <button class="pri" type="submit">View progress</button>
+      <p class="ferr" id="err" role="alert" aria-live="polite">${esc(locked || '')}</p>
+    </form>
+    <p class="tiny">Read only. Nothing here can be changed. Five wrong tries lock it for 15 minutes.</p>
+  </div>
+  <p class="foot"><a href="/">Made with LockIn</a> · a grind tracker for CS students</p>
+</div>
 `, `<script>
 const B=(window.__U&&window.__U.base)||'';
 $('f').onsubmit=async e=>{e.preventDefault();
@@ -21,8 +31,15 @@ catch(err){$('err').textContent=err;$('pin').value='';$('pin').focus();}};
 
 // shown when there is no share PIN, so the link simply does not work
 export const shareOffPage = () => shell('LockIn', null, `
-<div style="max-width:360px;margin:18vh auto 0;text-align:center">
-<div style="font-size:48px">🔒</div>
-<h1 style="margin-top:12px">Not available</h1>
-<p class="muted" style="margin-top:8px">This page is not being shared right now.</p></div>
+<style>.liveclock,.refresh-fab{display:none}.wrap{padding-top:18px}</style>
+<div class="bgfx" aria-hidden="true"><i></i></div>
+<div class="auth">
+  <a class="logo" href="/">LOCK<em>IN</em> 🔥</a>
+  <div class="card" style="text-align:center">
+    <span class="tile" style="width:64px;height:64px;font-size:30px;border-radius:20px">🔒</span>
+    <h1 style="margin-top:14px">Not shared right now</h1>
+    <p class="lead">The owner has turned sharing off, or has not set a PIN yet. Ask them for a fresh link.</p>
+  </div>
+  <p class="foot"><a href="/">Made with LockIn</a> · a grind tracker for CS students</p>
+</div>
 `, '', { public: true });
