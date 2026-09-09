@@ -121,7 +121,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .ld-demo{min-width:0}
   .ld-demo .stage{margin-top:0}
   .ld-demo .stage .phwrap{width:216px;margin-left:-100px}
-  .ld-demo .stage.front{--pps:calc(var(--ppb,.6) * .8)}
+  .ld-demo .stage.front{--pps:var(--ppb,.6)}
   .ld-demo .stagecap{margin-top:16px}
 }
 
@@ -159,7 +159,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 
 .phwrap{display:flex;justify-content:center}
 .stage{--pps:var(--ppb,.6)}
-.stage.front{--pps:calc(var(--ppb,.6) * .8)}
+.stage.front{--pps:var(--ppb,.6)}
 .phone{position:relative;background:#0A0D13;border:1px solid var(--line2);border-radius:calc(36px * var(--pps,1));padding:calc(10px * var(--pps,1));box-shadow:0 40px 90px #000a,inset 0 0 0 1px #ffffff08;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s,padding .6s,border-radius .6s}
 .ph-view{position:relative;overflow:hidden;background:var(--bg);border-radius:calc(28px * var(--pps,1));width:calc(375px * var(--pps,1));height:calc(812px * var(--pps,1));transition:width .6s cubic-bezier(.2,.8,.2,1),height .6s cubic-bezier(.2,.8,.2,1),border-radius .6s}
 .ph-canvas{position:absolute;left:0;top:0;width:375px;height:812px;transform:scale(var(--pps,1));transform-origin:0 0;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
