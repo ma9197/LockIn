@@ -44,8 +44,6 @@ button.rose.outl:hover{background:#FF5D7318}
 .drop:hover{border-color:var(--ink3)}
 .drop input{display:none}
 .drop b{display:block;font:700 14px var(--body)}
-.note{display:flex;gap:12px;align-items:flex-start;margin-top:12px;padding:12px 16px;border-radius:12px;background:#5EA2FF12;border:1px solid #5EA2FF40;font-size:13px;color:var(--ink2);line-height:1.5}
-.note b{color:var(--ice)}
 .meter{display:flex;align-items:center;gap:4px;margin-top:8px}
 .meter i{width:26px;height:4px;border-radius:2px;background:var(--surface3)}
 .meter i.on{background:var(--mint)}.meter.weak i.on{background:var(--rose)}.meter.mid i.on{background:var(--ember2)}

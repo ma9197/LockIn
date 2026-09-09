@@ -56,6 +56,14 @@ export const loginPage = () => wrap('LockIn · Sign in', `
   <p class="alt">New here? <a href="/signup">Create an account</a> · <a href="/forgot">Forgot password?</a></p>
 </div>`, `<script>${postForm('/api/auth/login', ['email', 'password'])}</script>`);
 
+// Opened as the second tab of the one-time pop-up check. If the user can read this, pop-ups are allowed.
+export const popupCheckPage = () => wrap('LockIn · Pop-ups allowed', `
+<div class="card">
+  <h1>✓ Pop-ups are allowed</h1>
+  <p class="lead">This tab opened on its own, so “Open all” will launch every saved tab with one tap. You can close this tab.</p>
+  <button class="pri" onclick="window.close();setTimeout(function(){location.href='/'},300)">Close this tab</button>
+</div>`, '');
+
 export const forgotPage = () => wrap('LockIn · Forgot password', `
 <div class="card">
   <h1>Forgot your password?</h1>

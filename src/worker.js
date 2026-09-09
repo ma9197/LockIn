@@ -5,7 +5,7 @@
 // Durable Object with a trusted context header. It never reads or writes user data itself.
 
 import { Hono } from 'hono';
-import { landingPage, signupPage, loginPage, forgotPage, resetPage } from './ui/auth.js';
+import { landingPage, signupPage, loginPage, forgotPage, resetPage, popupCheckPage } from './ui/auth.js';
 import { onboardPage } from './ui/onboard.js';
 import { sha256hex } from './helpers.js';
 import { sendMail } from './mailer.js';
@@ -181,6 +181,7 @@ app.post('/api/auth/forgot', async c => {
 });
 app.get('/reset', c => c.html(resetPage(String(c.req.query('token') || ''))));
 app.get('/forgot', c => c.html(forgotPage()));
+app.get('/popup-check', c => c.html(popupCheckPage()));
 app.post('/api/auth/reset', async c => {
   if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
   const b = await c.req.json().catch(() => ({}));

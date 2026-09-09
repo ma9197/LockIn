@@ -40,6 +40,8 @@ p{line-height:1.55}
 .empty{padding:28px 16px;text-align:center;color:var(--ink2);font-size:14px;line-height:1.55;border:1px dashed var(--line2);border-radius:var(--r)}
 .empty b{display:block;color:var(--ink);font:800 15px var(--disp);margin-bottom:4px}
 .empty>button,.empty>a{margin-top:16px}
+.note{display:flex;gap:12px;align-items:flex-start;margin-top:12px;padding:12px 16px;border-radius:12px;background:#5EA2FF12;border:1px solid #5EA2FF40;font-size:13px;color:var(--ink2);line-height:1.5}
+.note b{color:var(--ice)}
 .hint{font-size:13px;line-height:1.5;color:var(--ink2);opacity:.85;margin-top:8px}
 .fg{margin-top:24px}.fg:first-child{margin-top:0}
 .fg>label.fld{margin:0 0 8px}
@@ -1088,17 +1090,43 @@ const list=LK.filter(l=>l.in_bundle);
 if(!list.length)return;
 const blocked=[];
 for(const l of list)if(!popOpen(l.url))blocked.push(l);
-if(!blocked.length)return toast('🚀 '+list.length+' tabs opened. Go get them.');
-// Chrome allows only the first pop-up per click until the site is allow-listed.
+if(!blocked.length){try{localStorage.lockin_popupOK='1'}catch(e){}return toast('🚀 '+list.length+' tabs opened. Go get them.');}
+// Browsers allow only the first pop-up per click until the site is allow-listed.
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
-+'<h1 style="font-size:20px">⚠️ Chrome blocked '+blocked.length+' tab'+(blocked.length>1?'s':'')+'</h1>'
-+'<p class="muted" style="margin-top:8px">Chrome only lets one tab open per click until you allow pop-ups for this site. '
-+'Look for the blocked-pop-up icon <b>🚫</b> at the right of the address bar → <b>Always allow pop-ups from '+location.hostname+'</b> → then Open all works in one tap forever.</p>'
++'<h1 style="font-size:20px">⚠️ Your browser blocked '+blocked.length+' tab'+(blocked.length>1?'s':'')+'</h1>'
++popupSteps()
 +'<label class="fld">Meanwhile, open the rest here</label>'
 +blocked.map(l=>'<button class="snip-more" style="margin-top:8px;justify-content:flex-start" onclick="popOpen(\\''+esc(l.url).replace(/'/g,"\\\\'")+'\\');this.style.opacity=.4;this.textContent=\\'✓ opened\\'">↗ '
 +esc(l.label||host(l.url))+'</button>').join('')
 +'<button class="pri" style="width:100%;margin-top:16px" onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Done</button>'
 +'</div></div>';}
+function popupSteps(){
+const ua=navigator.userAgent,fx=/Firefox/.test(ua),sf=/Safari/.test(ua)&&!/Chrome|Chromium|Edg/.test(ua);
+const how=fx?'Click the <b>Options</b> button on the yellow bar at the top → <b>Allow pop-ups for '+location.hostname+'</b>.'
+:sf?'Safari menu → <b>Settings → Websites → Pop-up Windows</b> → set <b>'+location.hostname+'</b> to Allow.'
+:'Click the blocked pop-up icon <b>🚫</b> at the right end of the address bar → <b>Always allow pop-ups and redirects from '+location.hostname+'</b> → Done.';
+return '<p class="muted" style="margin-top:8px">Browsers open only one tab per click until you allow pop-ups for this site. Allow it once and “Open all” launches every saved tab together.</p>'
++'<div class="note" style="margin-top:12px">ℹ️ <span>'+how+'</span></div>';}
+function popupPrompt(firstUrl){
+$('modalHost').innerHTML='<div class="modal-bg"><div class="modal" id="ppModal">'
++'<h1 style="font-size:20px">🚀 One tap to open them all</h1>'
++popupSteps()
++'<p class="muted" style="margin-top:12px">Press <b>Test it</b>: two tabs try to open, your new link and a check page. If the second one is blocked, follow the note above, then test again.</p>'
++'<div class="row" style="margin-top:20px;gap:8px;flex-wrap:wrap"><button class="pri grow" onclick="popupTest()">Test it</button>'
++'<button class="ghost" onclick="popupLater()">Not now</button></div></div></div>';
+window.__ppUrl=firstUrl;}
+function popupLater(){try{localStorage.lockin_popupAsked='1'}catch(e){}$('modalHost').innerHTML='';}
+function popupTest(){
+const a=popOpen(window.__ppUrl||'/popup-check'),b=popOpen('/popup-check');
+if(a&&b){try{localStorage.lockin_popupOK='1';localStorage.lockin_popupAsked='1'}catch(e){}$('modalHost').innerHTML='';return toast('✓ Pop-ups allowed. Open all is one tap now.');}
+const m=$('ppModal');if(!m)return;
+m.innerHTML='<h1 style="font-size:20px">⚠️ The second tab was blocked</h1>'+popupSteps()
++'<p class="muted" style="margin-top:12px">Change the setting, then press <b>Test again</b>. It stays allowed after that.</p>'
++'<div class="row" style="margin-top:20px;gap:8px;flex-wrap:wrap"><button class="pri grow" onclick="popupTest()">Test again</button>'
++'<button class="ghost" onclick="popupLater()">Later</button></div>';}
+function popupMaybe(url){
+let ok=false,asked=false;try{ok=localStorage.lockin_popupOK==='1';asked=localStorage.lockin_popupAsked==='1'}catch(e){}
+if(ok||asked)return false;popupPrompt(url);return true;}
 async function toggleBundle(id){
 const l=LK.find(x=>x.id===id);if(!l)return;
 await api('/api/links/'+id,{method:'PATCH',body:{in_bundle:!l.in_bundle}});loadLinks();}
@@ -1125,7 +1153,9 @@ const body={url,label:$('lk-label').value.trim(),in_bundle:$('lk-bundle').checke
 try{
 if(id)await api('/api/links/'+id,{method:'PATCH',body});
 else await api('/api/links',{body});
-$('modalHost').innerHTML='';toast(id?'Saved':'Link added');loadLinks();}
+const first=!id&&LK.length===0;
+$('modalHost').innerHTML='';toast(id?'Saved':'Link added');await loadLinks();
+if(first)popupMaybe(url);}
 catch(e){toast(String(e))}}
 async function delLink(id){
 if(!confirm('Delete this link?'))return;
