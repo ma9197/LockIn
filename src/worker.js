@@ -290,6 +290,23 @@ app.post('/admin/import', async c => {
   return json(c, { ok: true, user: u.email, counts: j.counts });
 });
 
+// Same guard: remove an account entirely (central rows + its database), for cleaning up test accounts.
+app.post('/admin/delete', async c => {
+  const key = c.env.ADMIN_KEY;
+  const given = (c.req.header('Authorization') || '').replace(/^Bearer\s+/i, '');
+  if (!key || !given || given.length !== key.length || [...given].some((ch, i) => ch !== key[i])) return c.text('not found', 404);
+  const b = await c.req.json().catch(() => null);
+  if (!b || !b.email) return json(c, { error: 'email required' }, 400);
+  const db = c.env.CENTRAL;
+  const u = await db.prepare('SELECT id, email, handle FROM users WHERE email=?').bind(normEmail(b.email)).first();
+  if (!u) return json(c, { error: 'no account with that email' }, 404);
+  await db.prepare('DELETE FROM sessions WHERE user_id=?').bind(u.id).run();
+  await db.prepare('DELETE FROM api_keys WHERE user_id=?').bind(u.id).run();
+  await db.prepare('DELETE FROM users WHERE id=?').bind(u.id).run();
+  await userStub(c.env, u.id).fetch(internalReq(c, u.id, '/__internal/destroy', 'POST', {}));
+  return json(c, { ok: true, deleted: u.email, handle: u.handle });
+});
+
 // ---------- public per-user pages: /u/<handle>/... ----------
 // Only this allow-list is forwarded. Anything else under /u/ never reaches a user's database.
 const PUBLIC_PATHS = new Set(['/share', '/book', '/calendar.ics', '/api/share/login', '/api/share/progress', '/api/book/slots', '/api/book']);
