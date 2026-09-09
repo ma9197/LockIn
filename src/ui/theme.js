@@ -57,6 +57,9 @@ p{line-height:1.55}
 .ihead .who .tiny,.disc .who .tiny{margin-top:2px;font-size:13px}
 .tile{width:40px;height:40px;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:20px;background:var(--surface3);border:1px solid var(--line2);flex:none}
 .ibody{margin-top:12px}
+.nt{width:100%}
+.nt .togrow{margin-top:16px;padding-bottom:0}
+.nt textarea{resize:vertical;min-height:64px}
 .ifoot{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
 .xbtn{width:38px;height:38px;padding:0;border-radius:12px;background:transparent;border:1px solid transparent;color:var(--ink3);font-size:16px;display:inline-flex;align-items:center;justify-content:center;flex:none}
 .xbtn:hover{border-color:#FF5D7355;color:var(--rose);background:#FF5D7314}

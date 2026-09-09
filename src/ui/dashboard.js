@@ -629,12 +629,23 @@ catch(e){toast(String(e))}}
 async function undoOffDay(){
 await api('/api/offday/'+D,{method:'DELETE'});toast('Back on. Goals restored.');load();}
 function addTaskUI(){
-$('ntask').innerHTML='<div class="grow"><input id="nt-title" placeholder="What needs doing?" style="margin-bottom:8px"><input id="nt-detail" placeholder="Details (optional)">'
-+'<div class="row" style="margin-top:8px;flex-wrap:wrap"><label class="tiny" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="nt-pin" style="width:auto;margin:0"> pinned to this date</label><span class="grow"></span>'
-+'<button class="ghost sm" onclick="load()">Cancel</button><button class="sm pri" onclick="saveNewTask()">Save</button></div></div>';
+$('ntask').innerHTML='<div class="item nt" style="--ac:var(--ember)">'
++'<div class="ihead"><span class="tile">\uD83D\uDCDD</span><div class="who"><b>New task</b><div class="tiny">Shows in this day\u2019s list and counts toward tasks done.</div></div></div>'
++'<div class="ibody"><div class="fg"><label class="fld" for="nt-title">Task</label><input id="nt-title" maxlength="120" placeholder="Finish the graph assignment" autocomplete="off"></div>'
++'<div class="fg"><label class="fld" for="nt-detail">Details <span class="opt">optional</span></label><textarea id="nt-detail" rows="2" maxlength="500" placeholder="Anything future-you should know"></textarea></div>'
++'<div class="togrow"><div class="grow"><b>Pin to this date</b><div class="tiny">Pinned tasks stay on this day. Unpinned ones move forward with the plan when you shift it.</div></div><div class="toggle" id="nt-pin" role="switch" tabindex="0" aria-checked="false" aria-label="pin to this date"></div></div></div>'
++'<div class="cardfoot"><button class="ghost sm" onclick="load()">Cancel</button><button class="pri sm" id="nt-save" onclick="saveNewTask()">Add task</button></div></div>';
+const pin=$('nt-pin');const flip=()=>{const on=!pin.classList.contains('on');pin.classList.toggle('on',on);pin.setAttribute('aria-checked',on);};
+pin.onclick=flip;pin.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();}};
+const esc=e=>{if(e.key==='Escape'){e.preventDefault();load();}};
+$('nt-title').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();saveNewTask();}else esc(e);};
+$('nt-detail').onkeydown=esc;
 $('nt-title').focus();}
-async function saveNewTask(){const title=$('nt-title').value.trim();if(!title)return toast('Give it a title');
-await api('/api/task',{body:{title,detail:$('nt-detail').value,date:D,pinned:$('nt-pin').checked}});toast('Task added');load();}
+async function saveNewTask(){const title=$('nt-title').value.trim();const inp=$('nt-title');
+if(!title){inp.classList.add('err');inp.focus();return toast('Give the task a name');}
+const btn=$('nt-save');btn.classList.add('busy');
+try{await api('/api/task',{body:{title,detail:$('nt-detail').value,date:D,pinned:$('nt-pin').classList.contains('on')}});toast('Task added');load();}
+catch(e){btn.classList.remove('busy');toast(String(e))}}
 async function delTask(id){if(!confirm('Delete this task?'))return;await api('/api/task/'+id,{method:'DELETE'});load();}
 async function bump(t,n){
 if(t==='leetcode'&&n>0)return openLcLog({},lcCtx());   // every +1 must carry difficulty + time
