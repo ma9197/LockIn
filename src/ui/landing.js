@@ -333,8 +333,6 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
       <div class="card"><div class="tl2">${timeline()}</div></div>
     </div></div></div></div></div>
   </div>
-  <div class="stagecap" role="tablist" aria-label="device"><button class="on" data-dev="laptop">💻 Laptop</button><button data-dev="phone">📱 Phone</button></div>
-  <p class="devhint">Tap the phone to bring it forward. Tap + on a ring, start the timer: both screens follow.</p>
   </div>
 </section>
 

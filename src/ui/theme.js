@@ -99,7 +99,9 @@ p{line-height:1.55}
 .auth .foot a{color:var(--ink3);font-weight:700}
 .pwwrap{position:relative}
 .pwwrap input{padding-right:70px}
-.pwwrap button{position:absolute;right:6px;top:50%;transform:translateY(-50%);padding:8px 12px;font:700 12px var(--disp);background:var(--surface3);border-color:transparent;color:var(--ink2)}
+.pwwrap button{position:absolute;right:0;top:0;bottom:0;min-height:0;transform:none;padding:0 16px;font:700 12px var(--disp);background:var(--surface3);border:0;border-left:1px solid var(--line2);border-radius:0 var(--rm) var(--rm) 0;color:var(--ink2)}
+.pwwrap button:hover{color:var(--ink)}
+.pwwrap button:active{transform:none}
 .ferr{color:var(--rose);font-size:13px;min-height:18px;margin-top:12px;font-weight:700}
 .ferr.ok{color:var(--mint)}
 .pub{max-width:640px;margin:0 auto}
