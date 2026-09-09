@@ -121,9 +121,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .ld-demo{min-width:0}
   .ld-demo .stage{margin-top:0}
   .ld-demo .stage .phwrap{width:216px;margin-left:-100px}
-  .ld-demo .stage .phone{height:clamp(560px,calc(820px * var(--lps,.6) / .6),760px);transform:scale(.6)}
-  .ld-demo .stage .phone:hover{transform:scale(.62) translateY(-8px)}
-  .ld-demo .stage.front .phone{transform:none}
+  .ld-demo .stage.front{--pps:calc(var(--ppb,.6) * 1.45)}
   .ld-demo .stagecap{margin-top:16px}
 }
 
@@ -160,8 +158,13 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .lp-main .ld-tmr .tring .tv{font-size:32px}
 
 .phwrap{display:flex;justify-content:center}
-.phone{position:relative;width:min(100%,360px);background:var(--bg);border:1px solid var(--line2);border-radius:30px;padding:16px 12px;box-shadow:0 40px 90px #000a,inset 0 0 0 1px #ffffff08;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s;transform-origin:right bottom}
-.ph-scroll{padding-top:2px}
+.stage{--pps:var(--ppb,.6)}
+.stage.front{--pps:calc(var(--ppb,.6) * 1.3)}
+.phone{position:relative;background:#0A0D13;border:1px solid var(--line2);border-radius:calc(36px * var(--pps,1));padding:calc(10px * var(--pps,1));box-shadow:0 40px 90px #000a,inset 0 0 0 1px #ffffff08;transition:transform .6s cubic-bezier(.2,.8,.2,1),opacity .6s,filter .6s,padding .6s,border-radius .6s}
+.ph-view{position:relative;overflow:hidden;background:var(--bg);border-radius:calc(28px * var(--pps,1));width:calc(375px * var(--pps,1));height:calc(812px * var(--pps,1));transition:width .6s cubic-bezier(.2,.8,.2,1),height .6s cubic-bezier(.2,.8,.2,1),border-radius .6s}
+.ph-canvas{position:absolute;left:0;top:0;width:375px;height:812px;transform:scale(var(--pps,1));transform-origin:0 0;transition:transform .6s cubic-bezier(.2,.8,.2,1)}
+.ph-scroll{height:812px;overflow-y:auto;scrollbar-width:none;padding:20px 16px 40px}
+.ph-scroll::-webkit-scrollbar{display:none}
 .phone .dh-chips{margin-left:0;width:100%}
 .phone .dh-nav{margin-top:12px}
 .phone .card{margin:8px 0;padding:16px}
@@ -188,13 +191,10 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .stage .laptop{flex:1;min-width:0;z-index:2;position:relative}
   .stage .phwrap{flex:none;width:250px;margin-left:-120px;justify-content:flex-end;align-items:flex-end;z-index:1;position:relative;transform:translateY(-14px)}
   .stage.front .phwrap{z-index:3}
-  .stage .phone{width:360px;flex:none;height:clamp(560px,calc(820px * var(--lps,.6) / .7),780px);overflow:hidden;display:flex;flex-direction:column;transform:scale(.7);transform-origin:right bottom;opacity:.5;filter:saturate(.5);cursor:pointer}
-  .stage .phone:hover{opacity:.82;filter:saturate(.9);transform:scale(.72) translateY(-8px)}
-  .stage .ph-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
-  .stage .ph-scroll::-webkit-scrollbar{display:none}
+  .stage .phone{flex:none;opacity:.5;filter:saturate(.5);cursor:pointer}
+  .stage .phone:hover{opacity:.82;filter:saturate(.9);transform:translateY(-8px)}
   .stage .ph-scroll{pointer-events:none}
   .stage.front .phone{transform:none;opacity:1;filter:none;cursor:default;box-shadow:0 50px 110px #000c}
-  .stage.front .phone:hover{transform:none}
   .stage.front .ph-scroll{pointer-events:auto}
   .stage.front .laptop{opacity:.42;filter:saturate(.4);transform:translateX(-3%) scale(.94);cursor:pointer;z-index:1}
   .stage.front .laptop:hover{opacity:.62}
@@ -205,9 +205,10 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .stagecap{display:none}
   .stage{gap:0;margin-top:32px}
   .stage .laptop{display:none}
-  .phwrap{position:relative}
-  .phone{height:min(540px,68vh);overflow:hidden;pointer-events:none}
-  .phwrap::after{content:'';position:absolute;left:0;right:0;bottom:0;height:140px;border-radius:0 0 30px 30px;background:linear-gradient(180deg,rgba(11,14,20,0),var(--bg) 92%);pointer-events:none}
+  .phwrap{position:relative;justify-content:center}
+  .phone{pointer-events:none}
+  .ph-view{max-height:min(540px,68vh)}
+  .phwrap::after{content:'';position:absolute;left:0;right:0;bottom:0;height:140px;background:linear-gradient(180deg,rgba(11,14,20,0),var(--bg) 92%);pointer-events:none}
   .ld-hero{padding-top:16px}
   .ld-eyebrow{font-size:11px;padding:8px 12px}
   .ld-h1{font-size:clamp(36px,10.5vw,44px);margin:16px 0 12px}
@@ -321,7 +322,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
       </div></div></div>
       <div class="lp-base"></div>
     </div>
-    <div class="phwrap"><div class="phone" id="devPhone" title="Show the phone view"><div class="ph-scroll">
+    <div class="phwrap"><div class="phone" id="devPhone" title="Show the phone view"><div class="ph-view"><div class="ph-canvas"><div class="ph-scroll">
       ${header()}
       ${race(18)}
       <h2>Goals</h2>
@@ -330,7 +331,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
       <div class="card">${timer(108)}<p class="tiny" style="text-align:center;margin-top:12px" id="dmHint">The same clock follows you to every tab. Press Done and it asks how the problem went.</p></div>
       <h2>Schedule</h2>
       <div class="card"><div class="tl2">${timeline()}</div></div>
-    </div></div></div>
+    </div></div></div></div></div>
   </div>
   <div class="stagecap" role="tablist" aria-label="device"><button class="on" data-dev="laptop">💻 Laptop</button><button data-dev="phone">📱 Phone</button></div>
   <p class="devhint">Tap the phone to bring it forward. Tap + on a ring, start the timer: both screens follow.</p>
@@ -504,7 +505,9 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
 <div class="ld-modal" id="ldModal"></div>
 `, `<script>
 // ---- laptop mock: render the desktop layout at 1180x720 and scale it to the frame ----
-function lpScale(){document.querySelectorAll('.laptop').forEach(l=>{const v=l.querySelector('.lp-view');if(!v)return;const s=(v.clientWidth/1180).toFixed(4);l.style.setProperty('--lps',s);const st=l.closest('.stage');if(st)st.style.setProperty('--lps',s);});}
+function lpScale(){document.querySelectorAll('.stage').forEach(st=>{const l=st.querySelector('.laptop'),v=st.querySelector('.lp-view'),lw=v?v.clientWidth:0;
+if(lw>0){const s=(lw/1180).toFixed(4);l.style.setProperty('--lps',s);st.style.setProperty('--lps',s);st.style.setProperty('--ppb',s);}
+else{const w=st.querySelector('.phwrap');st.style.setProperty('--ppb',Math.min(1,((w?w.clientWidth:375)-24)/375).toFixed(4));}});}
 window.addEventListener('resize',lpScale);lpScale();
 setTimeout(lpScale,700);
 
