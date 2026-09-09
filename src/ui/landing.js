@@ -120,8 +120,10 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .ld-lead{font-size:17px}
   .ld-demo{min-width:0}
   .ld-demo .stage{margin-top:0}
-  .ld-demo .stage .phwrap{width:240px;margin-left:-104px}
-  .ld-demo .stage .phone{width:240px;height:clamp(380px,calc(820px * var(--lps,.6) + 40px),560px)}
+  .ld-demo .stage .phwrap{width:216px;margin-left:-100px}
+  .ld-demo .stage .phone{height:clamp(560px,calc(820px * var(--lps,.6) / .6),760px);transform:scale(.6)}
+  .ld-demo .stage .phone:hover{transform:scale(.62) translateY(-8px)}
+  .ld-demo .stage.front .phone{transform:none}
   .ld-demo .stagecap{margin-top:16px}
 }
 
@@ -184,10 +186,10 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 @media(min-width:900px){
   .stage{flex-direction:row;align-items:flex-end;gap:0}
   .stage .laptop{flex:1;min-width:0;z-index:2;position:relative}
-  .stage .phwrap{flex:none;width:300px;margin-left:-130px;justify-content:flex-end;z-index:1;position:relative;transform:translateY(-14px)}
+  .stage .phwrap{flex:none;width:250px;margin-left:-120px;justify-content:flex-end;align-items:flex-end;z-index:1;position:relative;transform:translateY(-14px)}
   .stage.front .phwrap{z-index:3}
-  .stage .phone{width:300px;height:clamp(420px,calc(820px * var(--lps,.6) - 10px),700px);overflow:hidden;display:flex;flex-direction:column;transform:scale(.8);opacity:.5;filter:saturate(.5);cursor:pointer}
-  .stage .phone:hover{opacity:.82;filter:saturate(.9);transform:scale(.82) translateY(-6px)}
+  .stage .phone{width:360px;flex:none;height:clamp(560px,calc(820px * var(--lps,.6) / .7),780px);overflow:hidden;display:flex;flex-direction:column;transform:scale(.7);transform-origin:right bottom;opacity:.5;filter:saturate(.5);cursor:pointer}
+  .stage .phone:hover{opacity:.82;filter:saturate(.9);transform:scale(.72) translateY(-8px)}
   .stage .ph-scroll{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none}
   .stage .ph-scroll::-webkit-scrollbar{display:none}
   .stage .ph-scroll{pointer-events:none}
@@ -199,7 +201,21 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .stage.front .lp-canvas{pointer-events:none}
   .devhint{display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--ink3)}
 }
-@media(max-width:899px){.stagecap{display:none}}
+@media(max-width:899px){
+  .stagecap{display:none}
+  .stage{gap:0;margin-top:32px}
+  .stage .laptop{display:none}
+  .phwrap{position:relative}
+  .phone{height:min(540px,68vh);overflow:hidden;pointer-events:none}
+  .phwrap::after{content:'';position:absolute;left:0;right:0;bottom:0;height:140px;border-radius:0 0 30px 30px;background:linear-gradient(180deg,rgba(11,14,20,0),var(--bg) 92%);pointer-events:none}
+  .ld-hero{padding-top:16px}
+  .ld-eyebrow{font-size:11px;padding:8px 12px}
+  .ld-h1{font-size:clamp(36px,10.5vw,44px);margin:16px 0 12px}
+  .ld-lead{font-size:16px;line-height:1.55}
+  .ld-cta{flex-direction:column;margin-top:24px}
+  .ld-cta a{width:100%;text-align:center}
+  .ld-trust{margin-top:16px;gap:8px 16px}
+}
 
 /* sections */
 .ld-sec{padding:64px 0 0}
