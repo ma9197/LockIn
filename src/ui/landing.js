@@ -1,5 +1,5 @@
 import { shell, ic } from './theme.js';
-import { STORY_CSS, STORY_HTML, STORY_STEPS, STORY_JS } from './story.js';
+import { STORY_CSS, STORY_HTML, STORY_JS } from './story.js';
 
 // The public home page. Every panel is a working mock of the real UI, built from the same CSS
 // classes the app uses, driven by sample data on the client. Nothing here touches the server.
@@ -423,11 +423,10 @@ ${STORY_CSS}
 
 <section class="ld-sec" id="watch">
   <div class="ld-kick">Watch it work</div>
-  <h2 class="ld-h2">A solve, start to note.</h2>
-  <p class="ld-sub">Thirty seconds of the real flow: pick the problem, run the timer, log how it went, write the note. The cursor is the only thing that is fake.</p>
+  <h2 class="ld-h2">Four things you will do every day.</h2>
+  <p class="ld-sub">The real screens, played through: a solve with its note, a job logged by an agent, a task and a grind session, a block in Quick Copy. The cursor is the only thing that is fake.</p>
   <div class="ld-story">
     ${STORY_HTML(ic)}
-    <ol class="ld-steps">${STORY_STEPS.map((t, i) => `<li><i>${i + 1}</i>${t}</li>`).join('')}</ol>
   </div>
 </section>
 
