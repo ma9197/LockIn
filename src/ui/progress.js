@@ -262,7 +262,7 @@ return '<div class="trow"><b class="trl">'+label+'</b>'
 +'<span class="trs">'+unit+' this week · last week '+prev+'</span></div>';}
 
 // finish-line forecast: where today's rate lands on Dec 15
-function projRow(label,done,target,color,P){
+function projRow(label,done,target,color,P,pace){
 if(!target)return '';
 const rate=P.elapsed>0?done/P.elapsed:0;
 const proj=Math.round(done+rate*P.left);
@@ -271,13 +271,14 @@ const ok=proj>=target;
 const dPct=Math.min(100,done/target*100);
 const pPct=Math.min(100,proj/target*100);
 return '<div class="pj"><div class="pjh"><b>'+label+'</b><span class="grow"></span>'
-+'<span class="delta '+(ok?'up':'down')+'">'+(ok?'on track for '+shortD(P.end):(target-proj)+' short by '+shortD(P.end))+'</span></div>'
++'<span class="delta '+(ok?'up':'down')+'">'+(ok?'on track for '+shortD(P.end):'forecast: '+(target-proj)+' below the plan by '+shortD(P.end))+'</span></div>'
 +'<div class="pjbar"><i class="pr" style="width:'+pPct+'%;background-color:'+color+'"></i>'
 +'<i class="dn" style="width:'+dPct+'%;background-color:'+color+'"></i></div>'
-+'<div class="pjm"><span><i class="sw" style="background-color:'+color+'"></i><b>'+done+'</b> done today</span>'
++'<div class="pjm"><span><i class="sw" style="background-color:'+color+'"></i><b>'+done+'</b> done so far</span>'
 +'<span><i class="sw pr" style="background-color:'+color+'"></i><b>~'+proj+'</b> by '+shortD(P.end)+' at this rate</span>'
 +'<span><i class="sw tr"></i><b>'+target+'</b> the plan wants</span></div>'
-+'<div class="pjn">'+nf(rate)+' / day so far'+(P.left>0?(' · need <b>'+nf(Math.max(0,need))+' / day</b> for the last '+P.left+' days'):' · plan is over')+'</div></div>';}
++'<div class="pjn">'+nf(rate)+' / day so far'+(P.left>0?(' · need <b>'+nf(Math.max(0,need))+' / day</b> for the last '+P.left+' days'):' · plan is over')+'</div>'
++(pace&&pace.target>0?'<div class="pjn">Owed today: '+(pace.diff>=0?'<b style="color:var(--mint)">none</b>, '+pace.done+' done of '+pace.target+' planned by today':'<b style="color:var(--rose)">'+(-pace.diff)+' behind</b>, '+pace.done+' done of '+pace.target+' planned by today')+'</div>':'')+'</div>';}
 
 async function load(){
 const j=await api(API);
@@ -295,8 +296,8 @@ if(slowN)sub.push(slowN+' solved slow');
 $('lcSub').innerHTML='LeetCode solved'+(sub.length?'<br><span style="color:var(--ember2)">'+sub.join(' · ')+'</span>':'');
 const P=j.plan;
 if(P&&$('proj'))$('proj').innerHTML='<p class="tiny" style="margin-bottom:8px">Day <b class="num">'+P.elapsed+'</b> of the plan · <b class="num">'+P.left+'</b> days left until '+shortD(P.end)+'. This is a forecast for the <b>whole plan</b>, not a debt you owe today: it carries your rate so far forward to '+shortD(P.end)+'.</p>'
-+projRow('🧩 LeetCode',j.pace.leetcode.done,P.lc,'var(--ember)',P)
-+projRow('📨 Applications',j.pace.apps.done,P.apps,'var(--ice)',P);
++projRow('🧩 LeetCode',j.pace.leetcode.done,P.lc,'var(--ember)',P,j.pace.leetcode)
++projRow('📨 Applications',j.pace.apps.done,P.apps,'var(--ice)',P,j.pace.apps);
 const CO=j.consistency||{};
 $('pace').innerHTML='<p class="tiny" style="margin-bottom:2px">Since '+(j.plan?shortD(j.plan.start):'the start')+' vs what the plan asked for by today. LeetCode counts <b>problems cracked</b>, one per problem: a rerun of something you already solved does not add another. Slow solves and unfinished attempts are still work, but they do not move the plan.</p>'
 +paceRow('🧩 LeetCode',j.pace.leetcode,'var(--ember)',CO.leetcode)
