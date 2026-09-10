@@ -1,4 +1,5 @@
 import { shell, ic } from './theme.js';
+import { STORY_CSS, STORY_HTML, STORY_STEPS, STORY_JS } from './story.js';
 
 // The public home page. Every panel is a working mock of the real UI, built from the same CSS
 // classes the app uses, driven by sample data on the client. Nothing here touches the server.
@@ -361,6 +362,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .ld-foot{margin-top:48px;padding:28px 0 8px;gap:10px}
   .ld-foot .logo{font-size:22px!important}
 }
+${STORY_CSS}
 </style>
 <div class="bgfx" aria-hidden="true"><i></i></div>
 
@@ -416,6 +418,16 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
       <div class="card"><div class="tl2">${timeline()}</div></div>
     </div></div></div></div></div>
   </div>
+  </div>
+</section>
+
+<section class="ld-sec" id="watch">
+  <div class="ld-kick">Watch it work</div>
+  <h2 class="ld-h2">A solve, start to note.</h2>
+  <div class="ld-story">
+    <div><p class="ld-sub">Sixteen seconds of the real flow: pick the problem, run the timer, log how it went, write the note. The cursor is the only thing that is fake.</p>
+      <ol class="ld-steps">${STORY_STEPS.map((t, i) => `<li><i>${i + 1}</i>${t}</li>`).join('')}</ol></div>
+    ${STORY_HTML()}
   </div>
 </section>
 
@@ -725,4 +737,5 @@ $('ldModal').addEventListener('click',()=>$('ldModal').classList.remove('on'));
 $('ldPin').addEventListener('keydown',e=>{if(e.key==='Enter')ldPin();});
 document.querySelectorAll('#ldJobs select').forEach(s=>s.addEventListener('change',()=>{LDJ[+s.dataset.job]=s.value;ldFunnel();toast('Status \\u2192 '+STC[s.value][0]);}));
 dmDraw();
+${STORY_JS}
 </script>`, { public: true });
