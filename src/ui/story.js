@@ -197,8 +197,8 @@ function applyT(){var s=parseFloat(getComputedStyle(root).getPropertyValue('--ss
 window.addEventListener('resize',function(){fit();applyT();});window.addEventListener('load',function(){fit();applyT();});fit();setTimeout(function(){fit();applyT();},400);
 function pos(el){var c=[el.offsetLeft,el.offsetTop],p=el.offsetParent;while(p&&p!==sc){c[0]+=p.offsetLeft;c[1]+=p.offsetTop;p=p.offsetParent;}return c;}
 function mid(el){var c=pos(el);return [c[0]+el.offsetWidth/2,c[1]+el.offsetHeight/2];}
-function zoomTo(el,z){zoomZ=z;if(!el||z===1){zoomX=0;zoomY=0;applyT();return;}
-var m=mid(el),tx=480/z-m[0],ty=270/z-m[1];
+function zoomTo(el,z,ax,ay){zoomZ=z;if(!el||z===1){zoomX=0;zoomY=0;applyT();return;}
+var c=pos(el),m=[c[0]+el.offsetWidth*(ax===undefined?.5:ax),c[1]+el.offsetHeight*(ay===undefined?.5:ay)],tx=480/z-m[0],ty=270/z-m[1];
 tx=Math.min(0,Math.max(960/z-960,tx));ty=Math.min(0,Math.max(540/z-540,ty));zoomX=tx;zoomY=ty;applyT();}
 var visAt=0;function isVis(){var now=Date.now();if(now-visAt>300){visAt=now;var b=root.getBoundingClientRect();visible=b.height===0||(b.bottom>0&&b.top<(window.innerHeight||800));}return visible;}
 function sleep(ms){var mr=run;return new Promise(function(r){var t=0;(function tick(){if(run!==mr)return r();if(!paused&&isVis())t+=50;if(t>=ms)return r();setTimeout(tick,50);})();});}
@@ -224,14 +224,14 @@ bars.forEach(function(b){b.className='';b.firstChild.style.width='0';});steps.fo
 async function play(){var my=++run;reset();await sleep(500);
 // 1 pick the problem
 say(1,'Type the name. Matches come from your own log.');bar(1,5600);
-var inp=document.getElementById('stInp');zoomTo(document.getElementById('stProb'),1.7);await sleep(700);
-await move(inp,-150,0);await click(inp);await type(inp,document.getElementById('stInpT'),'Two Su');
-document.getElementById('stAc').classList.add('on');await sleep(350);var ac1=document.getElementById('stAc1');await move(ac1,-120,0);ac1.classList.add('hi');await click(ac1);
+var inp=document.getElementById('stInp');zoomTo(document.getElementById('stProb'),1.35,.28,.5);await sleep(700);
+await move(inp,-330,0);await click(inp);await type(inp,document.getElementById('stInpT'),'Two Su');
+document.getElementById('stAc').classList.add('on');await sleep(350);var ac1=document.getElementById('stAc1');await move(ac1,-300,0);ac1.classList.add('hi');await click(ac1);
 document.getElementById('stInpT').textContent='Two Sum';document.getElementById('stAc').classList.remove('on');inp.classList.remove('on');
 document.getElementById('stNempty').style.display='none';document.getElementById('stNed').classList.add('on');await sleep(600);if(my!==run)return;
 // 2 start the timer
 say(2,'Start the timer. It follows you to every tab.');bar(2,5000);
-var tm=document.getElementById('stTimer');zoomTo(tm,1.6);await sleep(700);
+var tm=document.getElementById('stTimer');zoomTo(tm,1.4);await sleep(700);
 var st=document.getElementById('stStart');await move(st);await click(st);st.textContent='Done';
 var tv=document.getElementById('stTv'),tsvg=document.querySelector('#stTimer svg');
 for(var s=1;s<=3;s++){tv.textContent='24:'+String(60-s).padStart(2,'0');ringSet(tsvg,CT,1-s/1500);await sleep(1000);}
@@ -251,8 +251,8 @@ say(4,'Today counts it: 3 of 3, goal hit, streak safe.');bar(4,3400);
 document.getElementById('stToast').classList.add('on');tv.textContent='25:00';ringSet(tsvg,CT,1);st.textContent='Start';await sleep(2800);document.getElementById('stToast').classList.remove('on');await sleep(300);if(my!==run)return;
 // 5 write the note
 say(5,'One living note per problem. Write it while it is fresh.');bar(5,7400);
-var nc=document.getElementById('stNoteCard');zoomTo(nc,1.55);await sleep(700);
-var note=document.getElementById('stNote');await move(note,-120,-14);await click(note);
+var nc=document.getElementById('stNoteCard');zoomTo(nc,1.35);await sleep(700);
+var note=document.getElementById('stNote');await move(note,-130,-14);await click(note);
 await type(note,document.getElementById('stNoteT'),'Hash map, one pass. Check the complement before you insert.');
 await sleep(500);document.getElementById('stTick').textContent='SAVED';document.getElementById('stTick').classList.add('on');note.classList.remove('on');await sleep(1200);if(my!==run)return;
 // 6 end card
