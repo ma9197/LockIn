@@ -424,10 +424,10 @@ ${STORY_CSS}
 <section class="ld-sec" id="watch">
   <div class="ld-kick">Watch it work</div>
   <h2 class="ld-h2">A solve, start to note.</h2>
+  <p class="ld-sub">Thirty seconds of the real flow: pick the problem, run the timer, log how it went, write the note. The cursor is the only thing that is fake.</p>
   <div class="ld-story">
-    <div><p class="ld-sub">Sixteen seconds of the real flow: pick the problem, run the timer, log how it went, write the note. The cursor is the only thing that is fake.</p>
-      <ol class="ld-steps">${STORY_STEPS.map((t, i) => `<li><i>${i + 1}</i>${t}</li>`).join('')}</ol></div>
     ${STORY_HTML()}
+    <ol class="ld-steps">${STORY_STEPS.map((t, i) => `<li><i>${i + 1}</i>${t}</li>`).join('')}</ol>
   </div>
 </section>
 
