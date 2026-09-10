@@ -231,8 +231,7 @@ export const STORY_CSS = `
 .st-bar i b{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ember);border-radius:99px}
 .st-bar i.done b{width:100%}
 .st-bar i.live b{transition:width linear}
-.st-bot{position:absolute;left:0;right:0;bottom:0;height:64px;z-index:30;background:linear-gradient(0deg,rgba(11,14,20,.92),rgba(11,14,20,0));pointer-events:none}
-.st-cap{position:absolute;left:14px;bottom:14px;max-width:calc(100% - 28px);z-index:31;background:rgba(19,24,36,.96);border:1px solid var(--line2);border-radius:12px;padding:9px 12px;font:700 13px/1.35 var(--body);color:var(--ink);display:flex;gap:10px;align-items:center;transform:translateY(8px);opacity:0;transition:transform .3s,opacity .3s}
+.st-cap{justify-self:center;max-width:min(720px,100%);min-height:44px;background:var(--surface);border:1px solid var(--line2);border-radius:12px;padding:10px 14px;font:700 14px/1.35 var(--body);color:var(--ink);display:flex;gap:10px;align-items:center;transform:translateY(6px);opacity:0;transition:transform .3s,opacity .3s;margin-top:-4px}
 .st-cap.on{transform:none;opacity:1}
 .st-cap i{flex:none;width:22px;height:22px;border-radius:99px;background:var(--grad);color:#1A0D05;display:inline-flex;align-items:center;justify-content:center;font:900 11px var(--disp);font-style:normal}
 .st-ff{position:absolute;right:14px;top:22px;z-index:31;font:800 11px var(--disp);letter-spacing:.08em;color:var(--ember2);background:#FFB34718;border:1px solid #FFB34755;border-radius:99px;padding:4px 8px;opacity:0;transition:opacity .3s}
@@ -257,7 +256,7 @@ export const STORY_CSS = `
 .ld-steps li i{flex:none;width:24px;height:24px;border-radius:8px;background:var(--surface2);border:1px solid var(--line2);display:inline-flex;align-items:center;justify-content:center;font:800 12px var(--disp);font-style:normal;color:var(--ink2)}
 .ld-steps li.on{background:var(--surface);border-color:var(--line2);color:var(--ink)}
 .ld-steps li.on i{background:var(--grad);border-color:transparent;color:#1A0D05}
-@media(max-width:599px){.ld-steps{display:none!important}.ld-story{margin-top:16px}.story{border-radius:12px}.st-cap{font-size:11px;padding:7px 10px;bottom:8px;left:8px}.st-bar{left:8px;right:8px;top:6px}.st-bot{height:44px}.st-pills button{padding:6px 10px;font-size:12px;min-height:32px}}
+@media(max-width:599px){.ld-steps{display:none!important}.ld-story{margin-top:16px}.story{border-radius:12px}.st-cap{font-size:12px;padding:8px 10px}.st-bar{left:8px;right:8px;top:6px}.st-pills button{padding:6px 10px;font-size:12px;min-height:32px}}
 `;
 
 const RING = (r, w, color, dash, cls) => `<svg width="${r * 2}" height="${r * 2}" viewBox="0 0 ${r * 2} ${r * 2}"><circle cx="${r}" cy="${r}" r="${r - w / 2}" fill="none" stroke="var(--surface3)" stroke-width="${w}"/><circle class="p${cls ? ' ' + cls : ''}" cx="${r}" cy="${r}" r="${r - w / 2}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${dash}" stroke-dashoffset="0" style="transition:stroke-dashoffset .6s cubic-bezier(.2,.8,.2,1),stroke .3s"/></svg>`;
@@ -437,12 +436,11 @@ export const STORY_HTML = (ic) => `
   <div class="st-top"><div class="st-bar" id="stBar"></div></div>
   <div class="st-ff" id="stFF">⏩ 7 min later</div>
   <div class="st-vp"><div class="st-scene" id="stScene"></div></div>
-  <div class="st-bot"></div>
   <div class="st-toast" id="stToast"></div>
-  <div class="st-cap" id="stCap"><i id="stCapN">1</i><span id="stCapT"></span></div>
   <div class="st-end" id="stEnd"><b id="stEndT"></b><span id="stEndS"></span></div>
   <div class="st-pause"><b>▶</b></div>
 </div>
+<div class="st-cap" id="stCap"><i id="stCapN">1</i><span id="stCapT"></span></div>
 ${STORY_META.map((m, i) => `<ol class="ld-steps${i === 0 ? ' on' : ''}" data-st="${i}">${m.steps.map((t, j) => `<li><i>${j + 1}</i>${t}</li>`).join('')}</ol>`).join('')}
 <template id="stT-lc">${sceneLc(ic)}</template>
 <template id="stT-jobs">${sceneJobs(ic)}</template>
