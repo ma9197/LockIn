@@ -175,13 +175,19 @@ export const STORY_CSS = `
 .st-tli b{font:800 11px var(--disp)}
 .st-tli small{display:block;font-size:9px;color:var(--ink2)}
 .st-foot{display:flex;justify-content:flex-end;gap:6px;padding-top:8px;margin-top:8px;border-top:1px solid var(--line)}
-.st-live{display:none;background:var(--surface);border:1px solid #FF6B3555;border-radius:12px;padding:8px 12px;align-items:center;gap:10px}
+.st-live{display:none;border:1px solid #FF6B3550;background:linear-gradient(135deg,#FF6B3512,#FFB34708);border-radius:12px;padding:10px 12px;flex-direction:column;gap:8px}
 .st-live.on{display:flex}
-.st-live .dot{width:8px;height:8px;border-radius:99px;background:var(--ember);animation:stpulse 1.4s infinite}
-@keyframes stpulse{50%{opacity:.35}}
-.st-live b{font:800 12px var(--disp)}
-.st-live .pill{font-size:9px;padding:2px 8px}
-.st-live .tm{margin-left:auto;font:800 14px var(--disp);font-variant-numeric:tabular-nums}
+.st-live .lm{display:flex;align-items:center;gap:10px}
+.st-live .fire{font-size:22px;line-height:1.1;flex:none}
+.st-live .tx{flex:1;min-width:0}
+.st-live .tx b{display:block;font:800 13px var(--disp)}
+.st-live .tx small{display:block;font-size:10px;color:var(--ink2);margin-top:1px}
+.st-live .tx .pill{font-size:9px;padding:2px 8px;margin-top:6px;display:inline-flex}
+.st-live .tm{text-align:right;flex:none}
+.st-live .tm b{display:block;font:800 18px/1.1 var(--disp);font-variant-numeric:tabular-nums}
+.st-live .tm small{font-size:10px;color:var(--ink2)}
+.st-live .bt{display:flex;gap:6px;flex:none}
+.st-live .bar{height:8px;border-radius:99px;background:var(--grad)}
 .st-pick{position:absolute;inset:0;background:rgba(5,7,11,.7);backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:opacity .3s;z-index:4}
 .st-pick.on{opacity:1}
 .st-pick .sheet{background:var(--surface);border:1px solid var(--line2);border-radius:16px;padding:16px;width:340px}
@@ -361,6 +367,7 @@ const sceneToday = (ic) => `${side(ic, 'Today')}
     <div class="st-race">${Array.from({ length: 56 }, (_, i) => `<i class="${i < 14 ? 'p' : ''}${i === 14 ? 't' : ''}" style="background:${i < 26 ? '#5EA2FF' : i < 40 ? '#FFB347' : '#3DDC97'}"></i>`).join('')}</div>
     <div class="st-racec"><span>AUG 26</span><span style="color:var(--ink)">DAY 15 OF 112</span><span>DEC 15</span></div>
   </div>
+  <div class="st-live" id="stLive"><div class="lm"><span class="fire">🔥</span><div class="tx"><b>🔒 Ad-hoc grind</b><small>Ad-hoc session · checked in 3:27 PM</small><span class="pill" style="background:#9B6EF322;color:var(--violet)">📚 Course</span></div><div class="tm"><b id="stLtm">0m</b><small>elapsed</small></div><div class="bt"><button class="sm">⇄ Switch</button><button class="sm">⏸ Pause</button><button class="pri sm">Check out</button></div></div><div class="bar"></div></div>
   <div class="st-cols" style="grid-template-columns:1.25fr 1fr">
     <div>
       <div class="sh2">Tasks</div>
@@ -376,7 +383,6 @@ const sceneToday = (ic) => `${side(ic, 'Today')}
         <div style="margin-top:6px"><button class="sm" id="stAddT">＋ Add task</button></div>
       </div>
       <div class="sh2">Schedule</div>
-      <div class="st-live" id="stLive"><span class="dot"></span><b>Grinding</b><span class="pill" id="stLtask" style="background:#9B6EF322;color:var(--violet)">📚 Course</span><span class="tiny">checked in 3:27 PM</span><span class="tm" id="stLtm">00:00</span><button class="sm">Switch</button><button class="sm">Pause</button></div>
       <div class="card" id="stSched">
         <div class="st-tl"><div class="st-tli"><span class="tm">9:00 AM</span><div><b>🔥 Block 1</b><small>🧩 2h · 📨 1h</small></div></div><div class="st-tli"><span class="tm">12:00 PM</span><div><b>🎮 Free · friends can book</b><small>💬 Jordan · 1:00 PM – 2:00 PM</small></div></div><div class="st-tli"><span class="tm">3:00 PM</span><div><b>🔥 Block 2</b><small>📚 2h · 🧩 1h</small></div></div></div>
         <div class="st-foot"><button class="sm">✍️ Log a past grind</button><button class="pri sm" id="stGo">🔥 Start grind now</button></div>
@@ -466,7 +472,7 @@ tx=Math.min(0,Math.max(960/z-960,tx));ty=Math.min(0,Math.max(540/z-540,ty));zoom
 var visAt=0;function isVis(){var now=Date.now();if(now-visAt>300){visAt=now;var b=root.getBoundingClientRect();visible=b.height===0||(b.bottom>0&&b.top<(window.innerHeight||800));}return visible;}
 function sleep(ms){var mr=run;return new Promise(function(r){var t=0;(function tick(){if(run!==mr)return r();if(!paused&&isVis())t+=50;if(t>=ms)return r();setTimeout(tick,50);})();});}
 async function move(el,dx,dy){var m=mid(el);cur.style.left=(m[0]-3+(dx||0))+'px';cur.style.top=(m[1]-3+(dy||0))+'px';await sleep(820);}
-async function click(el){var m=mid(el);rip.style.left=m[0]+'px';rip.style.top=m[1]+'px';rip.classList.remove('go');void rip.offsetWidth;rip.classList.add('go');cur.classList.add('press');el.classList.add('press');await sleep(160);cur.classList.remove('press');el.classList.remove('press');await sleep(260);}
+async function click(el,dx,dy){var m=mid(el);rip.style.left=(m[0]+(dx||0))+'px';rip.style.top=(m[1]+(dy||0))+'px';rip.classList.remove('go');void rip.offsetWidth;rip.classList.add('go');cur.classList.add('press');el.classList.add('press');await sleep(160);cur.classList.remove('press');el.classList.remove('press');await sleep(260);}
 async function type(box,txt,text){box.classList.remove('ph');box.classList.add('on');txt.textContent='';for(var i=0;i<text.length;i++){txt.textContent+=text[i];await sleep(text[i]===' '?60:40);}}
 async function typeIn(el,text,speed){for(var i=0;i<text.length;i++){el.innerHTML+=text[i]==='<'?'&lt;':text[i];await sleep(speed||28);}}
 function say(n,text){cap.classList.remove('on');document.getElementById('stFF').classList.remove('on');setTimeout(function(){document.getElementById('stCapN').textContent=n;document.getElementById('stCapT').textContent=text;cap.classList.add('on');},200);
@@ -475,7 +481,7 @@ var row=rows[story];if(row)Array.prototype.forEach.call(row.children,function(s,
 function bar(n,ms){var b=bars[n-1];if(!b)return;var f=b.firstChild;requestAnimationFrame(function(){f.style.transition='width '+ms+'ms linear';f.style.width='100%';});}
 function ringSet(svgEl,circ,frac){var p=svgEl.querySelector('circle.p');p.style.strokeDashoffset=String(circ*(1-frac));}
 function pop(text,ms){toast.textContent=text;toast.classList.add('on');setTimeout(function(){toast.classList.remove('on');},ms||2600);}
-function load(i){story=i;var t=document.getElementById('stT-'+IDS[i]);sc.classList.add('swap');sc.innerHTML=t.innerHTML;sc.appendChild(rip);sc.appendChild(cur);
+function load(i){story=i;document.getElementById('stFF').textContent='⏩ 7 min later';var t=document.getElementById('stT-'+IDS[i]);sc.classList.add('swap');sc.innerHTML=t.innerHTML;sc.appendChild(rip);sc.appendChild(cur);
 zoomZ=1;zoomX=0;zoomY=0;applyT();void sc.offsetWidth;sc.classList.remove('swap');
 cur.style.left='480px';cur.style.top='300px';
 barEl.innerHTML='';bars=[];for(var k=0;k<N[i];k++){var b=document.createElement('i');b.innerHTML='<b></b>';barEl.appendChild(b);bars.push(b);}
@@ -518,7 +524,7 @@ zoomTo(null,1);var tabS=q('stTabStats');await move(tabS);await click(tabS);
 tabS.classList.add('on');q('stTabSolve').classList.remove('on');q('stPgSolve').classList.remove('on');q('stPgStats').classList.add('on');await sleep(900);
 var list=q('stList');zoomTo(list.parentElement,1.3,.5,.5);await sleep(600);
 list.style.transform='translateY(-150px)';await sleep(1700);
-var rx=q('stRowX');await move(rx,-150,0);await click(rx);rx.classList.add('open');await sleep(2200);if(my!==run)return;
+var rx=q('stRowX');await move(rx,-150,-150);await click(rx,-150,-150);rx.classList.add('open');await sleep(2200);if(my!==run)return;
 say(7,'Come back to these: the newest try was not a solve. Tap it to load it.');bar(7,5200);
 var back=q('stBack');zoomTo(back.parentElement,1.35,.5,.3);await sleep(700);
 await move(back,-60,0);await click(back);await sleep(300);
@@ -537,7 +543,7 @@ tb.innerHTML+='\\n<span class="c">POST /api/jobs  Bearer lk_agent_…</span>';aw
 say(3,'The row is in the table, today\\u2019s goal moved with it.');bar(3,4600);
 term.classList.remove('on');zoomTo(null,1);await sleep(600);
 var nr=q('stJnew');nr.classList.remove('hide');q('stJn').textContent='1';q('stJtot').textContent='155 logged';q('stJall').textContent='155';q('stJap').textContent='131';
-zoomTo(nr,1.3,.4,.5);await sleep(3200);if(my!==run)return;
+zoomTo(nr,1.15,.62,.5);await sleep(3200);if(my!==run)return;
 say(4,'Got an online assessment? Change the status right there.');bar(4,4200);
 var sel=q('stJnewS');await move(sel);await click(sel);await sleep(300);sel.textContent='OA ⌄';sel.className='sel oa';q('stJoa').textContent='2';q('stJap').textContent='130';pop('📨 T-Mobile → OA',2000);await sleep(2600);}
 
@@ -552,20 +558,20 @@ say(2,'Pin it and it stays on this day when the plan shifts.');bar(2,3600);
 var pin=q('stPin');await move(pin);await click(pin);pin.classList.add('on');await sleep(600);
 var tadd=q('stTadd');await move(tadd);await click(tadd);q('stNt').classList.remove('on');q('stTnew').style.display='';addb.style.display='';tin.classList.remove('on');await sleep(900);if(my!==run)return;
 say(3,'Off-plan grind? Start grind now, no block needed.');bar(3,4200);
-zoomTo(q('stSched'),1.3,.5,.6);await sleep(700);
+zoomTo(q('stSched'),1.2,.5,.85);await sleep(700);
 var go=q('stGo');await move(go);await click(go);zoomTo(null,1);q('stPick').classList.add('on');await sleep(900);if(my!==run)return;
 say(4,'Pick what you are grinding. Switch any time, splits are kept.');bar(4,3400);
 var pc=q('stPickC');await move(pc,-80,0);await click(pc);q('stPick').classList.remove('on');await sleep(400);
-q('stLive').classList.add('on');await sleep(600);if(my!==run)return;
-say(5,'The session runs across every tab until you stop it.');bar(5,5200);
-zoomTo(q('stLive'),1.35,.5,.5);var t=q('stLtm');for(var s=1;s<=5;s++){t.textContent='00:0'+s;await sleep(800);}await sleep(1000);}
+zoomTo(null,1);q('stLive').classList.add('on');await sleep(900);if(my!==run)return;
+say(5,'The session runs across every tab until you check out.');bar(5,5600);
+zoomTo(q('stLive'),1.25,.5,.5);var t=q('stLtm');await sleep(1200);t.textContent='1m';await sleep(1200);document.getElementById('stFF').classList.add('on');document.getElementById('stFF').textContent='⏩ later';await sleep(500);t.textContent='47m';await sleep(2200);}
 
 // ---- story 4: Quick Copy ----
 async function playCopy(my){
 say(1,'Everything you keep retyping into forms lives here. Add a block.');bar(1,7800);
 var ab=q('stAddB');await move(ab);await click(ab);q('stBm').classList.add('on');await sleep(700);
-var bt=q('stBt');await move(bt,-110,0);await click(bt);await type(bt,q('stBtT'),'Work authorization');
-var bv=q('stBv');await move(bv,-110,-6);await click(bv);await type(bv,q('stBvT'),'F-1 OPT, then STEM OPT extension (3 years)');await sleep(300);if(my!==run)return;
+var bt=q('stBt');await move(bt,-110,0);await click(bt);await type(bt,q('stBtT'),'Work authorization');bt.classList.remove('on');
+var bv=q('stBv');await move(bv,-110,-6);await click(bv);await type(bv,q('stBvT'),'F-1 OPT, then STEM OPT extension (3 years)');bv.classList.remove('on');await sleep(300);if(my!==run)return;
 say(2,'Sub-items copy on their own: the short answer, the sponsorship line.');bar(2,6400);
 var sa=q('stSubAdd');await move(sa);await click(sa);q('stSub1').style.display='';await sleep(300);
 var sv=q('stSubV');await move(sv,-60,0);await click(sv);await type(sv,q('stSubVT'),'Yes, OPT');sv.classList.remove('on');
