@@ -145,6 +145,8 @@ export async function loadCfg(db) {
       size: Math.min(920, Math.max(280, parseInt(s.clock_size || '360', 10) || 360)),
       font: Math.min(18, Math.max(9, parseInt(s.clock_font || '12', 10) || 12)),
       accent: /^#[0-9a-fA-F]{6}$/.test(s.clock_accent || '') ? s.clock_accent : '',
+      // colour of the thin inner arcs drawn for grind sessions you checked in to yourself
+      logged: /^#[0-9a-fA-F]{6}$/.test(s.clock_logged || '') ? s.clock_logged : '',
     },
     mclock: {
       design: ['pill', 'led', 'analog', 'flip', 'ring'].includes(s.mclock_design) ? s.mclock_design : 'pill',

@@ -1180,6 +1180,7 @@ const applySettings = async (c, b) => {
   if (b.clockSize !== undefined) await setSetting(db, 'clock_size', String(Math.min(920, Math.max(280, +b.clockSize || 360))));
   if (b.clockFont !== undefined) await setSetting(db, 'clock_font', String(Math.min(18, Math.max(9, +b.clockFont || 12))));
   if (b.clockAccent !== undefined) await setSetting(db, 'clock_accent', /^#[0-9a-fA-F]{6}$/.test(b.clockAccent) ? b.clockAccent : '');
+  if (b.clockLogged !== undefined) await setSetting(db, 'clock_logged', /^#[0-9a-fA-F]{6}$/.test(b.clockLogged) ? b.clockLogged : '');
   if (b.todayLayout !== undefined && ['classic', 'refined'].includes(b.todayLayout)) await setSetting(db, 'today_layout', b.todayLayout);
   if (b.bgStyle !== undefined && ['aurora', 'dots', 'plain'].includes(b.bgStyle)) await setSetting(db, 'bg_style', b.bgStyle);
   if (b.mclockDesign !== undefined && ['pill', 'led', 'analog', 'flip', 'ring'].includes(b.mclockDesign)) await setSetting(db, 'mclock_design', b.mclockDesign);

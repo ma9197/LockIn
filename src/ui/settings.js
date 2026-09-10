@@ -184,7 +184,8 @@ ${sec('clock', 'Day clock', 'The 12-hour dial on Today that shows your blocks ar
   <div class="fg"><label class="fld">Design</label><div class="picks" id="ckDesigns"></div></div>
   <div class="fg"><label class="fld">Size</label><div class="rangerow"><input id="ck-size" type="range" min="280" max="920" step="20"><span class="num"><span id="ckSizeVal"></span>px</span></div></div>
   <div class="fg"><label class="fld">Number size</label><div class="rangerow"><input id="ck-font" type="range" min="9" max="18" step="1"><span class="num" id="ckFontVal"></span></div></div>
-  <div class="fg"><label class="fld">Grind colour</label><div class="colorrow"><input id="ck-accent" type="color" aria-label="grind colour"><span class="tiny" id="ck-accent-state"></span><button class="ghost sm" onclick="D.clock.accent='';renderClockCtl();mark()">Use the design colour</button></div></div>
+  <div class="fg"><label class="fld">Grind block colour</label><div class="colorrow"><input id="ck-accent" type="color" aria-label="grind block colour"><span class="tiny" id="ck-accent-state"></span><button class="ghost sm" onclick="D.clock.accent='';renderClockCtl();mark()">Use the design colour</button></div><div class="hint">The planned grind blocks on the outer band. The hand stays the design colour.</div></div>
+  <div class="fg"><label class="fld">Checked-in grind colour</label><div class="colorrow"><input id="ck-logged" type="color" aria-label="checked-in grind colour"><span class="tiny" id="ck-logged-state"></span><button class="ghost sm" onclick="D.clock.logged='';renderClockCtl();mark()">Use green</button></div><div class="hint">The thin inner arcs drawn for sessions you checked in to yourself.</div></div>
 </div>`)}
 ${sec('mclock', 'Top-right clock', 'The small clock that follows you on every page. It previews here as you change it.', `
 <div class="card">
@@ -332,7 +333,7 @@ cats:S.categories.map(c=>({id:c.id,name:c.name,emoji:c.emoji,color:c.color,goal_
 sides:S.sideTasks.map(t=>({id:t.id,name:t.name,emoji:t.emoji,days:String(t.days).split(',').filter(x=>x!=='').map(Number),start:t.start,end:t.end,date_from:t.date_from||null,date_to:t.date_to||null,enabled:t.enabled?1:0})),
 sched:JSON.parse(JSON.stringify(S.sched)),modules:{...S.modules},grindTarget:S.grindTarget,todayLayout:S.todayLayout,bgStyle:S.bgStyle||'aurora',
 timerDefault:S.timerDefault,timerOptions:S.timerOptions.join(', '),
-clock:{design:S.clock.design,size:S.clock.size,font:S.clock.font,accent:S.clock.accent||''},
+clock:{design:S.clock.design,size:S.clock.size,font:S.clock.font,accent:S.clock.accent||'',logged:S.clock.logged||''},
 mclock:{design:S.mclock.design,font:S.mclock.font,accent:S.mclock.accent||''},
 booking:{enabled:!!S.bookingEnabled,days:S.bookingDays,avail:S.availability.map(a=>[a[0],a[1]]),perDevice:S.bookingPerDevice,perSlot:S.bookingPerSlot,durations:S.bookingDurations.join(', ')},
 share:{title:sh.title||'',overview:!!sh.overview,lc:!!sh.lc,grind:!!sh.grind,jobs:!!sh.jobs,lcNames:!!sh.lcNames,friends:!!sh.friends,offReasons:!!sh.offReasons},
@@ -508,7 +509,9 @@ $('ck-font').value=C.font;$('ckFontVal').textContent=C.font;
 $('ck-accent').value=C.accent||'#FF6B35';$('ck-accent-state').textContent=C.accent?'custom '+C.accent:'design colour';
 $('ck-size').oninput=()=>{D.clock.size=+$('ck-size').value;$('ckSizeVal').textContent=D.clock.size;mark();};
 $('ck-font').oninput=()=>{D.clock.font=+$('ck-font').value;$('ckFontVal').textContent=D.clock.font;mark();};
-$('ck-accent').oninput=()=>{D.clock.accent=$('ck-accent').value;$('ck-accent-state').textContent='custom '+D.clock.accent;mark();};}
+$('ck-accent').oninput=()=>{D.clock.accent=$('ck-accent').value;$('ck-accent-state').textContent='custom '+D.clock.accent;mark();};
+$('ck-logged').value=C.logged||'#3DDC97';$('ck-logged-state').textContent=C.logged?'custom '+C.logged:'green';
+$('ck-logged').oninput=()=>{D.clock.logged=$('ck-logged').value;$('ck-logged-state').textContent='custom '+D.clock.logged;mark();};}
 const MCNAMES={pill:'Pill',led:'LED',analog:'Analog',flip:'Flip',ring:'Day ring'};
 let mcInt=null;
 function mcPreview(){window.__MCLOCK={design:D.mclock.design,font:D.mclock.font,accent:D.mclock.accent};}
@@ -544,7 +547,7 @@ for(const t of D.sides){if(!t.name.trim())return bad('sides','Name every side ta
 const sh=D.share;
 const body={settings:{timezone:D.tz,clock24:D.clock24,modules:D.modules,grindTarget:+D.grindTarget||6,todayLayout:D.todayLayout,bgStyle:D.bgStyle,
 timerDefault:+D.timerDefault,timerOptions:nums(D.timerOptions),
-clockDesign:D.clock.design,clockSize:+D.clock.size,clockFont:+D.clock.font,clockAccent:D.clock.accent||'',
+clockDesign:D.clock.design,clockSize:+D.clock.size,clockFont:+D.clock.font,clockAccent:D.clock.accent||'',clockLogged:D.clock.logged||'',
 mclockDesign:D.mclock.design,mclockFont:+D.mclock.font,mclockAccent:D.mclock.accent||'',
 bookingEnabled:D.booking.enabled,bookingDays:+D.booking.days,availability:D.booking.avail,bookingPerDevice:+D.booking.perDevice,bookingPerSlot:+D.booking.perSlot,bookingDurations:nums(D.booking.durations),
 shareTitle:sh.title,shareOverview:sh.overview,shareLc:sh.lc,shareGrind:sh.grind,shareJobs:sh.jobs,shareLcNames:sh.lcNames,shareFriends:sh.friends,shareOffReasons:sh.offReasons,

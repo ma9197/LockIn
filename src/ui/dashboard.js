@@ -455,8 +455,11 @@ function renderClock(){
 const CK=(J.clock)||{design:'ember',size:360,font:12,accent:''};
 const DS=CLOCK_DESIGNS[CK.design]||CLOCK_DESIGNS.ember;
 const col=Object.assign({},DS.colors);
-let hand=DS.hand;
-if(CK.accent){col.grind=CK.accent;hand=CK.accent;}
+// the hand keeps the design colour; the accent only recolours the planned grind blocks
+const hand=DS.hand;
+if(CK.accent)col.grind=CK.accent;
+// sessions you checked in to yourself: thin inner arcs, green unless customised
+col.logged=CK.logged||'#3DDC97';
 const C=150,R=100,W=24,FACE=146;
 const nowAbs=D===TODAY?hmMin(nowNY().slice(11,16)):null;
 const items=[];
@@ -469,7 +472,7 @@ const s=hmMin(ses.start_ts.slice(11,16)),e=hmMin(ses.end_ts.slice(11,16));
 inner.push({s,e:e<s?e+1440:e,color:col.free});}
 for(const g of (J.grind||[]).filter(g=>g.end_ts)){
 const s=hmMin(g.start_ts.slice(11,16)),e=hmMin(g.end_ts.slice(11,16));
-inner.push({s,e:e<s?e+1440:e,color:col.grind});}
+inner.push({s,e:e<s?e+1440:e,color:col.logged});}
 const dist=it=>{
 if(nowAbs===null)return it.s;
 if(nowAbs>=it.s&&nowAbs<it.e)return 0;
