@@ -670,18 +670,19 @@ app.post('/api/grind/start', async c => {
   return json(c, { ok: true, active: a });
 });
 const nyNow = c => nowIn(c.env.TZ);
-const foldPause = async (db, id) => {
+// Both helpers take the zone explicitly: they run outside a request handler, so there is no `c` here.
+const foldPause = async (db, id, tz) => {
   const s = await db.prepare('SELECT paused_at, paused_min FROM grind_sessions WHERE id=?').bind(id).first();
   if (s && s.paused_at) {
-    const extra = Math.max(0, Math.round((new Date(nyNow(c)) - new Date(s.paused_at)) / 60000));
+    const extra = Math.max(0, Math.round((new Date(nowIn(tz)) - new Date(s.paused_at)) / 60000));
     await db.prepare('UPDATE grind_sessions SET paused_min=paused_min+?, cur_paused=cur_paused+?, paused_at=NULL WHERE id=?').bind(extra, extra, id).run();
   }
 };
 // close the running task segment: append its worked minutes to splits, restart the segment clock
-const foldSegment = async (db, id, nextTask) => {
+const foldSegment = async (db, id, nextTask, tz) => {
   const s = await db.prepare('SELECT * FROM grind_sessions WHERE id=?').bind(id).first();
   if (!s) return;
-  const now = nyNow(c);
+  const now = nowIn(tz);
   if (s.cur_task && s.cur_since) {
     const m = Math.max(0, Math.round((new Date(now) - new Date(s.cur_since)) / 60000) - (s.cur_paused || 0));
     if (m >= 1) {
@@ -700,8 +701,8 @@ app.post('/api/grind/switch', async c => {
   if (!c.get('cfg').catKeys.includes(task)) return json(c, { error: 'bad task' }, 400);
   const s = await db.prepare('SELECT id FROM grind_sessions WHERE id=? AND end_ts IS NULL').bind(+id).first();
   if (!s) return json(c, { error: 'no active session' }, 400);
-  await foldPause(db, +id);
-  await foldSegment(db, +id, task);
+  await foldPause(db, +id, c.env.TZ);
+  await foldSegment(db, +id, task, c.env.TZ);
   return json(c, { ok: true });
 });
 app.post('/api/grind/pause', async c => {
@@ -716,7 +717,7 @@ app.post('/api/grind/resume', async c => {
   const { id } = await c.req.json();
   const s = await db.prepare('SELECT paused_at FROM grind_sessions WHERE id=? AND end_ts IS NULL').bind(+id).first();
   if (!s || !s.paused_at) return json(c, { error: 'not paused' }, 400);
-  await foldPause(db, +id);
+  await foldPause(db, +id, c.env.TZ);
   return json(c, { ok: true });
 });
 // paused time you meant to resume is not rest, it is lost grind: hand it back to the task
@@ -773,8 +774,8 @@ app.post('/api/grind/log', async c => {
 app.post('/api/grind/stop', async c => {
   const db = c.env.DB;
   const { id } = await c.req.json();
-  await foldPause(db, +id);
-  await foldSegment(db, +id, null);
+  await foldPause(db, +id, c.env.TZ);
+  await foldSegment(db, +id, null, c.env.TZ);
   await db.prepare('UPDATE grind_sessions SET end_ts=? WHERE id=? AND end_ts IS NULL').bind(nyNow(c), +id).run();
   const s = await db.prepare('SELECT * FROM grind_sessions WHERE id=?').bind(+id).first();
   return json(c, { ok: true, session: s });
