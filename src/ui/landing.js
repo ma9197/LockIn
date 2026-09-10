@@ -281,8 +281,20 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 
 /* ---------- phones: a layout of its own, not the desktop page squeezed ---------- */
 .only-m{display:none}
+.ld-mtour{display:none}
 @media(max-width:599px){
   .only-m{display:inline}.only-d{display:none}
+  .m-hide,.ld-panel{display:none!important}
+  .ld-mtour{display:grid;gap:8px;margin-top:16px}
+  .ld-mt{display:flex;gap:12px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px}
+  .ld-mt .tile{width:36px;height:36px;font-size:18px;border-radius:10px}
+  .ld-mt b{display:block;font:800 15px var(--disp);margin-bottom:2px}
+  .ld-mt p{color:var(--ink2);font-size:13px;line-height:1.45}
+  .ld-h1{margin-top:8px}
+  .ld-sh p{display:none}
+  .ld-sh{flex-direction:row;align-items:center;gap:10px;padding:12px}
+  .ld-sh b{margin:0;font-size:14px}
+  .ld-priv .ld-h2{margin-bottom:12px}
   .wrap{padding:0 16px 32px}
   .ld-top{padding:12px 0}
   .ld-top .logo{font-size:18px}
@@ -363,11 +375,11 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 
 <section class="ld-hero">
   <div class="ld-copy">
-  <span class="ld-eyebrow">🎓 For CS students on the job hunt</span>
+  <span class="ld-eyebrow m-hide">🎓 For CS students on the job hunt</span>
   <h1 class="ld-h1">Lock in. Track the grind. <em>Land your Goal.</em></h1>
-  <p class="ld-lead"><span class="only-d">Daily goals for every category you grind, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, schedule blocks that step around your gym and classes, streaks, pace against your plan and a finish-line forecast. <b>Phone first, laptop ready.</b></span><span class="only-m">Daily goals, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, and a schedule that steps around your life. <b>Phone first.</b></span></p>
-  <div class="ld-cta"><a class="ld-btn pri big" href="/signup">Create your account</a><a class="ld-btn big" href="#tour">See every tab ↓</a></div>
-  <div class="ld-trust"><span><i></i>Free</span><span><i></i>Open source, MIT</span><span><i></i>Your own private database</span><span><i></i>Set up in three minutes</span></div>
+  <p class="ld-lead"><span class="only-d">Daily goals for every category you grind, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, schedule blocks that step around your gym and classes, streaks, pace against your plan and a finish-line forecast. <b>Phone first, laptop ready.</b></span><span class="only-m">Daily goals, a focus timer, a <b>LeetCode log</b>, an <b>application tracker</b> and a schedule that steps around your life.</span></p>
+  <div class="ld-cta m-hide"><a class="ld-btn pri big" href="/signup">Create your account</a><a class="ld-btn big" href="#tour">See every tab ↓</a></div>
+  <div class="ld-trust m-hide"><span><i></i>Free</span><span><i></i>Open source, MIT</span><span><i></i>Your own private database</span><span><i></i>Set up in three minutes</span></div>
   </div>
 
   <div class="ld-demo">
@@ -414,8 +426,15 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 <section class="ld-sec" id="tour">
   <div class="ld-kick">The tour</div>
   <h2 class="ld-h2">Every tab, working.</h2>
-  <p class="ld-sub">These are the real components on sample data. Change a status, log an attempt, type the PIN, book a slot.</p>
-  <div class="tabbar ld-tabs" id="ldTabs"><button class="on" data-tab="lc">🧩 LeetCode</button><button data-tab="jobs">📨 Jobs</button><button data-tab="prog">📈 Progress</button><button data-tab="share">🔒 Share & book</button><button data-tab="api">🤖 API</button></div>
+  <p class="ld-sub m-hide">These are the real components on sample data. Change a status, log an attempt, type the PIN, book a slot.</p>
+  <div class="ld-mtour">
+    <div class="ld-mt"><span class="tile">🧩</span><div><b>LeetCode log</b><p>Attempts, reruns, one note per problem, solve-time stats.</p></div></div>
+    <div class="ld-mt"><span class="tile">📨</span><div><b>Applications</b><p>A funnel by status, platforms, and an API key for an agent.</p></div></div>
+    <div class="ld-mt"><span class="tile">📈</span><div><b>Progress</b><p>Streak, pace against the plan, weekday pattern, finish-line forecast.</p></div></div>
+    <div class="ld-mt"><span class="tile">🔒</span><div><b>Share and book</b><p>Read-only progress behind a PIN. Friends book your free time.</p></div></div>
+    <div class="ld-mt"><span class="tile">🤖</span><div><b>API</b><p>A read-only key so Claude reads your log the way the app counts it.</p></div></div>
+  </div>
+  <div class="tabbar ld-tabs m-hide" id="ldTabs"><button class="on" data-tab="lc">🧩 LeetCode</button><button data-tab="jobs">📨 Jobs</button><button data-tab="prog">📈 Progress</button><button data-tab="share">🔒 Share & book</button><button data-tab="api">🤖 API</button></div>
 
   <div class="tabpane on ld-panel" id="ldp-lc">
     <div class="ld-two">
@@ -530,13 +549,13 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
 <section class="ld-sec">
   <div class="ld-kick">Three minutes</div>
   <h2 class="ld-h2">Sign up, answer seven questions, grind.</h2>
-  <p class="ld-sub">Nothing is seeded and nothing is assumed. The wizard builds your plan, your categories and your schedule, and every answer can be changed later in Settings.</p>
+  <p class="ld-sub m-hide">Nothing is seeded and nothing is assumed. The wizard builds your plan, your categories and your schedule, and every answer can be changed later in Settings.</p>
   <div class="ld-feat rv">
     <div class="ld-fc"><span class="n">1</span><b>Create an account</b><p>Email and password. No social sign-in, no tracking, no newsletter.</p></div>
     <div class="ld-fc"><span class="n">2</span><b>Set up in seven steps</b><p>Each one is a single screen with a live preview. The seven screens run in the order shown below.</p></div>
     <div class="ld-fc"><span class="n">3</span><b>Open Today</b><p>Your goals, your blocks, your timer. Log a problem, press + on a ring, check in to a block. The streak starts counting.</p></div>
   </div>
-  <div class="snakewrap rv"><div class="snakecap">Step 2, screen by screen</div><ol class="snake" aria-label="the seven setup screens, in order">${STEP_NAMES.map((s, i) => `<li class="s${i + 1}"><b>${i + 1}</b><span>${s}</span></li>`).join('')}</ol></div>
+  <div class="snakewrap rv m-hide"><div class="snakecap">Step 2, screen by screen</div><ol class="snake" aria-label="the seven setup screens, in order">${STEP_NAMES.map((s, i) => `<li class="s${i + 1}"><b>${i + 1}</b><span>${s}</span></li>`).join('')}</ol></div>
 </section>
 
 <section class="ld-sec">
@@ -557,7 +576,7 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
     <div>
       <div class="ld-kick">Private by construction</div>
       <h2 class="ld-h2" style="font-size:clamp(24px,4vw,34px)">Your data lives in its own database.</h2>
-      <p class="ld-sub" style="font-size:15px">Every account gets a separate SQLite database inside a Cloudflare Durable Object. There is no shared table of user data, so one user's rows are unreachable from another's by design, not by discipline. A small central store holds only accounts, sessions and key hashes.</p>
+      <p class="ld-sub m-hide" style="font-size:15px">Every account gets a separate SQLite database inside a Cloudflare Durable Object. There is no shared table of user data, so one user's rows are unreachable from another's by design, not by discipline. A small central store holds only accounts, sessions and key hashes.</p>
     </div>
     <ul>
       <li><i>✓</i><span>Export everything as JSON any time. Import it back into any LockIn.</span></li>
