@@ -14,6 +14,26 @@ export const CSS = `
   --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
+/* scrollbars: thin, rounded, no track, so scroll areas do not look like a browser default */
+*{scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:var(--line2);border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+*::-webkit-scrollbar-thumb:hover{background:var(--ink3);background-clip:padding-box}
+*::-webkit-scrollbar-button{display:none;height:0;width:0}
+.scrollbox{max-height:360px;overflow-y:auto;padding-right:8px;margin-right:-8px}
+/* history rows: date · value / goal · a bar against the goal · state */
+.hrow{display:grid;grid-template-columns:104px 72px minmax(60px,1fr) 64px;align-items:center;gap:12px;padding:10px 4px;border-bottom:1px solid var(--line);font-size:14px}
+.hrow:last-child{border-bottom:0}
+.hrow .hd{color:var(--ink2);font:700 13px var(--disp);white-space:nowrap}
+.hrow .hv b{font:800 16px var(--disp)}
+.hrow .hv i{font-style:normal;color:var(--ink3);font-size:12px;margin-left:4px}
+.hrow .hbar{height:8px;border-radius:99px;background:var(--surface2);overflow:hidden}
+.hrow .hbar i{display:block;height:100%;border-radius:99px;background:var(--ice);opacity:.7}
+.hrow.hit .hbar i{background:var(--mint);opacity:.95}
+.hrow .hst{text-align:right;font:700 12px var(--disp);color:var(--ink3);white-space:nowrap}
+.hrow.hit .hst{color:var(--mint)}
+@media(max-width:480px){.hrow{grid-template-columns:88px 64px 1fr 56px;gap:8px;font-size:13px}.hrow .hd{font-size:12px}}
 html{-webkit-text-size-adjust:100%}
 body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body);padding-bottom:calc(74px + env(safe-area-inset-bottom))}
 a{color:var(--ice);text-decoration:none}

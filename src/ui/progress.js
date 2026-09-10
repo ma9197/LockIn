@@ -94,7 +94,7 @@ ${pane('jobs', `<section class="tabpane${firstTab === 'jobs' ? ' on' : ''}" data
   ${sh('Applications · last 30 days', 'Applications sent per day against that day\u2019s goal.')}
   <div class="card" id="chart-apps"><div class="skel">Loading…</div></div>
   ${sh('Daily history', 'Every day with at least one application.')}
-  <div class="card"><div id="list-apps" style="max-height:340px;overflow-y:auto"></div></div>
+  <div class="card"><div id="list-apps" class="scrollbox"></div></div>
 </section>`)}
 
 ${pane('friends', `<section class="tabpane${firstTab === 'friends' ? ' on' : ''}" data-t="friends">
@@ -468,9 +468,10 @@ summary:st=>{const hit=st.data.filter(d=>d.hit).length,withGoal=st.data.filter(d
 return [['sent',String(Math.round(st.sum))],['best day',String(Math.round(st.best))],
 ['active days',st.active+' / '+st.n],['goal hit',hit+(withGoal?' / '+withGoal:'')]];}});
 $('list-apps').innerHTML=j.history.apps.length?j.history.apps.map(r=>
-'<div class="exp-row"><span class="num" style="color:var(--ink2);min-width:96px">'+fmtD(r.d)+'</span>'
-+'<b class="num">'+r.v+'</b><span class="tiny">/ '+r.g+'</span><span class="grow"></span>'
-+(r.g>0?(r.v>=r.g?'<span style="color:var(--mint)">✓</span>':'<span style="color:var(--ink3)">✗</span>'):'')+'</div>').join('')
+'<div class="hrow'+(r.g>0&&r.v>=r.g?' hit':'')+'"><span class="hd">'+fmtD(r.d)+'</span>'
++'<span class="hv num"><b>'+r.v+'</b>'+(r.g>0?'<i>/ '+r.g+'</i>':'')+'</span>'
++'<span class="hbar"><i style="width:'+(r.g>0?Math.min(100,Math.round(r.v/r.g*100)):100)+'%"></i></span>'
++'<span class="hst">'+(r.g>0?(r.v>=r.g?'✓ hit':'short'):'no goal')+'</span></div>').join('')
 :'<div class="skel">Nothing yet.</div>';
 }
 
