@@ -207,8 +207,6 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .stage .laptop{display:none}
   .phwrap{position:relative;justify-content:center}
   .phone{pointer-events:none}
-  .ph-view{max-height:min(540px,68vh)}
-  .phwrap::after{content:'';position:absolute;left:0;right:0;bottom:0;height:140px;background:linear-gradient(180deg,rgba(11,14,20,0),var(--bg) 92%);pointer-events:none}
   .ld-hero{padding-top:16px}
   .ld-eyebrow{font-size:11px;padding:8px 12px}
   .ld-h1{font-size:clamp(36px,10.5vw,44px);margin:16px 0 12px}
@@ -310,8 +308,6 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   .ld-trust{margin-top:14px;gap:6px 12px;font-size:12px;color:var(--ink3)}
   .ld-trust span{gap:6px}
   .stage{margin-top:28px}
-  .ph-view{max-height:min(460px,60vh)}
-  .phwrap::after{height:120px}
   /* sections */
   .ld-sec{padding:48px 0 0}
   .ld-kick{font-size:11px;letter-spacing:.12em}
@@ -599,7 +595,7 @@ return dp[amount] if dp[amount] &lt; inf else -1</pre></div>
 // ---- laptop mock: render the desktop layout at 1180x720 and scale it to the frame ----
 function lpScale(){document.querySelectorAll('.stage').forEach(st=>{const l=st.querySelector('.laptop'),v=st.querySelector('.lp-view'),lw=v?v.clientWidth:0;
 if(lw>0){const s=(lw/1180).toFixed(4);l.style.setProperty('--lps',s);st.style.setProperty('--lps',s);st.style.setProperty('--ppb',s);}
-else{const w=st.querySelector('.phwrap');st.style.setProperty('--ppb',Math.min(1,((w?w.clientWidth:375)-24)/375).toFixed(4));}});}
+else{const w=st.querySelector('.phwrap');const byW=((w?w.clientWidth:375)-24)/375,byH=Math.min(560,window.innerHeight*0.66)/812;st.style.setProperty('--ppb',Math.min(1,byW,byH).toFixed(4));}});}
 window.addEventListener('resize',lpScale);lpScale();
 setTimeout(lpScale,700);
 
