@@ -284,6 +284,31 @@ NB[i].body=before;
 NB.splice(i+1,0,{type:'code',body:code});
 NB.splice(i+2,0,{type:'text',body:after});
 renderNotes();focusBlock(i+2);scheduleSave();toast('Pasted as a code block');}
+// ---- Format: fix code that was pasted with broken indentation ----
+function fmtCode(src){
+let lines=src.replace(/\\r\\n?/g,'\\n').split('\\n').map(l=>l.replace(/\\t/g,'    ').replace(/\\s+$/,''));
+while(lines.length&&!lines[0].trim())lines.shift();
+while(lines.length&&!lines[lines.length-1].trim())lines.pop();
+if(!lines.length)return src;
+const ind=l=>l.match(/^ */)[0].length;
+const common=Math.min.apply(null,lines.filter(l=>l.trim()).map(ind));
+lines=lines.map(l=>l.trim()?l.slice(common):'');
+const out=[];for(const l of lines){if(!l&&out.length&&!out[out.length-1])continue;out.push(l);}lines=out;
+const body=lines.join('\\n');
+const cl=lines.filter(l=>/[{}]\\s*$/.test(l)&&!/=\\s*\\{\\}\\s*$/.test(l)).length;
+const colons=lines.filter(l=>/:\\s*$/.test(l)).length;
+if(cl>colons){
+// C-like: indentation follows brace depth; a leading } closes before the line is placed
+let depth=0;const res=[];
+for(const raw of lines){const t=raw.trim();if(!t){res.push('');continue;}
+const closeFirst=/^[}\\])]/.test(t);const d=Math.max(0,depth-(closeFirst?1:0));
+res.push('    '.repeat(d)+t);
+for(const ch of t){if(ch==='{'||ch==='('||ch==='[')depth++;else if(ch==='}'||ch===')'||ch===']')depth=Math.max(0,depth-1);}}
+return res.join('\\n');}
+// Python-like: keep the shape, rescale the indent unit to 4 spaces
+const units=lines.filter(l=>l.trim()&&ind(l)>0).map(ind);
+const unit=units.length?Math.min.apply(null,units):4;
+return lines.map(l=>l.trim()?'    '.repeat(Math.round(ind(l)/unit))+l.trim():'').join('\\n');}
 // ---- syntax colours: one regex pass, language agnostic (Python, JS/TS, Java, C++, Go) ----
 const KW=/\\b(?:def|class|return|if|elif|else|for|while|in|not|and|or|is|None|True|False|import|from|as|with|try|except|finally|raise|lambda|yield|pass|break|continue|global|nonlocal|del|assert|async|await|const|let|var|function|new|this|null|undefined|true|false|typeof|instanceof|switch|case|default|do|throw|catch|export|extends|super|static|public|private|protected|void|int|long|double|float|char|boolean|bool|string|auto|struct|enum|template|typename|namespace|using|include|fn|pub|mut|impl|match|go|func|package|range|interface|type|map|chan|defer|select)\\b/;
 const TOK=new RegExp('('+[
@@ -318,9 +343,9 @@ if(!PROB){host.innerHTML='<div class="skel">Pick a problem to open its notes.</d
 if(!NB.length)NB=[{type:'text',body:''}];
 if(NB[NB.length-1].type==='code')NB.push({type:'text',body:''});
 host.innerHTML=NB.map((b,i)=>b.type==='code'
-?'<div class="codewrap"><span class="codetag" id="ctag'+i+'">CODE</span><button class="cx" data-x="'+i+'">✕</button>'
+?'<div class="codewrap"><span class="codetag" id="ctag'+i+'">CODE</span><button class="cfmt" data-f="'+i+'" title="Re-indent this block">⇤ Format</button><button class="cx" data-x="'+i+'">✕</button>'
 +'<pre class="codehl" id="chl'+i+'" aria-hidden="true"></pre><textarea class="codearea" data-i="'+i+'" rows="3" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea></div>'
-:'<textarea class="notearea" data-i="'+i+'" rows="1" placeholder="'+(i===0?'What did you try? What tripped you up?':'')+'"></textarea>').join('');
+:'<textarea class="notearea" data-i="'+i+'" rows="1" placeholder="'+(i===0?'What did you try? What tripped you up? Write it like a message to future you.':'')+'"></textarea>').join('')+'<div class="notehint"><b>\u0060\u0060\u0060</b> opens a code block · <b>- </b> starts a list · pasted code is boxed and coloured on its own</div>';
 host.querySelectorAll('textarea').forEach(ta=>{
 const i=+ta.dataset.i;
 ta.value=NB[i].body||'';
@@ -328,6 +353,10 @@ autosize(ta);
 if(ta.classList.contains('codearea')){hl(i,ta.value);ta.addEventListener('keydown',e=>codeKey(e,i));
 ta.addEventListener('input',e=>{NB[i].body=e.target.value;autosize(e.target);hl(i,e.target.value);scheduleSave();});}
 else{ta.addEventListener('keydown',e=>noteKey(e,i));ta.addEventListener('input',e=>noteInput(e,i));ta.addEventListener('paste',e=>notePaste(e,i));}});
+host.querySelectorAll('.cfmt').forEach(b=>b.onclick=()=>{
+const i=+b.dataset.f,ta=host.querySelector('[data-i="'+i+'"]');if(!ta)return;
+const out=fmtCode(ta.value);if(out===ta.value){toast('Already tidy');return;}
+ta.value=out;NB[i].body=out;autosize(ta);hl(i,out);scheduleSave();toast('Formatted');});
 host.querySelectorAll('.cx').forEach(b=>b.onclick=()=>{
 const i=+b.dataset.x;NB.splice(i,1);
 if(!NB.length)NB=[{type:'text',body:''}];

@@ -410,10 +410,18 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
 }
 @media(min-width:1500px){ .lcgrid{grid-template-columns:400px minmax(0,1fr)} }
 .probhead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}
-.notearea{width:100%;background:transparent;border:0;border-radius:0;padding:4px 2px;
-  font:16px/1.65 var(--body);resize:none;overflow:hidden;min-height:34px}
+/* the notes card reads as a page to write on: warmer surface, a margin rule, roomier type */
+#noteCard.card{padding:20px 22px 16px 26px;background:linear-gradient(180deg,#181e2c,#131824);border-color:var(--line2);position:relative;box-shadow:inset 0 1px 0 #ffffff0a}
+#noteCard.card:before{content:'';position:absolute;left:14px;top:18px;bottom:18px;width:2px;border-radius:2px;background:linear-gradient(180deg,#FF6B3566,#FF6B3511)}
+.notearea{width:100%;background:transparent;border:0;border-radius:0;padding:2px 0;
+  font:400 16px/1.75 var(--body);color:var(--ink);resize:none;overflow:hidden;min-height:36px;caret-color:var(--ember)}
+.notearea::placeholder{color:var(--ink3);font-style:italic}
 .notearea:focus{outline:none}
+.notehint{margin-top:14px;padding-top:10px;border-top:1px dashed var(--line);font-size:12px;color:var(--ink3)}
+.notehint b{color:var(--ink2);font-weight:600;font-family:var(--mono)}
 .codewrap{position:relative;border:1px solid var(--line2);border-radius:var(--rs);background:#0E121B;margin:12px 0}
+.codewrap .cfmt{position:absolute;top:4px;right:34px;z-index:2;min-height:0;padding:3px 8px;font:700 11px var(--disp);background:transparent;border:1px solid transparent;color:var(--ink3);border-radius:8px;width:auto}
+.codewrap .cfmt:hover{color:var(--ink);border-color:var(--line2)}
 .codewrap .cx{position:absolute;top:3px;right:3px;padding:2px 8px;font-size:13px;background:transparent;
   border:0;color:var(--ink3);z-index:2;width:auto}
 .codetag{position:absolute;top:7px;left:11px;z-index:2;font:700 11px var(--disp);color:var(--ink3);letter-spacing:.14em}
