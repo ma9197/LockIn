@@ -98,7 +98,7 @@ p{line-height:1.55}
 .disc{display:flex;align-items:center;gap:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 
 /* ---------- quiet animated background for the public pages ---------- */
-.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;tab-size:2}
 .bgfx:before,.bgfx:after{content:'';position:absolute;width:70vmax;height:70vmax;border-radius:50%;filter:blur(90px);opacity:.26;will-change:transform}
 .bgfx:before{left:-28vmax;top:-32vmax;background:radial-gradient(circle,#FF6B35 0%,rgba(255,107,53,0) 62%);animation:bgdrift1 52s ease-in-out infinite alternate}
 .bgfx:after{right:-30vmax;bottom:-34vmax;background:radial-gradient(circle,#5EA2FF 0%,rgba(94,162,255,0) 62%);animation:bgdrift2 68s ease-in-out infinite alternate}
@@ -416,10 +416,14 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
 .codewrap{position:relative;border:1px solid var(--line2);border-radius:var(--rs);background:#0E121B;margin:12px 0}
 .codewrap .cx{position:absolute;top:3px;right:3px;padding:2px 8px;font-size:13px;background:transparent;
   border:0;color:var(--ink3);z-index:2;width:auto}
-.codetag{position:absolute;top:7px;left:11px;font:700 11px var(--disp);color:var(--ink3);letter-spacing:.14em}
-.codearea{width:100%;background:transparent;border:0;padding:24px 32px 12px 12px;font:13px/1.6 var(--mono);
-  color:#CFE3FF;resize:none;overflow-x:auto;white-space:pre;tab-size:2;border-radius:var(--rs)}
+.codetag{position:absolute;top:7px;left:11px;z-index:2;font:700 11px var(--disp);color:var(--ink3);letter-spacing:.14em}
+.codearea{position:relative;z-index:1;width:100%;background:transparent;border:0;padding:24px 32px 12px 12px;font:13px/1.6 var(--mono);
+  color:transparent;caret-color:var(--ink);resize:none;display:block;white-space:pre-wrap;word-break:break-word;overflow:hidden;tab-size:2;-webkit-text-fill-color:transparent}
+.codearea::selection{background:#5EA2FF44}
 .codearea:focus{outline:none}
+.codehl{position:absolute;inset:0;margin:0;padding:24px 32px 12px 12px;font:13px/1.6 var(--mono);color:#D4D4D4;white-space:pre-wrap;word-break:break-word;pointer-events:none;overflow:hidden;tab-size:2}
+.codehl i{font-style:normal}
+.codehl i.k{color:#C586C0}.codehl i.s{color:#CE9178}.codehl i.n{color:#B5CEA8}.codehl i.c{color:#6A9955}.codehl i.f{color:#DCDCAA}.codehl i.t{color:#4EC9B0}.codehl i.o{color:#D4D4D4}
 .savetick{font:600 12px var(--body);color:var(--ink3);transition:color .2s}
 .savetick.on{color:var(--mint)}
 /* array visualizer */

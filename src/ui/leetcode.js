@@ -259,25 +259,75 @@ function codeKey(e,i){
 const ta=e.target;
 if(e.key==='Tab'){e.preventDefault();
 const p=ta.selectionStart;ta.value=ta.value.slice(0,p)+'  '+ta.value.slice(ta.selectionEnd);
-ta.selectionStart=ta.selectionEnd=p+2;NB[i].body=ta.value;autosize(ta);scheduleSave();return;}
+ta.selectionStart=ta.selectionEnd=p+2;NB[i].body=ta.value;autosize(ta);hl(i,ta.value);scheduleSave();return;}
 if(e.key==='Escape'){e.preventDefault();focusBlock(i+1);}}
 
+// ---- paste: code from an editor lands in a code box, not in the prose ----
+function looksLikeCode(t,e){
+const cd=e&&e.clipboardData;
+if(cd&&cd.types&&Array.prototype.some.call(cd.types,x=>/vscode|codemirror|monaco/i.test(x)))return true;
+const html=cd?cd.getData('text/html'):'';
+if(/<pre[\\s>]|<code[\\s>]|font-family:\\s*(?:[^;"]*mono|menlo|consolas|courier)/i.test(html))return true;
+const lines=t.split('\\n').filter(l=>l.trim());
+if(lines.length<2)return false;
+const hits=lines.filter(l=>/[{};]\\s*$|^\\s*(def|class|for|while|if|elif|else|return|const|let|var|import|from|public|private|static|int|void|function|fn|pub|struct)\\b|=>|==|!=|\\+\\+|\\+=|\\bnull\\b|\\bNone\\b|\\bself\\b|\\bthis\\b|[\\[\\(][^\\]\\)]*[\\]\\)]\\s*[;{:]?$/.test(l)).length;
+const indented=lines.filter(l=>/^(\\s{2,}|\\t)/.test(l)).length;
+return hits/lines.length>=0.4||(indented/lines.length>=0.5&&hits>0);}
+function notePaste(e,i){
+const t=(e.clipboardData||window.clipboardData).getData('text/plain');
+if(!t||!looksLikeCode(t,e))return;
+e.preventDefault();
+const ta=e.target,p=ta.selectionStart,q2=ta.selectionEnd;
+const before=ta.value.slice(0,p).replace(/\\n$/,''),after=ta.value.slice(q2).replace(/^\\n/,'');
+const code=t.replace(/\\r\\n?/g,'\\n').replace(/^\\n+|\\n+$/g,'');
+NB[i].body=before;
+NB.splice(i+1,0,{type:'code',body:code});
+NB.splice(i+2,0,{type:'text',body:after});
+renderNotes();focusBlock(i+2);scheduleSave();toast('Pasted as a code block');}
+// ---- syntax colours: one regex pass, language agnostic (Python, JS/TS, Java, C++, Go) ----
+const KW=/\\b(?:def|class|return|if|elif|else|for|while|in|not|and|or|is|None|True|False|import|from|as|with|try|except|finally|raise|lambda|yield|pass|break|continue|global|nonlocal|del|assert|async|await|const|let|var|function|new|this|null|undefined|true|false|typeof|instanceof|switch|case|default|do|throw|catch|export|extends|super|static|public|private|protected|void|int|long|double|float|char|boolean|bool|string|auto|struct|enum|template|typename|namespace|using|include|fn|pub|mut|impl|match|go|func|package|range|interface|type|map|chan|defer|select)\\b/;
+const TOK=new RegExp('('+[
+'(?:\\\\/\\\\/[^\\\\n]*|#[^\\\\n]*|\\\\/\\\\*[\\\\s\\\\S]*?\\\\*\\\\/)',
+'(?:"(?:[^"\\\\\\\\\\\\n]|\\\\\\\\.)*"|\\'(?:[^\\'\\\\\\\\\\\\n]|\\\\\\\\.)*\\'|\\\\x60(?:[^\\\\x60\\\\\\\\]|\\\\\\\\.)*\\\\x60)',
+'(?:\\\\b\\\\d+(?:\\\\.\\\\d+)?[fFlL]?\\\\b|\\\\b0x[0-9a-fA-F]+\\\\b)',
+KW.source,
+'(?:\\\\b[A-Z][A-Za-z0-9_]*\\\\b)',
+'(?:\\\\b[a-z_][A-Za-z0-9_]*(?=\\\\s*\\\\())',
+'(?:[=+\\\\-*\\\\/%<>!&|^~?:]+)'
+].join('|')+')','g');
+const CLS=['','c','s','n','k','t','f','o'];
+function hlHtml(src){
+const out=[];let last=0;
+src.replace(TOK,(m,g,off)=>{if(off>last)out.push(esc(src.slice(last,off)));
+let k=0;if(/^(?:\\/\\/|#|\\/\\*)/.test(m))k=1;else if(/^["'\\x60]/.test(m))k=2;else if(/^(?:\\d|0x)/.test(m))k=3;else if(KW.test(m)&&new RegExp('^'+KW.source+'$').test(m))k=4;else if(/^[A-Z]/.test(m))k=5;else if(/^[a-z_]/.test(m))k=6;else k=7;
+out.push('<i class="'+CLS[k]+'">'+esc(m)+'</i>');last=off+m.length;return m;});
+if(last<src.length)out.push(esc(src.slice(last)));
+return out.join('')+'\\n';}
+function hl(i,src){const p=$('chl'+i);if(!p)return;p.innerHTML=hlHtml(src||'');
+const tag=$('ctag'+i);if(tag)tag.textContent=langOf(src||'');}
+function langOf(t){
+if(/^\\s*(def |class \\w+:|import \\w+|from \\w+ import)/m.test(t)||/:\\s*$/m.test(t)&&!/[{;]\\s*$/m.test(t))return 'PYTHON';
+if(/\\b(public|private)\\s+(static\\s+)?\\w+(<[^>]*>)?\\s+\\w+\\s*\\(/.test(t)||/System\\.out|ArrayList|HashMap/.test(t))return 'JAVA';
+if(/#include|std::|vector<|cout\\s*<</.test(t))return 'C++';
+if(/\\bfunc\\b.*\\{|:=/.test(t))return 'GO';
+if(/\\b(const|let|var|=>|function)\\b/.test(t))return 'JAVASCRIPT';
+return 'CODE';}
 function renderNotes(){
 const host=$('noteCard');
 if(!PROB){host.innerHTML='<div class="skel">Pick a problem to open its notes.</div>';return;}
 if(!NB.length)NB=[{type:'text',body:''}];
 if(NB[NB.length-1].type==='code')NB.push({type:'text',body:''});
 host.innerHTML=NB.map((b,i)=>b.type==='code'
-?'<div class="codewrap"><span class="codetag">CODE</span><button class="cx" data-x="'+i+'">✕</button>'
-+'<textarea class="codearea" data-i="'+i+'" rows="3" spellcheck="false"></textarea></div>'
+?'<div class="codewrap"><span class="codetag" id="ctag'+i+'">CODE</span><button class="cx" data-x="'+i+'">✕</button>'
++'<pre class="codehl" id="chl'+i+'" aria-hidden="true"></pre><textarea class="codearea" data-i="'+i+'" rows="3" spellcheck="false" autocapitalize="off" autocorrect="off"></textarea></div>'
 :'<textarea class="notearea" data-i="'+i+'" rows="1" placeholder="'+(i===0?'What did you try? What tripped you up?':'')+'"></textarea>').join('');
 host.querySelectorAll('textarea').forEach(ta=>{
 const i=+ta.dataset.i;
 ta.value=NB[i].body||'';
 autosize(ta);
-if(ta.classList.contains('codearea')){ta.addEventListener('keydown',e=>codeKey(e,i));
-ta.addEventListener('input',e=>{NB[i].body=e.target.value;autosize(e.target);scheduleSave();});}
-else{ta.addEventListener('keydown',e=>noteKey(e,i));ta.addEventListener('input',e=>noteInput(e,i));}});
+if(ta.classList.contains('codearea')){hl(i,ta.value);ta.addEventListener('keydown',e=>codeKey(e,i));
+ta.addEventListener('input',e=>{NB[i].body=e.target.value;autosize(e.target);hl(i,e.target.value);scheduleSave();});}
+else{ta.addEventListener('keydown',e=>noteKey(e,i));ta.addEventListener('input',e=>noteInput(e,i));ta.addEventListener('paste',e=>notePaste(e,i));}});
 host.querySelectorAll('.cx').forEach(b=>b.onclick=()=>{
 const i=+b.dataset.x;NB.splice(i,1);
 if(!NB.length)NB=[{type:'text',body:''}];
