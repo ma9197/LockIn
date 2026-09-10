@@ -278,6 +278,81 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .rv{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
 .rv.in{opacity:1;transform:none}
 @media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none}.laptop,.phone{transition:none}}
+
+/* ---------- phones: a layout of its own, not the desktop page squeezed ---------- */
+.only-m{display:none}
+@media(max-width:599px){
+  .only-m{display:inline}.only-d{display:none}
+  .wrap{padding:0 16px 32px}
+  .ld-top{padding:12px 0}
+  .ld-top .logo{font-size:18px}
+  .ld-top .ld-btn{padding:8px 12px;font-size:13px;border-radius:10px}
+  .ld-top .ld-btn.ghost{padding:8px 6px}
+  /* hero */
+  .ld-hero{padding-top:20px}
+  .ld-eyebrow{font-size:11px;letter-spacing:.1em;padding:6px 10px}
+  .ld-h1{font-size:clamp(32px,9.6vw,38px);line-height:1.04;margin:14px 0 10px;max-width:none}
+  .ld-lead{font-size:15px;line-height:1.55;color:var(--ink2)}
+  .ld-cta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+  .ld-cta a{width:auto;padding:13px 10px;font-size:14px}
+  .ld-trust{margin-top:14px;gap:6px 12px;font-size:12px;color:var(--ink3)}
+  .ld-trust span{gap:6px}
+  .stage{margin-top:28px}
+  .ph-view{max-height:min(460px,60vh)}
+  .phwrap::after{height:120px}
+  /* sections */
+  .ld-sec{padding:48px 0 0}
+  .ld-kick{font-size:11px;letter-spacing:.12em}
+  .ld-h2{font-size:24px;line-height:1.12;margin:6px 0 8px}
+  .ld-sub{font-size:14px;line-height:1.55}
+  .hint{font-size:13px}
+  /* tour */
+  .ld-tabs{margin:20px 0 12px;top:6px;gap:2px;padding:4px}
+  .ld-tabs button{flex:0 0 auto;padding:9px 12px;font-size:12px;border-radius:8px}
+  .ld-panel{padding:14px 12px;border-radius:14px}
+  .ld-two{gap:16px}
+  .ld-panel .card{padding:14px;border-radius:12px}
+  .ld-panel b[style*="18px"],.ld-panel b[style*="16px"]{font-size:15px!important}
+  .ld-panel b[style*="15px"],.ld-panel b[style*="14px"]{font-size:14px!important}
+  .ld-panel p[style*="15px"]{font-size:14px!important}
+  .ld-panel .ld-sub{font-size:14px!important}
+  .ld-panel .chip{padding:4px 10px;font-size:12px}
+  .ld-code{font-size:12px;padding:12px;line-height:1.5}
+  .ld-panel .codearea{font-size:12px}
+  .ld-panel .csum{gap:6px;margin-bottom:10px}
+  .ld-panel .csum .ci{padding:8px 10px}
+  .ld-panel .csum .ci b{font-size:18px}
+  .ld-panel .seg-ctl{max-width:none!important}
+  .ld-slot{padding:8px 10px;font-size:12px;min-height:36px}
+  .ld-panel .item{padding:12px;margin-top:8px}
+  .ld-panel .lcrow{font-size:12px;gap:6px}
+  /* three minutes: a compact numbered list, then the seven steps as a wrapped sequence */
+  .ld-feat{gap:8px;margin-top:20px}
+  .ld-fc{display:grid;grid-template-columns:32px 1fr;column-gap:12px;padding:14px;border-radius:12px}
+  .ld-fc .n{width:30px;height:30px;font-size:13px;border-radius:10px;margin:0;grid-row:1/3}
+  .ld-fc b{font-size:15px;margin-bottom:2px;align-self:center}
+  .ld-fc p{font-size:13px;line-height:1.5}
+  .snakewrap{margin-top:20px;padding:12px 12px 12px;border-radius:14px}
+  .snakecap{font-size:11px;margin-bottom:10px}
+  .snake{flex-direction:row;flex-wrap:wrap;gap:8px 22px}
+  .snake li{padding:6px 10px 6px 6px;font-size:12px;border-radius:10px}
+  .snake li b{width:20px;height:20px;font-size:11px;border-radius:7px}
+  .snake li:not(:last-child)::after{content:'→';left:auto;right:-17px;bottom:auto;top:50%;transform:translateY(-50%);font-size:13px}
+  /* yours to shape: two columns of short cards */
+  .ld-shape{grid-template-columns:1fr 1fr;gap:8px;margin-top:20px}
+  .ld-sh{flex-direction:column;gap:8px;padding:12px;border-radius:12px}
+  .ld-sh .e{font-size:20px}
+  .ld-sh b{font-size:14px;margin-bottom:2px}
+  .ld-sh p{font-size:12px;line-height:1.45}
+  /* privacy + footer */
+  .ld-priv{padding:18px 16px;gap:16px;border-radius:14px}
+  .ld-priv .ld-h2{font-size:22px!important}
+  .ld-priv .ld-sub{font-size:14px!important}
+  .ld-priv li{font-size:13px;gap:10px}
+  .ld-priv li i{width:20px;height:20px;font-size:11px}
+  .ld-foot{margin-top:48px;padding:28px 0 8px;gap:10px}
+  .ld-foot .logo{font-size:22px!important}
+}
 </style>
 <div class="bgfx" aria-hidden="true"><i></i></div>
 
@@ -290,7 +365,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
   <div class="ld-copy">
   <span class="ld-eyebrow">🎓 For CS students on the job hunt</span>
   <h1 class="ld-h1">Lock in. Track the grind. <em>Land your Goal.</em></h1>
-  <p class="ld-lead">Daily goals for every category you grind, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, schedule blocks that step around your gym and classes, streaks, pace against your plan and a finish-line forecast. <b>Phone first, laptop ready.</b></p>
+  <p class="ld-lead"><span class="only-d">Daily goals for every category you grind, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, schedule blocks that step around your gym and classes, streaks, pace against your plan and a finish-line forecast. <b>Phone first, laptop ready.</b></span><span class="only-m">Daily goals, a focus timer, a <b>LeetCode log</b> that knows a rerun from a solve, an <b>application tracker</b> with a funnel, and a schedule that steps around your life. <b>Phone first.</b></span></p>
   <div class="ld-cta"><a class="ld-btn pri big" href="/signup">Create your account</a><a class="ld-btn big" href="#tour">See every tab ↓</a></div>
   <div class="ld-trust"><span><i></i>Free</span><span><i></i>Open source, MIT</span><span><i></i>Your own private database</span><span><i></i>Set up in three minutes</span></div>
   </div>
