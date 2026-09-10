@@ -157,7 +157,7 @@ var cx=el.offsetLeft+el.offsetWidth/2,cy=el.offsetTop+el.offsetHeight/2;
 var tx=480/z-cx,ty=270/z-cy;
 tx=Math.min(0,Math.max(960/z-960,tx));ty=Math.min(0,Math.max(540/z-540,ty));zoomX=tx;zoomY=ty;applyT();}
 var visAt=0;function isVis(){var now=Date.now();if(now-visAt>300){visAt=now;var b=root.getBoundingClientRect();visible=b.height===0||(b.bottom>0&&b.top<(window.innerHeight||800));}return visible;}
-function sleep(ms){return new Promise(function(r){var t=0;(function tick(){if(run<0)return r();if(!paused&&isVis())t+=50;if(t>=ms)return r();setTimeout(tick,50);})();});}
+function sleep(ms){var mr=run;return new Promise(function(r){var t=0;(function tick(){if(run!==mr)return r();if(!paused&&isVis())t+=50;if(t>=ms)return r();setTimeout(tick,50);})();});}
 function center(el){return [el.offsetLeft+el.offsetWidth/2,el.offsetTop+el.offsetHeight/2];}
 function pos(el){var c=[el.offsetLeft,el.offsetTop],p=el.offsetParent;while(p&&p!==sc){c[0]+=p.offsetLeft;c[1]+=p.offsetTop;p=p.offsetParent;}return c;}
 function mid(el){var c=pos(el);return [c[0]+el.offsetWidth/2,c[1]+el.offsetHeight/2];}
