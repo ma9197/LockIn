@@ -1300,7 +1300,7 @@ export const shell = (title, active, body, pageScript = '', opts = {}) => {
 const u = opts.u || userCtx(opts.cfg);
 return `<!doctype html><html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0B0E14"><link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#0B0E14"><link rel="manifest" href="/manifest.json"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔥</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@700;800;900&family=Atkinson+Hyperlegible:wght@400;700&family=Orbitron:wght@600;800&family=VT323&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">

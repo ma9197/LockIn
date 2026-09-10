@@ -8,6 +8,7 @@ import { Hono } from 'hono';
 import { landingPage, signupPage, loginPage, forgotPage, resetPage, popupCheckPage } from './ui/auth.js';
 import { onboardPage } from './ui/onboard.js';
 import { sha256hex } from './helpers.js';
+import { ICON_512, ICON_192, ICON_180 } from './icons.js';
 import { sendMail } from './mailer.js';
 import {
   normEmail, validEmail, newPasswordHash, verifyPassword, randomHex,
@@ -51,10 +52,21 @@ app.onError((e, c) => {
 });
 
 // the PWA manifest must be reachable without a session
+// Real PNG icons: Chrome's "Install as app" ignores SVG data icons and the emoji in them, so the
+// installed app got a blank tile. These are rasterised once (a dark rounded tile with the flame).
+const png = (c, b64) => c.body(Uint8Array.from(atob(b64), ch => ch.charCodeAt(0)), 200,
+  { 'Content-Type': 'image/png', 'Cache-Control': 'public, max-age=604800' });
+app.get('/icon-512.png', c => png(c, ICON_512));
+app.get('/icon-192.png', c => png(c, ICON_192));
+app.get('/apple-touch-icon.png', c => png(c, ICON_180));
 app.get('/manifest.json', c => c.json({
   name: 'LockIn', short_name: 'LockIn', start_url: '/', display: 'standalone',
   background_color: '#0B0E14', theme_color: '#0B0E14',
-  icons: [{ src: "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%230B0E14'/><text x='50' y='68' font-size='52' text-anchor='middle'>🔥</text></svg>", sizes: 'any', type: 'image/svg+xml' }],
+  icons: [
+    { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+    { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+    { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+  ],
 }));
 
 // ---------- health ----------
