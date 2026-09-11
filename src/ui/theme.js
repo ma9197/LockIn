@@ -682,6 +682,17 @@ svg text.cvl{font:800 11px var(--disp);fill:var(--ink2)}
 .grind-live .lg-time{flex:none;text-align:right}
 .grind-live .lg-time b{display:block;font:800 24px/1.1 var(--disp);font-variant-numeric:tabular-nums}
 .grind-live .lg-time .tiny{display:block;white-space:nowrap}
+.grind-live .lg-moreWrap{position:absolute;top:10px;right:10px}
+.grind-live .lg-more{width:32px;height:32px;min-height:0;padding:0;border-radius:10px;background:transparent;border:1px solid transparent;color:var(--ink2);font:800 18px/1 var(--disp);letter-spacing:.05em}
+.grind-live .lg-more:hover{border-color:var(--line2);background:var(--surface2);color:var(--ink)}
+.grind-live{position:relative}
+.grind-live .lg-main{padding-right:36px}
+.lgmenu{display:none;position:absolute;right:0;top:38px;width:min(300px,80vw);background:var(--surface3);border:1px solid var(--line2);border-radius:12px;padding:6px;box-shadow:0 18px 50px #000b;z-index:40}
+.lgmenu.on{display:block}
+.lgmenu button{display:block;width:100%;text-align:left;background:transparent;border:0;border-radius:9px;padding:10px 12px;font:700 14px var(--body);color:var(--ink);min-height:0}
+.lgmenu button small{display:block;font:400 12px/1.4 var(--body);color:var(--ink2);margin-top:2px}
+.lgmenu button:hover{background:var(--surface2)}
+.lgmenu button.rose{color:var(--rose)}
 .grind-live .lg-btns{display:flex;gap:8px;flex-wrap:wrap}
 .grind-live .lg-btns button{flex:1 1 0;min-width:92px}
 @media(min-width:640px){

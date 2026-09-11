@@ -43,6 +43,11 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
       <button class="sm" id="lgPause" onclick="togglePause()">⏸ Pause</button>
       <button class="pri sm" onclick="checkout()">Check out</button>
     </div>
+    <div class="lg-moreWrap"><button class="lg-more" id="lgMore" aria-label="more options" onclick="event.stopPropagation();toggleLgMenu()">⋯</button>
+      <div class="lgmenu" id="lgMenu">
+        <button onclick="forgotCheckout()">⏱ Forgot to check out…<small>Enter the real stop time, the session is saved as if you had.</small></button>
+        <button class="rose" onclick="cancelGrind()">✕ Cancel session<small>Discards it. Nothing is recorded.</small></button>
+      </div></div>
   </div>
   <div class="grindbar" id="lgBar"><div class="fill" id="lgFill" style="width:0%"></div></div>
 </div>
@@ -277,6 +282,27 @@ clearInterval(liveInt);liveInt=null;
 let splits=[];try{splits=JSON.parse(j.session.splits||'[]')}catch(e){}
 toast(splits.length?('💪 Saved · '+splits.map(s=>MOD[s.t].e+' '+fmtDur(s.m)).join(' · ')):'💪 Session saved');
 load();gpCheck();}
+function toggleLgMenu(force){const m=$('lgMenu');m.classList.toggle('on',force===undefined?!m.classList.contains('on'):force);}
+document.addEventListener('click',e=>{if(!e.target.closest('.lg-moreWrap'))toggleLgMenu(false);});
+async function cancelGrind(){toggleLgMenu(false);const a=J.active;if(!a)return;
+if(!confirm('Discard this session? Nothing will be recorded.'))return;
+await api('/api/grind/'+a.id,{method:'DELETE'});clearInterval(liveInt);liveInt=null;toast('Session discarded');load();gpCheck();}
+function forgotCheckout(){toggleLgMenu(false);const a=J.active;if(!a)return;
+const nowHM=nowNY().slice(11,16);
+$('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
++'<h1 style="font-size:20px">⏱ When did you actually stop?</h1>'
++'<p class="muted" style="margin-top:8px">Checked in at <b>'+fmtT(a.start_ts.slice(11,16))+'</b>. The session is saved as if you had checked out then, so the hours stay honest.</p>'
++'<label class="fld" for="fc-time" style="margin-top:16px">Real check-out time</label><input id="fc-time" type="time" value="'+nowHM+'" max="'+nowHM+'">'
++'<div class="hint">A time earlier than the check-in counts as the next day.</div>'
++'<div class="row" style="margin-top:20px;gap:8px"><button class="pri grow" onclick="forgotSave()">Save session</button>'
++'<button onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button></div></div></div>';
+setTimeout(()=>$('fc-time').focus(),60);}
+async function forgotSave(){const a=J.active;if(!a)return;const end=$('fc-time').value;
+if(!/^\\d{2}:\\d{2}$/.test(end))return toast('Pick a time');
+try{const j=await api('/api/grind/stop',{body:{id:a.id,end}});$('modalHost').innerHTML='';clearInterval(liveInt);liveInt=null;
+let splits=[];try{splits=JSON.parse(j.session.splits||'[]')}catch(e){}
+toast(splits.length?('💪 Saved to '+fmtT(end)+' · '+splits.map(s=>MOD[s.t].e+' '+fmtDur(s.m)).join(' · ')):'💪 Session saved to '+fmtT(end));load();gpCheck();}
+catch(e){toast(String(e))}}
 function renderLive(){
 const a=J.active;
 $('adhocBtn').style.display=(!a&&D===TODAY)?'':'none';

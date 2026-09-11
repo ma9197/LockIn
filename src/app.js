@@ -671,18 +671,18 @@ app.post('/api/grind/start', async c => {
 });
 const nyNow = c => nowIn(c.env.TZ);
 // Both helpers take the zone explicitly: they run outside a request handler, so there is no `c` here.
-const foldPause = async (db, id, tz) => {
+const foldPause = async (db, id, tz, at) => {
   const s = await db.prepare('SELECT paused_at, paused_min FROM grind_sessions WHERE id=?').bind(id).first();
   if (s && s.paused_at) {
-    const extra = Math.max(0, Math.round((new Date(nowIn(tz)) - new Date(s.paused_at)) / 60000));
+    const extra = Math.max(0, Math.round((new Date(at || nowIn(tz)) - new Date(s.paused_at)) / 60000));
     await db.prepare('UPDATE grind_sessions SET paused_min=paused_min+?, cur_paused=cur_paused+?, paused_at=NULL WHERE id=?').bind(extra, extra, id).run();
   }
 };
 // close the running task segment: append its worked minutes to splits, restart the segment clock
-const foldSegment = async (db, id, nextTask, tz) => {
+const foldSegment = async (db, id, nextTask, tz, at) => {
   const s = await db.prepare('SELECT * FROM grind_sessions WHERE id=?').bind(id).first();
   if (!s) return;
-  const now = nowIn(tz);
+  const now = at || nowIn(tz);
   if (s.cur_task && s.cur_since) {
     const m = Math.max(0, Math.round((new Date(now) - new Date(s.cur_since)) / 60000) - (s.cur_paused || 0));
     if (m >= 1) {
@@ -771,12 +771,23 @@ app.post('/api/grind/log', async c => {
     .bind(date, 'Logged manually', start, end, JSON.stringify(segs)).run();
   return json(c, { ok: true, id: r.meta.last_row_id, total });
 });
+// {id, end?: 'HH:MM'}: end is the real check-out time for a session you forgot to stop.
+// It lands on the session's own date (next day if it is before the check-in), never in the future.
 app.post('/api/grind/stop', async c => {
   const db = c.env.DB;
-  const { id } = await c.req.json();
-  await foldPause(db, +id, c.env.TZ);
-  await foldSegment(db, +id, null, c.env.TZ);
-  await db.prepare('UPDATE grind_sessions SET end_ts=? WHERE id=? AND end_ts IS NULL').bind(nyNow(c), +id).run();
+  const { id, end } = await c.req.json();
+  let at = nyNow(c);
+  if (/^\d{2}:\d{2}$/.test(end || '')) {
+    const s0 = await db.prepare('SELECT start_ts FROM grind_sessions WHERE id=? AND end_ts IS NULL').bind(+id).first();
+    if (!s0) return json(c, { error: 'no active session' }, 400);
+    let cand = s0.start_ts.slice(0, 10) + 'T' + end;
+    if (cand < s0.start_ts) { const d = new Date(s0.start_ts.slice(0, 10) + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + 1); cand = d.toISOString().slice(0, 10) + 'T' + end; }
+    if (cand > at) return json(c, { error: 'that time has not happened yet' }, 400);
+    at = cand;
+  }
+  await foldPause(db, +id, c.env.TZ, at);
+  await foldSegment(db, +id, null, c.env.TZ, at);
+  await db.prepare('UPDATE grind_sessions SET end_ts=? WHERE id=? AND end_ts IS NULL').bind(at, +id).run();
   const s = await db.prepare('SELECT * FROM grind_sessions WHERE id=?').bind(+id).first();
   return json(c, { ok: true, session: s });
 });
