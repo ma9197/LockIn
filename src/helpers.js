@@ -155,6 +155,16 @@ export async function loadCfg(db) {
     },
     todayLayout: s.today_layout === 'refined' ? 'refined' : 'classic',
     bgStyle: ['aurora', 'dots', 'plain'].includes(s.bg_style) ? s.bg_style : 'aurora',
+    // desktop overlay helper: how the floating chip is placed and drawn (sent with every state poll)
+    overlay: {
+      corner: ['tl', 'tr', 'bl', 'br'].includes(s.ov_corner) ? s.ov_corner : 'br',
+      size: ['s', 'm', 'l'].includes(s.ov_size) ? s.ov_size : 'm',
+      opacity: Math.min(100, Math.max(20, parseInt(s.ov_opacity || '70', 10) || 70)),
+      offset: Math.min(64, Math.max(0, parseInt(s.ov_offset || '16', 10) || 0)),
+      timer: s.ov_timer !== '0',
+    },
+    // the browser's focus timer, mirrored here so the overlay can show it
+    focusTimer: (() => { const t = j('focus_timer', null); return t && typeof t.len === 'number' && t.startedAt ? t : null; })(),
     jobPlatforms: (() => {
       const a = j('job_platforms', null);
       return Array.isArray(a) && a.length ? a.map(String).slice(0, 20) : DEFAULT_PLATFORMS;

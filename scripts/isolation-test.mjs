@@ -118,6 +118,17 @@ ok((await req(icsPath)).status === 200, 'ICS with token -> 200');
 ok((await req(icsPath.replace(/token=.*/, 'token=nope'))).status === 403, 'ICS wrong token -> 403');
 ok((await req('/u/' + A.handle + '/share')).headers.get('x-robots-tag') === 'noindex, nofollow', 'noindex on /u/ pages');
 
+// 6b. desktop overlay pairing: a code becomes a token that reaches one GET and nothing else
+const codeR = await (await req('/api/overlay/code', { method: 'POST', headers: { ...J, Cookie: A.cookie }, body: '{}' })).json();
+const pairR = await (await req('/api/overlay/pair', { method: 'POST', headers: J, body: JSON.stringify({ code: codeR.code }) })).json();
+ok(!!pairR.token, 'overlay pairing code -> token');
+ok((await req('/api/overlay/state', { headers: bearer(pairR.token) })).status === 200, 'overlay token reads /api/overlay/state');
+ok((await req('/api/read/leetcode', { headers: bearer(pairR.token) })).status === 403, 'overlay token cannot read /api/read');
+ok((await req('/api/jobs', { headers: bearer(pairR.token) })).status === 403, 'overlay token cannot read jobs');
+ok((await req('/api/overlay/pair', { method: 'POST', headers: J, body: JSON.stringify({ code: codeR.code }) })).status === 404, 'pairing code is single use');
+await req('/api/overlay/key', { method: 'DELETE', headers: { ...J, Cookie: A.cookie } });
+ok((await req('/api/overlay/state', { headers: bearer(pairR.token) })).status === 401, 'unpaired overlay token -> 401');
+
 // 7. sessions
 ok((await req('/api/day', { headers: { Cookie: 'lockin_sess=' + '0'.repeat(64) } })).status === 401, 'forged session cookie -> 401');
 ok((await req('/u/nobody-here/share')).status === 404, 'unknown handle -> 404');

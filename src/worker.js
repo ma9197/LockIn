@@ -194,6 +194,44 @@ app.post('/api/auth/forgot', async c => {
 app.get('/reset', c => c.html(resetPage(String(c.req.query('token') || ''))));
 app.get('/forgot', c => c.html(forgotPage()));
 app.get('/popup-check', c => c.html(popupCheckPage()));
+
+// ---------- desktop overlay: pairing + download (no session, the helper is not a browser) ----------
+app.post('/api/overlay/pair', async c => {
+  const b = await c.req.json().catch(() => ({}));
+  const code = String(b.code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+  if (code.length !== 6) return json(c, { error: 'enter the 6-character code from Settings' }, 400);
+  const db = c.env.CENTRAL;
+  const row = await db.prepare("SELECT user_id, created_at FROM api_keys WHERE kind='overlay_pair' AND key_hash=? AND created_at > datetime('now','-10 minutes')")
+    .bind(await sha256hex('pair:' + code)).first();
+  if (!row) return json(c, { error: 'code unknown or expired, generate a new one in Settings' }, 404);
+  const token = 'lockin_ov_' + [...crypto.getRandomValues(new Uint8Array(24))].map(x => x.toString(16).padStart(2, '0')).join('');
+  await db.prepare("INSERT INTO api_keys (user_id, kind, key_hash) VALUES (?,'overlay',?) ON CONFLICT(user_id, kind) DO UPDATE SET key_hash=excluded.key_hash, created_at=datetime('now')")
+    .bind(row.user_id, await sha256hex('key:' + token)).run();
+  await db.prepare("DELETE FROM api_keys WHERE user_id=? AND kind='overlay_pair'").bind(row.user_id).run();
+  return json(c, { ok: true, token });
+});
+// Newest helper build for the visitor's OS. GitHub only hosts the file; users never see it.
+const OVERLAY_REPO = 'ma9197/LockIn';
+app.get('/overlay/download', async c => {
+  const ua = c.req.header('User-Agent') || '';
+  const os = /Macintosh|Mac OS X/i.test(ua) ? 'mac' : /Windows/i.test(ua) ? 'windows' : (c.req.query('os') === 'mac' ? 'mac' : 'windows');
+  const want = c.req.query('os') === 'mac' ? 'mac' : c.req.query('os') === 'windows' ? 'windows' : os;
+  const releases = 'https://github.com/' + OVERLAY_REPO + '/releases/latest';
+  try {
+    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest');
+    let r = await cache.match(ck);
+    if (!r) {
+      r = await fetch('https://api.github.com/repos/' + OVERLAY_REPO + '/releases/latest', { headers: { 'User-Agent': 'lockin-overlay-download', Accept: 'application/vnd.github+json' } });
+      if (!r.ok) return c.redirect(releases);
+      r = new Response(await r.text(), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' } });
+      c.executionCtx.waitUntil(cache.put(ck, r.clone()));
+    }
+    const rel = await r.json();
+    const assets = rel.assets || [];
+    const pick = want === 'mac' ? assets.find(a => /\.dmg$/i.test(a.name)) : (assets.find(a => /\.msi$/i.test(a.name)) || assets.find(a => /setup.*\.exe$/i.test(a.name)) || assets.find(a => /\.exe$/i.test(a.name)));
+    return c.redirect(pick ? pick.browser_download_url : releases);
+  } catch (e) { return c.redirect(releases); }
+});
 app.post('/api/auth/reset', async c => {
   if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
   const b = await c.req.json().catch(() => ({}));
@@ -350,8 +388,10 @@ app.all('*', async c => {
   if (presented) {
     const row = await c.env.CENTRAL.prepare('SELECT k.kind, u.id, u.handle, u.display_name FROM api_keys k JOIN users u ON u.id=k.user_id WHERE k.key_hash=?')
       .bind(await sha256hex('key:' + presented)).first();
-    if (!row) return json(c, { error: 'bad key' }, 401);
-    const role = row.kind === 'agent' ? 'agent' : 'read';
+    if (!row || row.kind === 'overlay_pair') return json(c, { error: 'bad key' }, 401);
+    const role = row.kind === 'agent' ? 'agent' : row.kind === 'overlay' ? 'overlay' : 'read';
+    // the overlay token is the narrowest key: one GET, refused here before any Durable Object work
+    if (role === 'overlay' && !(req.method === 'GET' && path === '/api/overlay/state')) return json(c, { error: 'this token only reaches the overlay state' }, 403);
     return userStub(c.env, row.id).fetch(await withCtx(req, { role, userId: row.id, handle: row.handle || '', displayName: row.display_name || '', base: '' }));
   }
   const user = await sessionUser(c.env.CENTRAL, req);

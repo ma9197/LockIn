@@ -1,0 +1,57 @@
+# Builds the LockIn Overlay helper for Windows and macOS and publishes a GitHub Release.
+# Trigger: push a tag like overlay-v1.0.0 (the version must match overlay/src-tauri/tauri.conf.json).
+# Secrets needed once: TAURI_SIGNING_PRIVATE_KEY and TAURI_SIGNING_PRIVATE_KEY_PASSWORD (updater signatures).
+name: overlay
+
+on:
+  push:
+    tags: ['overlay-v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            args: '--target universal-apple-darwin'
+          - os: windows-latest
+            args: ''
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+      - uses: swatinem/rust-cache@v2
+        with:
+          workspaces: overlay/src-tauri
+      - name: Install frontend deps
+        working-directory: overlay
+        run: npm ci
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          projectPath: overlay
+          tagName: ${{ github.ref_name }}
+          releaseName: 'LockIn Overlay ${{ github.ref_name }}'
+          releaseBody: |
+            The desktop overlay for LockIn: your live grind session and focus timer floating over any app.
+
+            **Windows:** run the `.exe` installer. SmartScreen may say "Windows protected your PC": click *More info → Run anyway* (the build is not code-signed).
+            **macOS:** open the `.dmg`, drag LockIn Overlay to Applications, then right-click the app → *Open* the first time (Gatekeeper, unsigned build).
+
+            Then in LockIn: Settings → Integrations → Desktop overlay → Generate code.
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}

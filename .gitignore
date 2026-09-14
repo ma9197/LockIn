@@ -19,3 +19,8 @@ owner-export.json
 
 .DS_Store
 Thumbs.db
+
+# overlay helper: Rust build output and local install state
+overlay/src-tauri/target/
+overlay/src-tauri/gen/
+overlay/node_modules/

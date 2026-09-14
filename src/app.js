@@ -90,6 +90,10 @@ app.use('/api/*', async (c, next) => {
   // and nothing else, and api_key is deliberately NOT accepted here.
   // The method check is load bearing. Drop it and a future POST on one of these paths would
   // silently inherit read-key auth.
+  if (role(c) === 'overlay') {
+    if (path === '/api/overlay/state' && c.req.method === 'GET') { c.set('cfg', await loadCfg(c.env.DB)); return next(); }
+    return json(c, { error: 'this token only reaches the overlay state' }, 401);
+  }
   if (role(c) === 'read') {
     c.set('cfg', await loadCfg(c.env.DB));
     if (/^\/api\/read\/(leetcode|jobs|progress)$/.test(path) && c.req.method === 'GET') { c.set('viaRead', true); return next(); }
@@ -652,6 +656,40 @@ app.post('/api/apikey/regen', async c => {
 });
 
 // ---- grind check-in / check-out ----
+// ---- desktop overlay ----
+// The browser owns the focus timer; it mirrors every change here so the helper can draw it.
+app.post('/api/timer', async c => {
+  const b = await c.req.json().catch(() => null);
+  const t = b && b.timer;
+  if (!t || typeof t.len !== 'number' || !t.startedAt) { await setSetting(c.env.DB, 'focus_timer', ''); return json(c, { ok: true, timer: null }); }
+  const clean = { len: Math.min(180, Math.max(1, Math.round(t.len))), startedAt: +t.startedAt || Date.now(), pausedMs: Math.max(0, +t.pausedMs || 0), pausedAt: t.pausedAt ? +t.pausedAt : null };
+  await setSetting(c.env.DB, 'focus_timer', JSON.stringify(clean));
+  return json(c, { ok: true, timer: clean });
+});
+// What the overlay polls: the live grind session, the mirrored timer, and how to draw itself.
+app.get('/api/overlay/state', async c => {
+  const cfg = c.get('cfg');
+  const a = await c.env.DB.prepare('SELECT * FROM grind_sessions WHERE end_ts IS NULL ORDER BY id DESC LIMIT 1').first();
+  const cat = a ? (cfg.allCategories.find(x => x.key === a.cur_task) || null) : null;
+  return json(c, {
+    now: nowIn(c.env.TZ), tz: c.env.TZ, clock24: cfg.clock24, overlay: cfg.overlay,
+    grind: a ? { id: a.id, label: a.block_label || 'Grind', start_ts: a.start_ts, paused_at: a.paused_at, paused_min: a.paused_min || 0,
+      planned_end: a.planned_end || null, task: cat ? { key: cat.key, emoji: cat.emoji, name: cat.name, color: cat.color } : { key: a.cur_task, emoji: '⭐', name: a.cur_task || 'Grind', color: '#FF6B35' } } : null,
+    timer: cfg.focusTimer,
+  });
+});
+// A 6-character pairing code, valid 10 minutes, stored centrally so the helper can redeem it without a session.
+app.post('/api/overlay/code', async c => {
+  const AB = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const code = [...crypto.getRandomValues(new Uint8Array(6))].map(x => AB[x % AB.length]).join('');
+  await c.env.CENTRAL.prepare('INSERT INTO api_keys (user_id, kind, key_hash, created_at) VALUES (?,?,?,datetime(\'now\')) ON CONFLICT(user_id, kind) DO UPDATE SET key_hash=excluded.key_hash, created_at=excluded.created_at')
+    .bind(c.env.CTX.userId, 'overlay_pair', await sha256hex('pair:' + code)).run();
+  return json(c, { ok: true, code, expiresIn: 600 });
+});
+app.delete('/api/overlay/key', async c => {
+  await c.env.CENTRAL.prepare('DELETE FROM api_keys WHERE user_id=? AND kind IN (?,?)').bind(c.env.CTX.userId, 'overlay', 'overlay_pair').run();
+  return json(c, { ok: true });
+});
 app.get('/api/grind/active', async c => {
   const a = await c.env.DB.prepare('SELECT * FROM grind_sessions WHERE end_ts IS NULL ORDER BY id DESC LIMIT 1').first();
   return json(c, { active: a || null });
@@ -1148,6 +1186,7 @@ app.get('/api/settings', async c => {
     timerDefault: cfg.timerDefault, timerOptions: cfg.timerOptions, streakCategory: cfg.streakCategory,
     categories: cfg.allCategories, sideTasks, phases: cfg.phases, sideEmoji: SIDE_EMOJI,
     clock: cfg.clock, mclock: cfg.mclock, jobPlatforms: cfg.jobPlatforms, todayLayout: cfg.todayLayout, bgStyle: cfg.bgStyle,
+    overlay: cfg.overlay, overlayPaired: c.env.CENTRAL ? (await c.env.CENTRAL.prepare('SELECT created_at FROM api_keys WHERE user_id=? AND kind=?').bind(c.env.CTX.userId, 'overlay').first()) : null,
     icsUrl: pub + '/calendar.ics?token=' + icsToken,
     shareUrl: pub + '/share', bookUrl: pub + '/book', share: { ...cfg.share, pinHash: undefined, isOn: !!cfg.share.pinHash },
   });
@@ -1194,6 +1233,11 @@ const applySettings = async (c, b) => {
   if (b.clockLogged !== undefined) await setSetting(db, 'clock_logged', /^#[0-9a-fA-F]{6}$/.test(b.clockLogged) ? b.clockLogged : '');
   if (b.todayLayout !== undefined && ['classic', 'refined'].includes(b.todayLayout)) await setSetting(db, 'today_layout', b.todayLayout);
   if (b.bgStyle !== undefined && ['aurora', 'dots', 'plain'].includes(b.bgStyle)) await setSetting(db, 'bg_style', b.bgStyle);
+  if (b.ovCorner !== undefined && ['tl', 'tr', 'bl', 'br'].includes(b.ovCorner)) await setSetting(db, 'ov_corner', b.ovCorner);
+  if (b.ovSize !== undefined && ['s', 'm', 'l'].includes(b.ovSize)) await setSetting(db, 'ov_size', b.ovSize);
+  if (b.ovOpacity !== undefined) await setSetting(db, 'ov_opacity', String(Math.min(100, Math.max(20, +b.ovOpacity || 70))));
+  if (b.ovOffset !== undefined) await setSetting(db, 'ov_offset', String(Math.min(64, Math.max(0, Math.round(+b.ovOffset || 0)))));
+  if (b.ovTimer !== undefined) await setSetting(db, 'ov_timer', b.ovTimer ? '1' : '0');
   if (b.mclockDesign !== undefined && ['pill', 'led', 'analog', 'flip', 'ring'].includes(b.mclockDesign)) await setSetting(db, 'mclock_design', b.mclockDesign);
   if (b.mclockFont !== undefined) await setSetting(db, 'mclock_font', String(Math.min(22, Math.max(10, +b.mclockFont || 13))));
   if (b.mclockAccent !== undefined) await setSetting(db, 'mclock_accent', /^#[0-9a-fA-F]{6}$/.test(b.mclockAccent) ? b.mclockAccent : '');

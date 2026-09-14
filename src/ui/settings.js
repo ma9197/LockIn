@@ -104,6 +104,28 @@ button.rose.outl:hover{background:#FF5D7318}
 .bgprev.aurora{background:radial-gradient(circle at 18% 22%,rgba(255,107,53,.55),transparent 55%),radial-gradient(circle at 86% 88%,rgba(94,162,255,.5),transparent 55%),#0B0E14}
 .bgprev.aurora:after,.bgprev.dots:after{content:'';position:absolute;inset:0;background-image:radial-gradient(rgba(237,241,247,.22) 1px,transparent 1.3px);background-size:9px 9px}
 .rangerow{display:flex;align-items:center;gap:12px}
+/* desktop overlay card */
+.ovcode{font:900 34px var(--disp);letter-spacing:.34em;text-align:center;padding:14px 8px 14px 16px;background:var(--well);border:1px dashed var(--line2);border-radius:12px;color:var(--ink);font-variant-numeric:tabular-nums}
+.ovcorners{grid-template-columns:repeat(4,1fr)}
+.ovcorners .pick{min-height:72px;padding:10px 6px}
+.ovcorners .pick i{display:block;width:34px;height:24px;border:1px solid var(--line2);border-radius:5px;position:relative;background:var(--well)}
+.ovcorners .pick i:after{content:'';position:absolute;width:12px;height:6px;border-radius:2px;background:var(--ember)}
+.ovcorners .pick.tl i:after{left:3px;top:3px}.ovcorners .pick.tr i:after{right:3px;top:3px}.ovcorners .pick.bl i:after{left:3px;bottom:3px}.ovcorners .pick.br i:after{right:3px;bottom:3px}
+.ovstage{margin-top:16px;padding:22px;border-radius:12px;background:radial-gradient(circle at 20% 20%,#1a2233,#0B0E14 70%);border:1px solid var(--line);display:flex;justify-content:flex-end;align-items:flex-end;min-height:120px}
+.ovprev{--sc:1;--op:.7;transform:scale(var(--sc));transform-origin:100% 100%;opacity:var(--op);background:rgba(19,24,36,.96);border:1px solid rgba(49,61,87,.9);border-radius:16px;padding:10px 14px 10px 12px;box-shadow:0 12px 40px rgba(0,0,0,.45);display:flex;flex-direction:column;gap:8px;min-width:200px;transition:opacity .2s,transform .2s}
+.ovp-row{display:flex;align-items:center;gap:10px}
+.ovp-dot{width:9px;height:9px;border-radius:99px;background:var(--ember);flex:none;animation:ovpulse 2.6s ease-in-out infinite}
+@keyframes ovpulse{0%{box-shadow:0 0 0 0 rgba(255,107,53,.55)}60%{box-shadow:0 0 0 7px rgba(255,107,53,0)}100%{box-shadow:0 0 0 0 rgba(255,107,53,0)}}
+.ovp-tm{font:800 22px/1 var(--disp);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.ovp-lab{display:flex;flex-direction:column;gap:2px}
+.ovp-lab b{font:700 11px/1.2 var(--disp);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+.ovp-pill{display:inline-flex;padding:2px 8px;border-radius:99px;font:700 11px/1.3 var(--disp);background:#FF6B3522;color:var(--ember)}
+.ovp-tmr{padding-top:8px;border-top:1px solid rgba(49,61,87,.7)}
+.ovprev.no-timer .ovp-tmr{display:none}
+.ovp-ring{width:26px;height:26px;border-radius:99px;border:4px solid #232C3E;border-top-color:var(--ember);border-right-color:var(--ember);flex:none}
+.ovp-tv{font:800 18px/1 var(--disp);font-variant-numeric:tabular-nums}
+.ovp-ts{font:700 10px/1.2 var(--disp);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2)}
+
 .rangerow input[type=range]{flex:1;accent-color:var(--ember);padding:0}
 .rangerow .num{min-width:52px;text-align:right;font:800 15px var(--disp);color:var(--ember)}
 .colorrow{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
@@ -115,6 +137,7 @@ button.rose.outl:hover{background:#FF5D7318}
 .filebtn{display:inline-flex;align-items:center;gap:12px;width:100%;min-width:0}
 .filebtn input{display:none}
 .filebtn .fname{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px;color:var(--ink2)}
+.btnlink.pri{background:var(--grad);border-color:transparent;color:#1A0D05}
 .btnlink{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);color:var(--ink);border:1px solid var(--line2);border-radius:var(--rs);padding:8px 16px;font:700 13px var(--disp);text-decoration:none;white-space:nowrap;cursor:pointer}
 .danger{border-color:#FF5D7345;background:linear-gradient(180deg,#FF5D730d,var(--surface) 60%)}
 .row>button{white-space:nowrap}
@@ -249,6 +272,34 @@ ${sec('read', 'Read-only API · for Claude', 'Lets Claude read your LeetCode log
   <div class="fg"><label class="fld" for="ccSnip">For Claude Code (paste into its CLAUDE.md)</label><textarea id="ccSnip" class="snip" readonly rows="10"></textarea><div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap"><button class="sm" onclick="navigator.clipboard.writeText($('ccSnip').value);toast('Copied for Claude Code')">Copy</button><span class="grow"></span><button class="rose sm" onclick="regenReadKey()">Regenerate read key</button></div></div>
 </div>`)}
 
+${sec('overlay', 'Desktop overlay', 'A small chip on your desktop with the live grind session and the focus timer. It floats over every app, is half transparent and never takes a click. Windows and macOS.', `
+<div class="card acct">
+  <div class="acrow" style="border-top:0">
+    <div class="acl"><span class="tile">🖥️</span><div><b>Get LockIn Overlay</b><p>A 6 MB helper that lives in your tray. Free and open source, updates itself.</p></div></div>
+    <div class="acr"><div class="row" style="gap:8px;flex-wrap:wrap"><a class="btnlink pri" id="ovDl" href="/overlay/download">⬇ Download</a><a class="btnlink" id="ovDlOther" href="/overlay/download?os=mac">for Mac</a></div>
+      <div class="hint" id="ovDlHint">First launch: Windows may say “Windows protected your PC”, click <b>More info → Run anyway</b>. On a Mac, right-click the app → <b>Open</b> once. The build is not code-signed yet.</div></div>
+  </div>
+  <div class="acrow">
+    <div class="acl"><span class="tile">🔗</span><div><b>Pair this computer</b><p>The helper needs a code from here. It gets a token that can only read what is running, nothing else.</p></div></div>
+    <div class="acr">
+      <div id="ovPaired" class="hint" style="margin:0 0 10px"></div>
+      <div class="row" style="gap:8px;flex-wrap:wrap"><button class="pri sm" onclick="ovCode()">Generate code</button><button class="ghost sm" id="ovUnpair" onclick="ovUnpair()" style="display:none">Unpair</button></div>
+      <div id="ovCodeBox" style="display:none;margin-top:12px"><div class="ovcode" id="ovCodeVal"></div><div class="hint" style="margin-top:6px">Type it into the helper. Valid for <b id="ovCodeTtl">10:00</b>.</div></div>
+    </div>
+  </div>
+  <div class="acrow">
+    <div class="acl"><span class="tile">📍</span><div><b>Where it sits</b><p>Pick a corner and how far from the edge. Which display is chosen in the helper’s tray menu.</p></div></div>
+    <div class="acr"><div class="picks ovcorners" id="ovCorners"></div>
+      <div class="fg" style="margin-top:14px"><label class="fld" for="ov-offset">Distance from the edge</label><div class="rangerow"><input id="ov-offset" type="range" min="0" max="64" step="4"><span class="num"><span id="ovOffsetVal"></span>px</span></div></div></div>
+  </div>
+  <div class="acrow">
+    <div class="acl"><span class="tile">🎚️</span><div><b>Size and opacity</b><p>Keep it quiet. The preview on the right is what the helper draws.</p></div></div>
+    <div class="acr"><div class="picks" id="ovSizes" style="grid-template-columns:repeat(3,1fr)"></div>
+      <div class="fg" style="margin-top:14px"><label class="fld" for="ov-opacity">Opacity</label><div class="rangerow"><input id="ov-opacity" type="range" min="20" max="100" step="5"><span class="num"><span id="ovOpacityVal"></span>%</span></div></div>
+      <div class="togrow" style="margin-top:10px"><div class="grow"><b>Show the focus timer</b><div class="tiny">A second line with the countdown while the timer runs.</div></div><div class="toggle" id="ov-timer" role="switch" tabindex="0" aria-label="show the focus timer"></div></div>
+      <div class="ovstage"><div class="ovprev" id="ovPrev"><div class="ovp-row"><span class="ovp-dot"></span><span class="ovp-tm">1h 12m</span><div class="ovp-lab"><b>Grinding</b><span class="ovp-pill">🧩 LeetCode</span></div></div><div class="ovp-row ovp-tmr" id="ovPrevTmr"><span class="ovp-ring"></span><span class="ovp-tv">18:42</span><span class="ovp-ts">Focus · 25 min</span></div></div></div></div>
+  </div>
+</div>`)}
 ${pane('account')}
 ${sec('account', 'Account', '', `
 <div class="card acct">
@@ -301,8 +352,8 @@ const MODS=[['leetcode','\\uD83E\\uDDE9 LeetCode tab','problem log, notes, visua
 const SHK=[['shOverview','overview'],['shLc','lc'],['shGrind','grind'],['shJobs','jobs'],['shLcNames','lcNames'],['shFriends','friends'],['shOffReasons','offReasons']];
 const LAYEMO={morning:'\\uD83C\\uDF05',night:'\\uD83C\\uDF19',low:'\\uD83E\\uDEAB',weekend:'\\uD83C\\uDFD6\\uFE0F',sunday:'\\uD83C\\uDFD6\\uFE0F'};
 // which draft keys belong to which section, for the change markers and the save bar text
-const SEC={time:['tz','clock24'],plan:['phases'],cats:['cats'],layouts:['sched'],sides:['sides'],modules:['modules','grindTarget'],today:['todayLayout','timerDefault','timerOptions'],bg:['bgStyle'],clock:['clock'],mclock:['mclock'],booking:['booking'],share:['share'],platforms:['platforms']};
-const TABOF={time:'plan',plan:'plan',cats:'plan',layouts:'schedule',sides:'schedule',modules:'today',today:'today',bg:'today',clock:'today',mclock:'today',booking:'sharing',share:'sharing',platforms:'api'};
+const SEC={time:['tz','clock24'],plan:['phases'],cats:['cats'],layouts:['sched'],sides:['sides'],modules:['modules','grindTarget'],today:['todayLayout','timerDefault','timerOptions'],bg:['bgStyle'],clock:['clock'],mclock:['mclock'],booking:['booking'],share:['share'],platforms:['platforms'],overlay:['overlay']};
+const TABOF={time:'plan',plan:'plan',cats:'plan',layouts:'schedule',sides:'schedule',modules:'today',today:'today',bg:'today',clock:'today',mclock:'today',booking:'sharing',share:'sharing',platforms:'api',overlay:'api'};
 const BGS=[['aurora','Glow','two soft lights and a dot grid'],['dots','Grid','the dot grid only'],['plain','Plain','one solid colour']];
 function renderBg(){$('bgPicks').innerHTML=BGS.map(([k,n,d])=>'<button class="pick'+(D.bgStyle===k?' on':'')+'" onclick="D.bgStyle=\\''+k+'\\';renderBg();mark()" title="'+d+'"><div class="bgprev '+k+'"></div><span>'+n+'</span></button>').join('');}
 const TABN={plan:'Plan',schedule:'Schedule',today:'Today',sharing:'Sharing',api:'Integrations',account:'Account'};
@@ -337,7 +388,8 @@ clock:{design:S.clock.design,size:S.clock.size,font:S.clock.font,accent:S.clock.
 mclock:{design:S.mclock.design,font:S.mclock.font,accent:S.mclock.accent||''},
 booking:{enabled:!!S.bookingEnabled,days:S.bookingDays,avail:S.availability.map(a=>[a[0],a[1]]),perDevice:S.bookingPerDevice,perSlot:S.bookingPerSlot,durations:S.bookingDurations.join(', ')},
 share:{title:sh.title||'',overview:!!sh.overview,lc:!!sh.lc,grind:!!sh.grind,jobs:!!sh.jobs,lcNames:!!sh.lcNames,friends:!!sh.friends,offReasons:!!sh.offReasons},
-platforms:[...S.jobPlatforms]};}
+platforms:[...S.jobPlatforms],
+overlay:{corner:(S.overlay||{}).corner||'br',size:(S.overlay||{}).size||'m',opacity:+((S.overlay||{}).opacity||70),offset:+((S.overlay||{}).offset??16),timer:(S.overlay||{}).timer!==false}};}
 
 // ---- change tracking ----
 function mark(){const tabs={};
@@ -374,7 +426,7 @@ num('s-target',()=>D.grindTarget,v=>{D.grindTarget=v;});
 seg('layoutSeg','l',D.todayLayout,v=>{D.todayLayout=v;});
 num('s-timer',()=>D.timerDefault,v=>{D.timerDefault=v;});
 txt('s-topts',()=>D.timerOptions,v=>{D.timerOptions=v;});
-renderBg();renderClockCtl();renderMClockCtl();
+renderBg();renderClockCtl();renderMClockCtl();renderOverlayCtl();
 tg('bookT',()=>D.booking.enabled,v=>{D.booking.enabled=v;});
 renderAvail();
 $('s-bdays').value=D.booking.days;$('bdVal').textContent=D.booking.days+(D.booking.days===1?' day':' days');
@@ -515,6 +567,35 @@ $('ck-logged').oninput=()=>{D.clock.logged=$('ck-logged').value;$('ck-logged-sta
 const MCNAMES={pill:'Pill',led:'LED',analog:'Analog',flip:'Flip',ring:'Day ring'};
 let mcInt=null;
 function mcPreview(){window.__MCLOCK={design:D.mclock.design,font:D.mclock.font,accent:D.mclock.accent};}
+
+// ---- desktop overlay card ----
+const OVC=[['tl','Top left'],['tr','Top right'],['bl','Bottom left'],['br','Bottom right']],OVS=[['s','Small'],['m','Medium'],['l','Large']];
+let ovCodeT=null;
+function renderOverlayCtl(){const O=D.overlay;
+$('ovCorners').innerHTML=OVC.map(([k,n])=>'<button class="pick '+k+(O.corner===k?' on':'')+'" onclick="D.overlay.corner=\\''+k+'\\';renderOverlayCtl();mark()"><i></i><span>'+n+'</span></button>').join('');
+$('ovSizes').innerHTML=OVS.map(([k,n])=>'<button class="pick'+(O.size===k?' on':'')+'" onclick="D.overlay.size=\\''+k+'\\';renderOverlayCtl();mark()"><span style="font:800 '+(k==='s'?14:k==='m'?18:22)+'px var(--disp)">Aa</span><span>'+n+'</span></button>').join('');
+$('ov-offset').value=O.offset;$('ovOffsetVal').textContent=O.offset;
+$('ov-opacity').value=O.opacity;$('ovOpacityVal').textContent=O.opacity;
+toggle($('ov-timer'),!!O.timer);
+const p=$('ovPrev');p.style.setProperty('--sc',{s:.8,m:1,l:1.25}[O.size]||1);p.style.setProperty('--op',O.opacity/100);p.classList.toggle('no-timer',!O.timer);
+const isMac=/Mac|iPhone|iPad/.test(navigator.platform);
+$('ovDl').textContent=isMac?'⬇ Download for Mac':'⬇ Download for Windows';$('ovDl').href='/overlay/download?os='+(isMac?'mac':'windows');
+$('ovDlOther').textContent=isMac?'for Windows':'for Mac';$('ovDlOther').href='/overlay/download?os='+(isMac?'windows':'mac');
+renderOvPaired();}
+function renderOvPaired(){const p=S.overlayPaired;
+$('ovPaired').innerHTML=p?'<b style="color:var(--mint)">● Paired</b> · since '+esc(String(p.created_at||'').slice(0,10))+'. Generating a new code re-pairs and signs the old helper out.':'<b>○ Not paired yet</b> · install the helper, then generate a code.';
+$('ovUnpair').style.display=p?'':'none';}
+$('ov-offset').oninput=()=>{D.overlay.offset=+$('ov-offset').value;$('ovOffsetVal').textContent=D.overlay.offset;mark();};
+$('ov-opacity').oninput=()=>{D.overlay.opacity=+$('ov-opacity').value;$('ovOpacityVal').textContent=D.overlay.opacity;$('ovPrev').style.setProperty('--op',D.overlay.opacity/100);mark();};
+$('ov-timer').onclick=()=>{D.overlay.timer=!D.overlay.timer;renderOverlayCtl();mark();};
+$('ov-timer').onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();$('ov-timer').click();}};
+async function ovCode(){try{const j=await api('/api/overlay/code',{body:{}});
+$('ovCodeBox').style.display='';$('ovCodeVal').textContent=j.code;let left=j.expiresIn||600;clearInterval(ovCodeT);
+const tick=()=>{$('ovCodeTtl').textContent=String(Math.floor(left/60))+':'+String(left%60).padStart(2,'0');if(left<=0){clearInterval(ovCodeT);$('ovCodeBox').style.display='none';}left--;};tick();ovCodeT=setInterval(tick,1000);
+const poll=setInterval(async()=>{try{const s=await api('/api/settings');if(s.overlayPaired&&(!S.overlayPaired||s.overlayPaired.created_at!==S.overlayPaired.created_at)){S.overlayPaired=s.overlayPaired;renderOvPaired();clearInterval(poll);clearInterval(ovCodeT);$('ovCodeBox').style.display='none';toast('✓ Helper paired');}}catch(e){}if(left<0)clearInterval(poll);},4000);}
+catch(e){toast(String(e))}}
+async function ovUnpair(){if(!confirm('Unpair the helper? The overlay stops until you pair again.'))return;
+try{await api('/api/overlay/key',{method:'DELETE'});S.overlayPaired=null;renderOvPaired();toast('Unpaired');}catch(e){toast(String(e))}}
 function renderMClockCtl(){const M=D.mclock;
 $('mcDesigns').innerHTML=Object.keys(MCNAMES).map(k=>'<button class="pick'+(M.design===k?' on':'')+'" onclick="D.mclock.design=\\''+k+'\\';renderMClockCtl();mark()"><span class="mc-prev" data-d="'+k+'"></span><span>'+MCNAMES[k]+'</span></button>').join('');
 const draw=()=>document.querySelectorAll('.mc-prev').forEach(el=>{el.innerHTML=window.mclockHTML({design:el.dataset.d,font:12,accent:D.mclock.accent},new Date());});
@@ -551,7 +632,8 @@ clockDesign:D.clock.design,clockSize:+D.clock.size,clockFont:+D.clock.font,clock
 mclockDesign:D.mclock.design,mclockFont:+D.mclock.font,mclockAccent:D.mclock.accent||'',
 bookingEnabled:D.booking.enabled,bookingDays:+D.booking.days,availability:D.booking.avail,bookingPerDevice:+D.booking.perDevice,bookingPerSlot:+D.booking.perSlot,bookingDurations:nums(D.booking.durations),
 shareTitle:sh.title,shareOverview:sh.overview,shareLc:sh.lc,shareGrind:sh.grind,shareJobs:sh.jobs,shareLcNames:sh.lcNames,shareFriends:sh.friends,shareOffReasons:sh.offReasons,
-jobPlatforms:D.platforms,sched:D.sched},
+jobPlatforms:D.platforms,sched:D.sched,
+ovCorner:D.overlay.corner,ovSize:D.overlay.size,ovOpacity:+D.overlay.opacity,ovOffset:+D.overlay.offset,ovTimer:!!D.overlay.timer},
 phases:D.phases,categories:D.cats,sideTasks:D.sides};
 // the nav, the time zone and the header style live in the page shell, so those need a fresh page
 const needReload=['modules','tz','clock24','todayLayout','bgStyle'].some(k=>snap(k)!==B[k]);

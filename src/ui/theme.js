@@ -1034,6 +1034,9 @@ const fmtTm=s=>String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStar
 function tRead(){try{TS=JSON.parse(localStorage.getItem(TKEY)||'null')}catch(e){TS=null}
 if(!TS||typeof TS.len!=='number'||!TS.startedAt)TS=null;return TS;}
 function tWrite(){try{TS?localStorage.setItem(TKEY,JSON.stringify(TS)):localStorage.removeItem(TKEY)}catch(e){}}
+// mirror the timer to the server for the desktop overlay (owner pages only, debounced, best effort)
+let tSyncT=null;function tSync(){if(!window.__U||window.__U.base)return;clearTimeout(tSyncT);tSyncT=setTimeout(function(){fetch('/api/timer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({timer:TS}),keepalive:true}).catch(function(){});},250);}
+const tWrite0=tWrite;tWrite=function(){tWrite0();tSync();};
 // elapsed comes from the wall clock, so a refresh or a sleeping phone cannot drift it
 function tElapsedS(){if(!TS)return 0;const end=TS.pausedAt||Date.now();
 return Math.max(0,Math.round((end-TS.startedAt-TS.pausedMs)/1000));}

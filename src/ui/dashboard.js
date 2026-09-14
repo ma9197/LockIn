@@ -46,6 +46,7 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
     <div class="lg-moreWrap"><button class="lg-more" id="lgMore" aria-label="more options" onclick="event.stopPropagation();toggleLgMenu()">⋯</button>
       <div class="lgmenu" id="lgMenu">
         <button onclick="forgotCheckout()">⏱ Forgot to check out…<small>Enter the real stop time, the session is saved as if you had.</small></button>
+        <button onclick="location.href='/settings#api'">🖥️ Show on your desktop<small>A small overlay with this session and the timer, over any app.</small></button>
         <button class="rose" onclick="cancelGrind()">✕ Cancel session<small>Discards it. Nothing is recorded.</small></button>
       </div></div>
   </div>

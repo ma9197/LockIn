@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<title>Pair LockIn Overlay</title>
+<link rel="stylesheet" href="overlay.css">
+<style>
+html,body{background:var(--bg);overflow:auto}
+body{display:block;padding:28px 28px 24px;font-size:15px;-webkit-user-select:text;user-select:text;cursor:auto}
+.logo{font:900 22px var(--disp);letter-spacing:-.02em;color:var(--ink);margin-bottom:18px}
+.logo em{font-style:normal;background:linear-gradient(135deg,#FF6B35,#FFB347);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1{font:800 20px/1.2 var(--disp);margin-bottom:6px}
+p{color:var(--ink2);line-height:1.5;margin-bottom:16px}
+label{display:block;font:600 13px var(--body);color:var(--ink2);margin:14px 0 6px}
+input{width:100%;background:var(--surface2);color:var(--ink);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;font:16px var(--body);outline:none}
+input:focus{border-color:var(--ember);box-shadow:0 0 0 2px #FF6B3533}
+#code{font:800 26px var(--disp);letter-spacing:.32em;text-transform:uppercase;text-align:center;padding:14px}
+button{margin-top:18px;width:100%;min-height:46px;border:0;border-radius:12px;background:linear-gradient(135deg,#FF6B35,#FFB347);color:#1A0D05;font:800 15px var(--disp);cursor:pointer}
+button:disabled{opacity:.5;cursor:wait}
+.err{min-height:20px;margin-top:10px;color:var(--rose);font-size:13px}
+.ok{color:var(--mint)}
+details{margin-top:14px;color:var(--ink3);font-size:12px}
+details summary{cursor:pointer}
+details input{font-size:13px;padding:8px 10px;margin-top:6px}
+.foot{margin-top:18px;font-size:12px;color:var(--ink3)}
+</style>
+</head>
+<body>
+<div class="logo">LOCK<em>IN</em> 🔥 <span style="font:700 12px var(--disp);color:var(--ink3);letter-spacing:.08em">OVERLAY</span></div>
+<h1>Pair with your account</h1>
+<p>In LockIn open <b>Settings → Integrations → Desktop overlay</b> and press <b>Generate code</b>. Type the six characters here.</p>
+<label for="code">Pairing code</label>
+<input id="code" maxlength="6" autocomplete="off" spellcheck="false" placeholder="A1B2C3">
+<details><summary>Self-hosted LockIn? Change the server</summary><input id="server" placeholder="https://cslockin.com"></details>
+<button id="go">Connect</button>
+<div class="err" id="err"></div>
+<div class="foot">The overlay only ever reads what is running. It cannot change anything in your account.</div>
+<script src="pair.js"></script>
+</body></html>

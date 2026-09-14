@@ -1,0 +1,65 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "LockIn Overlay",
+  "version": "1.0.0",
+  "identifier": "com.cslockin.overlay",
+  "build": {
+    "frontendDist": "../src"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "overlay",
+        "url": "index.html",
+        "title": "LockIn Overlay",
+        "width": 260,
+        "height": 72,
+        "resizable": false,
+        "decorations": false,
+        "transparent": true,
+        "shadow": false,
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "visible": false,
+        "visibleOnAllWorkspaces": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEFEMUEzQ0E1ODBFNjQ1MDUKUldRRlJlYUFwVHdhclgwL1lLMUVPaDEzWlBtQ0hTdTc3M3ZYMFZDVTJmVStxY1JhNTkyK1IzMlMK",
+      "endpoints": [
+        "https://github.com/ma9197/LockIn/releases/latest/download/latest.json"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "createUpdaterArtifacts": true,
+    "category": "Productivity",
+    "shortDescription": "LockIn desktop overlay",
+    "longDescription": "Shows your live LockIn grind session and focus timer as a small click-through overlay on top of any app.",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser"
+      }
+    },
+    "macOS": {
+      "minimumSystemVersion": "10.15"
+    }
+  }
+}

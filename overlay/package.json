@@ -1,0 +1,25 @@
+{
+  "name": "lockin-overlay",
+  "version": "1.0.0",
+  "description": "LockIn desktop overlay helper",
+  "scripts": {
+    "dev": "tauri dev",
+    "build": "tauri build",
+    "tauri": "tauri"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.11.4"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^2.11.1",
+    "@tauri-apps/plugin-autostart": "^2.5.1",
+    "@tauri-apps/plugin-process": "^2.3.1",
+    "@tauri-apps/plugin-store": "^2.4.4",
+    "@tauri-apps/plugin-updater": "^2.11.0"
+  },
+  "private": true
+}
