@@ -51,10 +51,8 @@ ${pane('lc', `<section class="tabpane${firstTab === 'lc' ? ' on' : ''}" data-t="
   ${sh('What you are actually training', 'Share of timed solves by difficulty and by outcome.')}
   <div class="card" id="lcMix"><div class="skel">Loading…</div></div>
   <div class="card" id="lcTrendCard"></div>
-  ${sh('Avg solve time · last 30 days', 'Average minutes per timed solve, per day. Lower is better.')}
-  <div class="card" id="chart-lctime"><div class="skel">Loading…</div></div>
-  ${sh('Problems solved · last 30 days', 'Solves per day against that day\u2019s goal.')}
-  <div class="card" id="chart-lc"><div class="skel">Loading…</div></div>
+  <div class="card chartcard" id="chart-lctime"><div class="skel">Loading…</div></div>
+  <div class="card chartcard" id="chart-lc"><div class="skel">Loading…</div></div>
   ${SH ? '' : '<div class="linkcard"><a href="/leetcode">Every problem, its tries and its notes live on the LeetCode tab &rarr;</a></div>'}
   ${!SH || SH.lcNames ? sh('History', 'Every day with a logged solve, newest first. Tap a day to expand it.') + '<div id="lcDays"></div>' : ''}
 </section>`)}
@@ -71,12 +69,10 @@ ${pane('grind', `<section class="tabpane${firstTab === 'grind' ? ' on' : ''}" da
     <div style="overflow-x:auto;padding:4px 0"><div class="heat" id="heat"></div></div>
     <div class="row" style="margin-top:8px;flex-wrap:wrap;gap:8px 12px"><span class="tiny">less</span>
     <span style="display:flex;gap:4px">${[0.12, 0.35, 0.6, 1].map(o => `<span style="width:12px;height:12px;border-radius:3px;background:rgba(255,107,53,${o})"></span>`).join('')}</span>
-    <span class="tiny">more</span><span class="grow"></span><span class="tiny" id="gtarget">target: 6h/day</span></div>
+    <span class="tiny">more</span><span class="grow"></span><span class="tiny" id="gtarget">target: ${cfg.grindTarget || 6}h/day</span></div>
   </div>
-  ${sh('Which weekday carries you', 'Average grind hours by weekday, across every week in the plan.')}
-  <div class="card" id="dowCard"><div class="skel">Loading…</div></div>
-  ${sh('Grind hours · last 14 days', 'Checked-in hours per day against your grind target.')}
-  <div class="card" id="chart-grind"><div class="skel">Loading…</div></div>
+  <div class="card chartcard" id="dowCard"><div class="skel">Loading…</div></div>
+  <div class="card chartcard" id="chart-grind"><div class="skel">Loading…</div></div>
   <div class="card" id="modsplit" style="display:none"></div>
 </section>`)}
 
@@ -91,8 +87,7 @@ ${pane('jobs', `<section class="tabpane${firstTab === 'jobs' ? ' on' : ''}" data
   <div class="card" id="funnel"><div class="skel">No applications tracked yet.</div></div>
   ${sh('By platform', 'Where the applications came from.')}
   <div class="card" id="platforms"></div>
-  ${sh('Applications · last 30 days', 'Applications sent per day against that day\u2019s goal.')}
-  <div class="card" id="chart-apps"><div class="skel">Loading…</div></div>
+  <div class="card chartcard" id="chart-apps"><div class="skel">Loading…</div></div>
   ${sh('Daily history', 'Every day with at least one application.')}
   <div class="card"><div id="list-apps" class="scrollbox"></div></div>
 </section>`)}
@@ -112,6 +107,9 @@ const mins=m=>m?(m>=60?fmtDur(Math.round(m)):(Math.round(m*10)/10)+'m'):'–';
 const nf=v=>{const r=Math.round(v*10)/10;return String(r===Math.round(r)?Math.round(r):r);};
 const DOWN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DOWFULL=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const GT=(window.__U&&+window.__U.grindTarget)||6;
+const ICO_BARS='<svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1.5" y="8" width="3" height="6.5" rx="1"/><rect x="6.5" y="3" width="3" height="11.5" rx="1"/><rect x="11.5" y="6" width="3" height="8.5" rx="1"/></svg>';
+const ICO_TABLE='<svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="11" rx="2"/><path d="M1.5 6.5h13M1.5 10h13M6 6.5v7"/></svg>';
 
 // tabs
 let TAB=localStorage.getItem(SHARE?'lockin_stab':'lockin_ptab')||'overview';
@@ -149,72 +147,85 @@ const data=C.data,unit=C.unit,color=C.color,o=C.o;
 const n=data.length;
 const fmt=o.fmt||(v=>nf(v));
 const vfmt=o.vfmt||fmt;
-const W=Math.max(250,Math.round(el.clientWidth||600));
-const narrow=W<430;
-const H=narrow?170:210;
-const padL=narrow?30:36,padR=8,padT=22,padB=narrow?28:30;
-const plotW=W-padL-padR,plotH=H-padT-padB;
 const vals=data.map(d=>+d.v||0),goals=data.map(d=>+d.g||0);
-const rawMax=Math.max.apply(null,vals.concat(goals).concat([0]));
-const allInt=vals.concat(goals).every(v=>v===Math.round(v));
-let step=niceStep(Math.max(rawMax,1)/(narrow?3:4));
-if(allInt)step=Math.max(1,Math.round(step));
-const mx=Math.max(step,Math.ceil((rawMax-1e-9)/step)*step);
-const y=v=>padT+plotH-(v/mx)*plotH;
-const bw=plotW/n,gap=Math.min(4,Math.max(1,bw*0.22)),barW=Math.max(2,bw-gap);
 const act=[];for(let i=0;i<n;i++)if(vals[i]>0)act.push(i);
 const sum=vals.reduce((a,b)=>a+b,0);
 const avg=act.length?sum/act.length:0;
 const best=Math.max.apply(null,vals.concat([0]));
-const showAvg=o.avg!==false&&act.length>1;
+const withGoal=goals.filter(g=>g>0);
+const sameGoal=withGoal.length===n&&withGoal.every(g=>g===withGoal[0]);
+const target=o.target||(sameGoal?withGoal[0]:0);
+const cat=!!(data[0]&&data[0].l);   // categorical axis (weekdays) instead of dates
+let view=C.view;if(!view){try{view=localStorage.getItem('pg_view_'+el.id)}catch(e){}}
+view=view==='table'?'table':'chart';
+const ttl=(o.title||'')+(target?' (target: '+vfmt(target)+')':'');
+const head='<div class="chh"><div class="chht"><h3>'+ttl+'</h3>'+(o.sub?'<div class="chsub">'+o.sub+'</div>':'')+'</div>'
++'<div class="chtog"><button type="button" data-v="chart"'+(view==='chart'?' class="on"':'')+' aria-label="Show as chart" title="Chart">'+ICO_BARS+'</button>'
++'<button type="button" data-v="table"'+(view==='table'?' class="on"':'')+' aria-label="Show as table" title="Table">'+ICO_TABLE+'</button></div></div>';
 
-let s='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" preserveAspectRatio="none" style="width:100%;height:'+H+'px;display:block" role="img" aria-label="'+unit+' per day">';
-// horizontal grid + scale numbers, so a bar has a readable value without hovering
+let body='',leg='';
+if(view==='table'){
+const note=o.rowNote||(d=>{const g=+d.g||0,v=+d.v||0;return g>0?'<i class="num">'+vfmt(g)+'</i> '+(d.hit||v>=g?'<em class="ok">✓ hit</em>':'<em>short</em>'):'';});
+body='<div class="chtable"><div class="chtr chth"><span>'+(cat?'Weekday':'Day')+'</span><span>'+unit+'</span><span>'+(o.col3||(withGoal.length?'goal':''))+'</span></div>'
++data.map((d,i)=>{const v=vals[i];
+return '<div class="chtr'+(v>0?'':' zero')+'"><span>'+(cat?(o.rowLabel?o.rowLabel(d):d.l):fmtD(d.d))+'</span><span class="num">'+(v>0?vfmt(v):'–')+'</span><span>'+note(d)+'</span></div>';}).join('')+'</div>';
+}else{
+const W=Math.max(250,Math.round(el.clientWidth||600));
+const narrow=W<430;
+const H=narrow?190:240;
+const padL=narrow?30:36,padR=8,padT=12,padB=narrow?28:30;
+const plotW=W-padL-padR,plotH=H-padT-padB;
+const rawMax=Math.max.apply(null,vals.concat(goals).concat([target,0]));
+const allInt=vals.concat(goals).every(v=>v===Math.round(v));
+let step=niceStep(Math.max(rawMax,1)/(narrow?3:5));
+if(allInt)step=Math.max(1,Math.round(step));
+const mx=Math.max(step,Math.ceil((rawMax-1e-9)/step)*step);
+const y=v=>padT+plotH-(v/mx)*plotH;
+const bw=plotW/n;
+const barW=Math.max(3,Math.min(bw*0.42,cat?56:34));
+const x0=i=>padL+i*bw+(bw-barW)/2;
+let s='<svg viewBox="0 0 '+W+' '+H+'" width="'+W+'" height="'+H+'" preserveAspectRatio="none" style="width:100%;height:'+H+'px;display:block" role="img" aria-label="'+unit+(cat?' per weekday':' per day')+'">';
+// horizontal grid with the scale on the left: the axis carries the values, the bars stay clean
 const ticks=[];for(let v=0;v<=mx+1e-9;v+=step)ticks.push(Math.round(v*1000)/1000);
 for(let t=0;t<ticks.length;t++){const tv=ticks[t];
 s+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y(tv)+'" y2="'+y(tv)+'" stroke="'+(tv===0?'var(--line2)':'var(--line)')+'" stroke-width="1"/>'
-+'<text x="'+(padL-6)+'" y="'+(y(tv)+3.5)+'" text-anchor="end" class="cax">'+(o.ytick?o.ytick(tv):vfmt(tv))+'</text>';}
-// per-day goal dashes
-for(let i=0;i<n;i++)if(goals[i]>0)
-s+='<line x1="'+(padL+i*bw+gap/2)+'" x2="'+(padL+i*bw+gap/2+barW)+'" y1="'+y(goals[i])+'" y2="'+y(goals[i])+'" stroke="var(--ink3)" stroke-width="1.5" stroke-dasharray="3 3"/>';
-// bars, with a flat nub on days that logged nothing so a gap never looks like missing data
-for(let i=0;i<n;i++){const d=data[i],v=vals[i],x=padL+i*bw+gap/2;
-if(v<=0){s+='<rect x="'+x+'" y="'+(padT+plotH-2)+'" width="'+barW+'" height="2" rx="1" fill="var(--line2)"/>';}
-else{const h=Math.max(3,(v/mx)*plotH);
-const fill=color||(d.hit?'var(--mint)':(o.dim||'rgba(151,163,182,.55)'));
-s+='<rect x="'+x+'" y="'+(padT+plotH-h)+'" width="'+barW+'" height="'+h+'" rx="4" fill="'+fill+'"/>';}}
-// value labels: every bar when they fit, otherwise just the peak and the latest
-const lab={};
-if(barW>=17){for(let i=0;i<act.length;i++)lab[act[i]]=1;}
-else if(act.length){lab[vals.indexOf(best)]=1;lab[act[act.length-1]]=1;}
-for(const k in lab){const i=+k,v=vals[i];if(!(v>0))continue;
-const h=Math.max(3,(v/mx)*plotH);
-s+='<text x="'+(padL+i*bw+bw/2)+'" y="'+(padT+plotH-h-5)+'" text-anchor="middle" class="cvl">'+vfmt(v)+'</text>';}
-if(showAvg)s+='<line x1="'+padL+'" x2="'+(W-padR)+'" y1="'+y(avg)+'" y2="'+y(avg)+'" stroke="var(--ice)" stroke-width="1.3" stroke-dasharray="5 4" opacity=".85"/>';
-// dates along the bottom, walking back from the newest so today is always labelled
-const dstep=Math.max(1,Math.ceil(n/Math.max(2,Math.floor(plotW/(narrow?44:60)))));
++'<text x="'+(padL-8)+'" y="'+(y(tv)+3.5)+'" text-anchor="end" class="cax">'+(o.ytick?o.ytick(tv):vfmt(tv))+'</text>';}
+// goals that differ from day to day are drawn as a short dash over the bar; a constant target lives in the title
+if(!sameGoal)for(let i=0;i<n;i++)if(goals[i]>0)
+s+='<line x1="'+(x0(i)-3)+'" x2="'+(x0(i)+barW+3)+'" y1="'+y(goals[i])+'" y2="'+y(goals[i])+'" stroke="var(--ink3)" stroke-width="1.5" stroke-dasharray="3 3"/>';
+// slim bars with a rounded top; a flat nub where nothing was logged so a gap never reads as missing data
+for(let i=0;i<n;i++){const d=data[i],v=vals[i],x=x0(i);
+if(v<=0){s+='<rect x="'+x+'" y="'+(padT+plotH-2)+'" width="'+barW+'" height="2" rx="1" fill="var(--line2)"/>';continue;}
+const h=Math.max(3,(v/mx)*plotH),r=Math.min(5,barW/2,h),top=padT+plotH-h;
+const fill=o.colorOf?o.colorOf(d):(color||(d.hit?'var(--mint)':(o.dim||'rgba(151,163,182,.55)')));
+s+='<path d="M'+x+' '+(top+r)+'a'+r+' '+r+' 0 0 1 '+r+' -'+r+'h'+(barW-2*r)+'a'+r+' '+r+' 0 0 1 '+r+' '+r+'v'+(h-r)+'h-'+barW+'z" fill="'+fill+'"/>';}
+// labels along the bottom: every weekday, or dates walking back from the newest so today is always labelled
+if(cat){for(let i=0;i<n;i++)s+='<text x="'+(padL+i*bw+bw/2)+'" y="'+(H-padB+16)+'" text-anchor="middle" class="cax cxl">'+data[i].l+'</text>';}
+else{const dstep=Math.max(1,Math.ceil(n/Math.max(2,Math.floor(plotW/(narrow?44:60)))));
 for(let i=n-1;i>=0;i-=dstep)
-s+='<text x="'+(padL+i*bw+bw/2)+'" y="'+(H-padB+15)+'" text-anchor="middle" class="cax">'+shortD(data[i].d)+'</text>';
+s+='<text x="'+(padL+i*bw+bw/2)+'" y="'+(H-padB+16)+'" text-anchor="middle" class="cax cxl">'+shortD(data[i].d)+'</text>';}
 for(let i=0;i<n;i++)
 s+='<rect class="hz" data-i="'+i+'" x="'+(padL+i*bw)+'" y="'+padT+'" width="'+bw+'" height="'+plotH+'" fill="transparent"/>';
 s+='</svg>';
+body=s;
+if(o.legend!==false){
+if(!color&&!o.colorOf)leg+='<span><i class="lgs" style="background:var(--mint)"></i>goal hit</span>'
++'<span><i class="lgs" style="background:'+(o.dim||'rgba(151,163,182,.55)')+'"></i>below goal</span>'
++(!sameGoal&&withGoal.length?'<span><i class="lgd"></i>that day\u2019s goal</span>':'');
+leg+='<span><i class="lgs" style="background:var(--line2);height:4px;border-radius:2px"></i>nothing logged</span>';
+leg='<div class="clegend">'+leg+'</div>';}
+}
 
 const ci=(v,l)=>'<div class="ci"><b class="num">'+v+'</b><span>'+l+'</span></div>';
 const cards=o.summary?o.summary({sum:sum,avg:avg,best:best,active:act.length,n:n,vals:vals,data:data})
 :[['total',fmt(sum)],['avg / day',fmt(avg)],['best day',fmt(best)],['active days',act.length+' / '+n]];
-const top='<div class="csum">'+cards.map(c=>ci(c[1],c[0])).join('')+'</div>';
+const foot='<div class="csum">'+cards.map(c=>ci(c[1],c[0])).join('')+'</div>'+(o.footer||'');
 
-let leg='';
-if(!color)leg+='<span><i class="lgs" style="background:var(--mint)"></i>goal hit</span>'
-+'<span><i class="lgs" style="background:'+(o.dim||'rgba(151,163,182,.55)')+'"></i>below goal</span>'
-+'<span><i class="lgd"></i>daily goal</span>';
-else leg+='<span><i class="lgs" style="background:'+color+'"></i>'+unit+'</span>';
-if(showAvg)leg+='<span><i class="lgd ice"></i>avg '+fmt(avg)+'</span>';
-leg+='<span><i class="lgs" style="background:var(--line2);height:4px;border-radius:2px"></i>nothing logged</span>';
-
-el.innerHTML=top+s+'<div class="clegend">'+leg+'</div>';
-
-const tipFor=o.tip||(d=>'<b>'+fmtD(d.d)+'</b><br>'+fmt(+d.v||0)+' '+unit
+el.innerHTML=head+body+leg+foot;
+el.querySelectorAll('.chtog button').forEach(b=>b.addEventListener('click',()=>{C.view=b.dataset.v;
+try{localStorage.setItem('pg_view_'+el.id,C.view)}catch(e){}drawChart(el);}));
+if(view!=='chart')return;
+const tipFor=o.tip||(d=>'<b>'+(cat?d.l:fmtD(d.d))+'</b><br>'+fmt(+d.v||0)+' '+unit
 +(d.g>0?' · goal '+d.g:'')+(d.hit?' <span style="color:var(--mint)">✓ hit</span>':''));
 const t=$('tip');let hideT;
 const show=(cx,cy,i)=>{t.innerHTML=tipFor(data[i]);t.style.display='block';
@@ -351,7 +362,8 @@ $('lcTrendCard').innerHTML=L.total?('<div class="bp-label">Getting faster? (lowe
 +'<span class="tiny">solves timed: <b class="num">'+L.total+'</b>'+(L.attempts?' · '+L.attempts+' unfinished tr'+(L.attempts>1?'ies':'y')+' not counted here':'')+'</span>'
 +'<span class="tiny">'+L.easy.n+' easy · '+L.medium.n+' medium · '+L.hard.n+' hard</span></div>')
 :'<div class="skel"><b>No solve times yet</b>Use the Focus timer with 🧩 LeetCode record on, and they land here.</div>';
-if(L.trend&&L.trend.length)chart($('chart-lctime'),L.trend,'min avg','var(--ember)',{
+if(L.trend&&L.trend.length)chart($('chart-lctime'),L.trend,'minutes','var(--ember)',{
+title:'Avg solve time · last 30 days',sub:'minutes · average per timed solve, lower is better',
 fmt:v=>nf(v)+'m',vfmt:v=>String(Math.round(v)),
 tip:d=>'<b>'+fmtD(d.d)+'</b><br>'+(d.v?nf(d.v)+' min average over '+d.n+' solve'+(d.n===1?'':'s'):'no solves logged'),
 summary:st=>{const won=st.data.filter(d=>d.v>0);
@@ -361,6 +373,7 @@ const tot=won.reduce((a,d)=>a+(d.n||0),0);
 return [['fastest day',fast?nf(fast)+'m':'–'],['slowest day',slow?nf(slow)+'m':'–'],
 ['day average',won.length?nf(won.reduce((a,d)=>a+d.v,0)/won.length)+'m':'–'],['solves timed',String(tot)]];}});
 chart($('chart-lc'),j.lc30,'problems',null,{dim:'rgba(255,107,53,.45)',
+title:'Problems solved · last 30 days',sub:'problems · solves per day against the goal of that day',
 summary:st=>{const hit=st.data.filter(d=>d.hit).length,withGoal=st.data.filter(d=>d.g>0).length;
 return [['logged',String(Math.round(st.sum))],['best day',String(Math.round(st.best))],
 ['active days',st.active+' / '+st.n],['goal hit',hit+(withGoal?' / '+withGoal:'')]];}});
@@ -388,7 +401,7 @@ return '<div class="dayc" onclick="this.classList.toggle(\\'open\\')">'
 if(j.grind){
 const G=j.grind||{total:0,avg:0,overtime:0,days:0,last14:[],moduleTotals:{}};
 $('gh').textContent=G.total;$('gavg').textContent=G.avg;$('got').textContent=G.overtime;$('gdays').textContent=G.days;
-if($('gtarget')&&G.days)$('gtarget').innerHTML='6h target hit on <b class="num">'+(G.targetDays||0)+'</b> of '+G.days+' days';
+if($('gtarget')&&G.days)$('gtarget').innerHTML=GT+'h target hit on <b class="num">'+(G.targetDays||0)+'</b> of '+G.days+' days';
 $('heat').innerHTML=j.heat.map(h=>{
 const o=h.v<=0?0:Math.min(1,0.15+h.v/6*0.85);
 return '<div title="'+fmtD(h.d)+' · '+h.v+'h" style="background:'+(o?'rgba(255,107,53,'+o+')':'var(--surface2)')+'"></div>';}).join('');
@@ -397,25 +410,29 @@ const DW=G.dow||[];
 const dwAct=DW.filter(x=>x.n>0);
 if($('dowCard')){
 if(dwAct.length){
-const mxd=Math.max.apply(null,dwAct.map(x=>x.avg));
 const bestD=dwAct.slice().sort((a,b)=>b.avg-a.avg)[0];
 const worstD=dwAct.slice().sort((a,b)=>a.avg-b.avg)[0];
 const order=[1,2,3,4,5,6,0];
-$('dowCard').innerHTML='<div class="bp-label">Average grind hours by weekday</div>'
-+'<div class="dow">'+order.map(w=>{const x=DW[w]||{avg:0,n:0};
-const h=mxd>0?(x.avg>0?Math.max(6,x.avg/mxd*100):0):0;
-const col=!x.n?'var(--line2)':(w===bestD.w?'var(--mint)':(w===worstD.w&&dwAct.length>1?'var(--rose)':'var(--ember)'));
-return '<div class="dw"><div class="bar" title="'+DOWFULL[w]+' · '+x.n+' day'+(x.n===1?'':'s')+' logged"><i style="height:'+h+'%;background:'+col+'"></i></div>'
-+'<b>'+(x.n?nf(x.avg):'–')+'</b><span>'+DOWN[w]+'</span></div>';}).join('')+'</div>'
-+'<div class="mixnote">Strongest: <b>'+DOWFULL[bestD.w]+'</b> at '+nf(bestD.avg)+'h avg'
+const rows=order.map(w=>{const x=DW[w]||{avg:0,n:0};return {l:DOWN[w],w:w,v:x.avg,n:x.n};});
+const logged=dwAct.reduce((a,x)=>a+x.n,0);
+chart($('dowCard'),rows,'hours',null,{
+title:'Your grind hours by weekday',sub:'hours · average across every week in the plan',target:GT,
+fmt:v=>nf(v)+'h',vfmt:v=>nf(v),
+colorOf:d=>!d.n?'var(--line2)':(d.w===bestD.w?'var(--mint)':(d.w===worstD.w&&dwAct.length>1?'var(--rose)':'var(--ember)')),
+col3:'days logged',rowLabel:d=>DOWFULL[d.w],rowNote:d=>d.n?'<i class="num">'+d.n+'</i>':'–',
+tip:d=>'<b>'+DOWFULL[d.w]+'</b><br>'+(d.n?nf(d.v)+'h average over '+d.n+' day'+(d.n===1?'':'s'):'nothing logged yet'),
+summary:st=>[['strongest',DOWN[bestD.w]+' · '+nf(bestD.avg)+'h'],['weakest',dwAct.length>1?DOWN[worstD.w]+' · '+nf(worstD.avg)+'h':'–'],
+['week average',nf(dwAct.reduce((a,x)=>a+x.avg,0)/dwAct.length)+'h'],['days logged',String(logged)]],
+footer:'<div class="mixnote">Strongest: <b>'+DOWFULL[bestD.w]+'</b> at '+nf(bestD.avg)+'h avg'
 +(dwAct.length>1?('. Weakest: <b>'+DOWFULL[worstD.w]+'</b> at '+nf(worstD.avg)+'h. '
-+(worstD.avg<3?'That is the day to attack next week.':'The week is fairly even, which is what you want.')):'')+'</div>';}
++(worstD.avg<3?'That is the day to attack next week.':'The week is fairly even, which is what you want.')):'')+'</div>'});}
 else $('dowCard').innerHTML='<div class="skel"><b>No pattern yet</b>Check in to a few grind blocks and the weekly shape appears here.</div>';}
-chart($('chart-grind'),G.last14.length?G.last14:[{d:new Date().toISOString().slice(0,10),v:0,g:6,hit:false}],'hours',null,{dim:'rgba(255,107,53,.45)',
+chart($('chart-grind'),G.last14.length?G.last14:[{d:new Date().toISOString().slice(0,10),v:0,g:GT,hit:false}],'hours',null,{dim:'rgba(255,107,53,.45)',
+title:'Grind hours · last 14 days',sub:'hours · checked-in time per day',
 fmt:v=>nf(v)+'h',vfmt:v=>nf(v),
 tip:d=>'<b>'+fmtD(d.d)+'</b><br>'+(d.v?nf(d.v)+' hours grinded':'no grind logged')+(d.g?' · target '+d.g+'h':'')+(d.hit?' <span style="color:var(--mint)">✓ hit</span>':''),
 summary:st=>{const hit=st.data.filter(d=>d.hit).length;
-return [['total',nf(st.sum)+'h'],['avg / day',nf(st.avg)+'h'],['biggest day',nf(st.best)+'h'],['6h target',hit+' / '+st.n]];}});
+return [['total',nf(st.sum)+'h'],['avg / day',nf(st.avg)+'h'],['biggest day',nf(st.best)+'h'],[GT+'h target',hit+' / '+st.n]];}});
 const MODN=Object.fromEntries(CATS.map(c=>[c.key,c.emoji+' '+c.name]));
 const mt=Object.entries(G.moduleTotals||{});
 if(mt.length){$('modsplit').style.display='';
@@ -464,7 +481,8 @@ return '<div class="funnel-row"><span class="fl">'+esc(p.p)+'</span>'
 +'<div class="fb" style="width:'+Math.max(6,p.n/mx*100)+'%;background:var(--ice)">'+p.n+'</div>'
 +'<span class="fp">'+Math.round(p.n/tot*100)+'%</span></div>';}).join('')
 :'<div class="skel">Nothing yet.</div>';
-chart($('chart-apps'),j.apps30,'apps',null,{dim:'rgba(94,162,255,.45)',
+chart($('chart-apps'),j.apps30,'applications',null,{dim:'rgba(94,162,255,.45)',
+title:'Applications · last 30 days',sub:'applications · sent per day against the goal of that day',
 summary:st=>{const hit=st.data.filter(d=>d.hit).length,withGoal=st.data.filter(d=>d.g>0).length;
 return [['sent',String(Math.round(st.sum))],['best day',String(Math.round(st.best))],
 ['active days',st.active+' / '+st.n],['goal hit',hit+(withGoal?' / '+withGoal:'')]];}});

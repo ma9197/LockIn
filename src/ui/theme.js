@@ -521,7 +521,7 @@ svg text.cvl{font:800 11px var(--disp);fill:var(--ink2)}
 .hz{cursor:crosshair}
 .hz:hover{fill:rgba(255,255,255,.05)}
 /* the headline numbers above a chart: a bar chart alone never says what it is worth */
-.csum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.csum{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}
 .csum .ci{min-width:0;background:var(--surface2);border:1px solid var(--line);
   border-radius:12px;padding:8px 12px}
 .csum .ci b{display:block;font:800 18px/1.15 var(--disp);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
@@ -532,8 +532,35 @@ svg text.cvl{font:800 11px var(--disp);fill:var(--ink2)}
 .clegend i{flex:none;width:10px;height:10px;border-radius:3px}
 .clegend i.lgd{width:15px;height:0;border-radius:0;border-top:2px dashed var(--ink3)}
 .clegend i.lgd.ice{border-color:var(--ice)}
+/* chart card: title + unit line on the left, chart/table switch on the right, then the plot */
+.chartcard{margin-top:24px}
+.chh{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:16px}
+.chht{min-width:0}
+.chh h3{font:800 18px/1.25 var(--disp);letter-spacing:-.01em;margin:0;color:var(--ink)}
+.chsub{font:500 13px/1.4 var(--body);color:var(--ink2);margin-top:4px}
+.chtog{display:flex;flex:none;gap:2px;padding:3px;background:var(--surface2);border:1px solid var(--line);border-radius:10px}
+.chtog button{min-height:0;height:30px;width:36px;padding:0;border:0;border-radius:8px;background:transparent;color:var(--ink3);display:grid;place-items:center;cursor:pointer}
+.chtog button:hover{color:var(--ink2);filter:none}
+.chtog button.on{background:var(--surface3);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.3)}
+svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
+.chtable{display:flex;flex-direction:column;max-height:360px;overflow-y:auto;border:1px solid var(--line);border-radius:var(--rm);background:var(--well)}
+.chtr{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:8px;padding:8px 12px;font-size:13px;border-top:1px solid var(--line);align-items:center}
+.chtr:first-child{border-top:0}
+.chtr.chth{font:700 11px var(--disp);letter-spacing:.06em;text-transform:uppercase;color:var(--ink2);background:var(--surface2);position:sticky;top:0}
+.chtr .num{font:800 14px var(--disp);font-variant-numeric:tabular-nums}
+.chtr i.num{font-style:normal;font-weight:600;color:var(--ink2);font-size:13px}
+.chtr em{font-style:normal;color:var(--ink3)}
+.chtr em.ok{color:var(--mint)}
+.chtr.zero>span{color:var(--ink3)}
+@media (max-width:599px){
+  .chh{margin-bottom:12px}
+  .chh h3{font-size:16px}
+  .chsub{font-size:12px}
+  svg text.cxl{font-size:11px}
+  .chtr{padding:8px;font-size:12px}
+}
 @media(max-width:560px){
-  .csum{grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+  .csum{grid-template-columns:repeat(2,1fr);gap:8px;margin-top:12px}
   .csum .ci{padding:8px 8px}
   .csum .ci b{font-size:15px}
   .csum .ci span{font-size:11px;letter-spacing:.04em}
