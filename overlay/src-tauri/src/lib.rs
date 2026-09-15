@@ -19,21 +19,31 @@ struct Tray {
     status: MenuItem<tauri::Wry>,
 }
 
-/// Opens (or fronts) the small pairing window. Called on first run, from the tray, and when the
-/// token stops working.
+/// Opens (or fronts) the small pairing window. Always runs on the main thread: building a
+/// window from a synchronous command deadlocks the event loop on Windows (the 1.0.0 white box).
+fn show_pair(app: &AppHandle) {
+    let app2 = app.clone();
+    let _ = app.run_on_main_thread(move || {
+        if let Some(w) = app2.get_webview_window("pair") {
+            let _ = w.show();
+            let _ = w.unminimize();
+            let _ = w.set_focus();
+            return;
+        }
+        let _ = WebviewWindowBuilder::new(&app2, "pair", WebviewUrl::App("pair.html".into()))
+            .title("Pair LockIn Overlay")
+            .inner_size(420.0, 500.0)
+            .resizable(false)
+            .always_on_top(true)   // stays visible over the browser the user copies the code from
+            .center()
+            .build();
+    });
+}
+
+/// Called by the page on first run and when the token stops working.
 #[tauri::command]
-fn open_pair(app: AppHandle) {
-    if let Some(w) = app.get_webview_window("pair") {
-        let _ = w.show();
-        let _ = w.set_focus();
-        return;
-    }
-    let _ = WebviewWindowBuilder::new(&app, "pair", WebviewUrl::App("pair.html".into()))
-        .title("LockIn Overlay")
-        .inner_size(420.0, 460.0)
-        .resizable(false)
-        .center()
-        .build();
+async fn open_pair(app: AppHandle) {
+    show_pair(&app);
 }
 
 /// The page reports whether the last poll worked; the tray shows it.
@@ -70,7 +80,9 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             // a second launch just fronts the pairing window if it exists, otherwise does nothing
-            if let Some(w) = app.get_webview_window("pair") { let _ = w.show(); let _ = w.set_focus(); }
+            // (a paired helper with nothing running shows nothing on purpose)
+            let h = app.clone();
+            if h.get_webview_window("pair").is_some() { show_pair(&h); }
         }))
         .plugin(tauri_plugin_store::Builder::default().build())
         .plugin(tauri_plugin_http::init())
@@ -107,19 +119,20 @@ pub fn run() {
                 .show_menu_on_left_click(true)
                 .on_menu_event({
                     let mon_items = mon_items.clone();
+                    let autostart_item = autostart.clone();
                     move |app, ev| {
                         let id = ev.id().as_ref();
                         match id {
                             "quit" => app.exit(0),
                             "pair" => {
                                 let _ = app.emit("unpair", ());
-                                open_pair(app.clone());
+                                show_pair(app);
                             }
                             "autostart" => {
                                 let al = app.autolaunch();
                                 let on = al.is_enabled().unwrap_or(false);
                                 let _ = if on { al.disable() } else { al.enable() };
-                                if let Some(item) = app.tray_by_id("main").and_then(|_| None::<CheckMenuItem<tauri::Wry>>) { let _ = item.set_checked(!on); }
+                                let _ = autostart_item.set_checked(al.is_enabled().unwrap_or(!on));
                             }
                             _ => {
                                 if let Some(rest) = id.strip_prefix("mon-") {
