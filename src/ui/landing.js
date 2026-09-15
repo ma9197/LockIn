@@ -272,7 +272,7 @@ export const landingPage = () => shell('LockIn · the grind tracker for CS stude
 .ld-code .k{color:var(--ember2)}.ld-code .s{color:var(--mint)}.ld-code .c{color:var(--ink3)}
 .ld-slot{padding:8px 12px;font:700 13px var(--disp)}
 .ld-slot.on{background:var(--mint);border-color:var(--mint);color:#062A1C}
-.ld-modal{position:fixed;inset:0;background:rgba(5,7,11,.75);backdrop-filter:blur(4px);z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
+.ld-modal{position:fixed;inset:0;background:rgba(5,7,11,.8);z-index:80;display:none;align-items:center;justify-content:center;padding:16px}
 .ld-modal.on{display:flex}
 .rv{opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
 .rv.in{opacity:1;transform:none}

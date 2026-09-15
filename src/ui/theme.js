@@ -99,14 +99,14 @@ p{line-height:1.55}
 
 /* ---------- quiet animated background for the public pages ---------- */
 .bgfx{position:fixed;inset:0;z-index:-1;pointer-events:none;overflow:hidden;tab-size:2}
-.bgfx:before,.bgfx:after{content:'';position:absolute;width:70vmax;height:70vmax;border-radius:50%;filter:blur(90px);opacity:.26;will-change:transform}
-.bgfx:before{left:-28vmax;top:-32vmax;background:radial-gradient(circle,#FF6B35 0%,rgba(255,107,53,0) 62%);animation:bgdrift1 52s ease-in-out infinite alternate}
-.bgfx:after{right:-30vmax;bottom:-34vmax;background:radial-gradient(circle,#5EA2FF 0%,rgba(94,162,255,0) 62%);animation:bgdrift2 68s ease-in-out infinite alternate}
+.bgfx:before,.bgfx:after{content:'';position:absolute;width:70vmax;height:70vmax;border-radius:50%;opacity:.3;will-change:transform}
+.bgfx:before{left:-28vmax;top:-32vmax;background:radial-gradient(circle,rgba(255,107,53,.9) 0%,rgba(255,107,53,.5) 18%,rgba(255,107,53,.18) 38%,rgba(255,107,53,0) 60%);animation:bgdrift1 52s ease-in-out infinite alternate}
+.bgfx:after{right:-30vmax;bottom:-34vmax;background:radial-gradient(circle,rgba(94,162,255,.9) 0%,rgba(94,162,255,.5) 18%,rgba(94,162,255,.18) 38%,rgba(94,162,255,0) 60%);animation:bgdrift2 68s ease-in-out infinite alternate}
 .bgfx i{position:absolute;inset:0;background-image:radial-gradient(rgba(237,241,247,.075) 1px,transparent 1.3px);background-size:26px 26px;-webkit-mask-image:linear-gradient(180deg,#000 0%,#000 50%,transparent 100%);mask-image:linear-gradient(180deg,#000 0%,#000 50%,transparent 100%)}
 @keyframes bgdrift1{from{transform:translate(0,0) scale(1)}to{transform:translate(12vw,10vh) scale(1.12)}}
 @keyframes bgdrift2{from{transform:translate(0,0) scale(1)}to{transform:translate(-10vw,-12vh) scale(1.08)}}
 @media(prefers-reduced-motion:reduce){.bgfx:before,.bgfx:after{animation:none}}
-@media(max-width:600px){.bgfx:before,.bgfx:after{filter:blur(60px);opacity:.22}}
+@media(max-width:600px){.bgfx:before,.bgfx:after{opacity:.24}}
 .bgfx.dots:before,.bgfx.dots:after{display:none}
 
 /* ---------- auth + public single-card pages ---------- */
@@ -240,7 +240,7 @@ label.fld .opt{font-weight:400;color:var(--ink3);margin-left:4px}
 .race-seg{flex:1;background:var(--seg,#263045);opacity:.28;border-radius:1px;position:relative}
 .race-seg.past{opacity:.9}
 .race-seg.today{opacity:1;box-shadow:0 0 12px 2px var(--seg);animation:pulse 2s infinite}
-@keyframes pulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.6)}}
+@keyframes pulse{0%,100%{opacity:.7}50%{opacity:1}}
 .race-cap{display:flex;justify-content:space-between;margin-top:8px;font:700 12px var(--disp);color:var(--ink2)}
 .race-cap b{color:var(--ink);font-size:13px}
 
@@ -256,14 +256,14 @@ label.fld .opt{font-weight:400;color:var(--ink3);margin-left:4px}
 
 /* ---------- paused grind alert: a frozen clock is far too easy to forget ---------- */
 .gpbar{position:fixed;top:0;left:0;right:0;z-index:85;display:flex;align-items:center;gap:8px;
-  flex-wrap:nowrap;padding:12px 16px;border-bottom:2px solid var(--ember2);backdrop-filter:blur(10px);
-  font:800 13px var(--disp);letter-spacing:.06em;color:var(--ember2);
-  animation:gppulse 1.7s ease-in-out infinite}
+  flex-wrap:nowrap;padding:12px 16px;border-bottom:2px solid var(--ember2);background:rgba(13,17,26,.96);
+  font:800 13px var(--disp);letter-spacing:.06em;color:var(--ember2)}
+.gpbar:before{content:'';position:absolute;inset:0;z-index:-1;background:rgba(255,179,71,.2);animation:gppulse 1.7s ease-in-out infinite}
 .gpbar b{white-space:nowrap}
 .gpbar .tiny{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
 .gpbar button{flex:none;white-space:nowrap}
 @media(max-width:420px){.gpbar{font-size:12px;gap:8px;padding:12px 12px}.gpbar .tiny{font-size:11px}}
-@keyframes gppulse{0%,100%{background-color:rgba(255,179,71,.07)}50%{background-color:rgba(255,179,71,.22)}}
+@keyframes gppulse{0%,100%{opacity:.35}50%{opacity:1}}
 .gpbar .tiny{color:var(--ink2);letter-spacing:0}
 .gp-dot{width:10px;height:10px;border-radius:99px;background:var(--ember2);flex:none;animation:gpdot 1.7s infinite}
 @keyframes gpdot{0%{box-shadow:0 0 0 0 rgba(255,179,71,.75)}70%{box-shadow:0 0 0 11px rgba(255,179,71,0)}100%{box-shadow:0 0 0 0 rgba(255,179,71,0)}}
@@ -273,10 +273,10 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
   .gpbar{left:216px}
   body.gpaused .wrap{padding-top:calc(var(--gph,50px) + var(--clkh,46px) + 14px)}
 }
-@media(prefers-reduced-motion:reduce){.gpbar,.gp-dot{animation:none}.gpbar{background-color:rgba(255,179,71,.18)}}
+@media(prefers-reduced-motion:reduce){.gpbar:before,.gp-dot{animation:none}.gpbar:before{opacity:.9}}
 
 /* ---------- nav ---------- */
-.navwrap{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(13,17,26,.92);backdrop-filter:blur(14px);
+.navwrap{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(13,17,26,.97);
   border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
 .navwrap::after{content:'';position:absolute;right:0;top:0;bottom:0;width:24px;pointer-events:none;
   background:linear-gradient(90deg,rgba(13,17,26,0),rgba(13,17,26,.92))}
@@ -731,7 +731,7 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .grind-ot-tag{color:var(--rose);font:800 12px var(--disp);letter-spacing:.06em}
 
 /* ---------- split editor ---------- */
-.modal-bg{position:fixed;inset:0;background:rgba(5,7,11,.75);backdrop-filter:blur(4px);z-index:80;
+.modal-bg{position:fixed;inset:0;background:rgba(5,7,11,.8);z-index:80;
   display:flex;align-items:center;justify-content:center;padding:16px}
 .modal{background:var(--surface);border:1px solid var(--line2);border-radius:var(--r);padding:20px;max-width:560px;width:100%;
   max-height:88vh;overflow-y:auto}
@@ -875,7 +875,7 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
   body.nonav .refresh-fab{left:12px}
   .nav,.navwrap{display:none}
   .side{display:flex;flex-direction:column;position:fixed;left:0;top:0;bottom:0;width:216px;
-    background:rgba(19,24,36,.9);backdrop-filter:blur(12px);border-right:1px solid var(--line);padding:28px 16px;z-index:50;gap:4px}
+    background:rgba(19,24,36,.96);border-right:1px solid var(--line);padding:28px 16px;z-index:50;gap:4px}
   .side .logo{padding:0 12px 24px}
   .side a{display:flex;align-items:center;gap:12px;padding:12px 12px;border-radius:var(--rs);
     color:var(--ink2);font:700 14px var(--disp);position:relative}

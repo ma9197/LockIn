@@ -22,7 +22,7 @@ export const settingsPage = (cfg) => shell('LockIn · Settings', '/settings', `
 <style>
 .stg-h1{margin:0;font-size:24px;line-height:1.2}
 .tabwrap{position:sticky;top:0;z-index:5;background:transparent;margin:0 -16px -16px;padding:12px 16px 28px;-webkit-mask-image:linear-gradient(#000 calc(100% - 22px),transparent);mask-image:linear-gradient(#000 calc(100% - 22px),transparent);transition:background .25s}
-.tabwrap.stuck{background:rgba(11,14,20,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+.tabwrap.stuck{background:rgba(11,14,20,.96)}
 
 /* account rows: icon + title + description on the left, the controls on the right */
 .stg .card.acct{padding:0;overflow:hidden}
@@ -141,7 +141,7 @@ button.rose.outl:hover{background:#FF5D7318}
 .btnlink{display:inline-flex;align-items:center;gap:8px;background:var(--surface2);color:var(--ink);border:1px solid var(--line2);border-radius:var(--rs);padding:8px 16px;font:700 13px var(--disp);text-decoration:none;white-space:nowrap;cursor:pointer}
 .danger{border-color:#FF5D7345;background:linear-gradient(180deg,#FF5D730d,var(--surface) 60%)}
 .row>button{white-space:nowrap}
-.savebar{position:fixed;left:0;right:0;bottom:calc(74px + env(safe-area-inset-bottom));z-index:49;background:rgba(13,17,26,.96);backdrop-filter:blur(14px);border-top:1px solid var(--ember);padding:12px 16px;display:none;align-items:center;gap:8px}
+.savebar{position:fixed;left:0;right:0;bottom:calc(74px + env(safe-area-inset-bottom));z-index:49;background:rgba(13,17,26,.97);border-top:1px solid var(--ember);padding:12px 16px;display:none;align-items:center;gap:8px}
 .savebar.show{display:flex}
 .savebar .msg{flex:1;min-width:0;font-size:13px;color:var(--ink2);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;cursor:pointer}
 .savebar .msg b{display:block;color:var(--ink);font:700 13px var(--disp)}
