@@ -218,12 +218,12 @@ app.get('/overlay/download', async c => {
   const want = c.req.query('os') === 'mac' ? 'mac' : c.req.query('os') === 'windows' ? 'windows' : os;
   const releases = 'https://github.com/' + OVERLAY_REPO + '/releases/latest';
   try {
-    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest');
+    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest-v2');   // key bumped when the TTL changed
     let r = await cache.match(ck);
     if (!r) {
       r = await fetch('https://api.github.com/repos/' + OVERLAY_REPO + '/releases/latest', { headers: { 'User-Agent': 'lockin-overlay-download', Accept: 'application/vnd.github+json' } });
       if (!r.ok) return c.redirect(releases);
-      r = new Response(await r.text(), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600' } });
+      r = new Response(await r.text(), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' } });   // 10 min: a new release reaches the button quickly
       c.executionCtx.waitUntil(cache.put(ck, r.clone()));
     }
     const rel = await r.json();
