@@ -218,17 +218,15 @@ app.get('/overlay/download', async c => {
   const want = c.req.query('os') === 'mac' ? 'mac' : c.req.query('os') === 'windows' ? 'windows' : os;
   const releases = 'https://github.com/' + OVERLAY_REPO + '/releases/latest';
   try {
-    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest-v2');   // key bumped when the TTL changed
-    let r = await cache.match(ck);
-    if (!r) {
-      r = await fetch('https://api.github.com/repos/' + OVERLAY_REPO + '/releases/latest', { headers: { 'User-Agent': 'lockin-overlay-download', Accept: 'application/vnd.github+json' } });
-      if (!r.ok) return c.redirect(releases);
-      r = new Response(await r.text(), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' } });   // 10 min: a new release reaches the button quickly
-      c.executionCtx.waitUntil(cache.put(ck, r.clone()));
-    }
-    const rel = await r.json();
-    const assets = rel.assets || [];
-    const pick = want === 'mac' ? assets.find(a => /\.dmg$/i.test(a.name)) : (assets.find(a => /\.msi$/i.test(a.name)) || assets.find(a => /setup.*\.exe$/i.test(a.name)) || assets.find(a => /\.exe$/i.test(a.name)));
+    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest-v3');
+    const pickFrom = rel => { const assets = (rel && rel.assets) || [];
+      return want === 'mac' ? assets.find(a => /\.dmg$/i.test(a.name)) : (assets.find(a => /\.msi$/i.test(a.name)) || assets.find(a => /setup.*\.exe$/i.test(a.name)) || assets.find(a => /\.exe$/i.test(a.name))); };
+    const fresh = async () => { const r = await fetch('https://api.github.com/repos/' + OVERLAY_REPO + '/releases/latest', { headers: { 'User-Agent': 'lockin-overlay-download', Accept: 'application/vnd.github+json' } }); return r.ok ? r.json() : null; };
+    let cached = await cache.match(ck);
+    let rel = cached ? await cached.json() : null, pick = pickFrom(rel);
+    // a release whose files are still uploading (CI) must not be cached as "no download": refetch, cache only a complete one
+    if (!pick) { rel = await fresh(); pick = pickFrom(rel);
+      if (pick) c.executionCtx.waitUntil(cache.put(ck, new Response(JSON.stringify(rel), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' } }))); }
     return c.redirect(pick ? pick.browser_download_url : releases);
   } catch (e) { return c.redirect(releases); }
 });
