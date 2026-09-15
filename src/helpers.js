@@ -160,7 +160,7 @@ export async function loadCfg(db) {
       corner: ['tl', 'tr', 'bl', 'br'].includes(s.ov_corner) ? s.ov_corner : 'br',
       size: ['s', 'm', 'l'].includes(s.ov_size) ? s.ov_size : 'm',
       opacity: Math.min(100, Math.max(20, parseInt(s.ov_opacity || '70', 10) || 70)),
-      offset: Math.min(64, Math.max(0, parseInt(s.ov_offset || '16', 10) || 0)),
+      offset: Math.min(64, Math.max(0, parseInt(s.ov_offset || '4', 10) || 0)),
       timer: s.ov_timer !== '0',
     },
     // the browser's focus timer, mirrored here so the overlay can show it

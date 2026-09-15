@@ -10,13 +10,13 @@
   const $ = id => document.getElementById(id);
 
   const SIZES = { s: 0.8, m: 1, l: 1.25 };
-  const BASE_W = 260, ROW1 = 52, ROW2 = 46, PAD = 12;  // card metrics at scale 1 (padding + border)
   const RING = 2 * Math.PI * 10.5;
+  const EDGE = 6;   // transparent margin around the chip, room for its shadow
 
   let token = await store.get('token') || null;
   let server = (await store.get('server')) || 'https://cslockin.com';
   let monitor = (await store.get('monitor')) ?? 0;
-  let prefs = { corner: 'br', size: 'm', opacity: 70, offset: 16, timer: true };
+  let prefs = { corner: 'br', size: 'm', opacity: 70, offset: 4, timer: true };
   let state = null, lastOk = 0, doneAt = 0, pollT = null, shown = false;
 
   // ---- server ----
@@ -103,33 +103,37 @@
       tm.querySelector('circle.p').style.strokeDashoffset = String(RING * (1 - frac));
       tm.querySelector('circle.p').style.stroke = left <= 0 ? '#3DDC97' : '#FF6B35';
     }
-    applyPrefs(!!t, !!g);
+    applyPrefs();
     show();
   }
   const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
 
   // ---- placement ----
   let lastKey = '';
-  async function applyPrefs(hasTimer, hasGrind) {
+  async function applyPrefs() {
     const sc = SIZES[prefs.size] || 1;
     document.documentElement.style.setProperty('--sc', sc);
     document.documentElement.style.setProperty('--op', String((prefs.opacity || 70) / 100));
-    const rows = (hasGrind ? ROW1 : 0) + (hasTimer ? ROW2 : 0) + PAD;
-    const w = Math.ceil(BASE_W * sc), h = Math.ceil(rows * sc);
+    // the window is exactly the chip plus the body padding, so the chip really sits at the edge
+    const r = $('ov').getBoundingClientRect();
+    const w = Math.ceil(r.width) + 2 * EDGE, h = Math.ceil(r.height) + 2 * EDGE;
+    if (!(w > 0 && h > 0)) return;
     const key = [w, h, prefs.corner, prefs.offset, monitor].join('|');
     if (key === lastKey) return;
     lastKey = key;
     let mons = [];
     try { mons = await invoke('monitors'); } catch (e) {}
     const m = mons[monitor] || mons[0];
-    // work in physical pixels of the target display: the window may sit on a display with another DPI
+    // work in physical pixels of the target display (the window may sit on a display with another DPI),
+    // inside its work area so the taskbar or dock never covers the chip
     const scale = (m && m.scale) || 1;
     const pw = Math.round(w * scale), ph = Math.round(h * scale);
     await win.setSize(new PhysicalSize(pw, ph));
     if (!m) return;
-    const off = Math.round((prefs.offset || 0) * scale), bar = Math.round(40 * scale);   // 40: stay above a taskbar/dock
-    const x = prefs.corner.endsWith('l') ? m.x + off : m.x + m.width - pw - off;
-    const y = prefs.corner.startsWith('t') ? m.y + off : m.y + m.height - ph - off - bar;
+    const off = Math.round((prefs.offset || 0) * scale);
+    const ax = m.wx ?? m.x, ay = m.wy ?? m.y, aw = m.ww || m.width, ah = m.wh || m.height;
+    const x = prefs.corner.endsWith('l') ? ax + off : ax + aw - pw - off;
+    const y = prefs.corner.startsWith('t') ? ay + off : ay + ah - ph - off;
     await win.setPosition(new PhysicalPosition(x, y));
     // the size is re-applied after the move: the first call used the old display's DPI
     await win.setSize(new PhysicalSize(pw, ph));

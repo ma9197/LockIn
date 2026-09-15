@@ -290,7 +290,7 @@ ${sec('overlay', 'Desktop overlay', 'A small chip on your desktop with the live 
   <div class="acrow">
     <div class="acl"><span class="tile">📍</span><div><b>Where it sits</b><p>Pick a corner and how far from the edge. Which display is chosen in the helper’s tray menu.</p></div></div>
     <div class="acr"><div class="picks ovcorners" id="ovCorners"></div>
-      <div class="fg" style="margin-top:14px"><label class="fld" for="ov-offset">Distance from the edge</label><div class="rangerow"><input id="ov-offset" type="range" min="0" max="64" step="4"><span class="num"><span id="ovOffsetVal"></span>px</span></div></div></div>
+      <div class="fg" style="margin-top:14px"><label class="fld" for="ov-offset">Distance from the edge</label><div class="rangerow"><input id="ov-offset" type="range" min="0" max="64" step="2"><span class="num"><span id="ovOffsetVal"></span>px</span></div></div></div>
   </div>
   <div class="acrow">
     <div class="acl"><span class="tile">🎚️</span><div><b>Size and opacity</b><p>Keep it quiet. The preview on the right is what the helper draws.</p></div></div>
@@ -389,7 +389,7 @@ mclock:{design:S.mclock.design,font:S.mclock.font,accent:S.mclock.accent||''},
 booking:{enabled:!!S.bookingEnabled,days:S.bookingDays,avail:S.availability.map(a=>[a[0],a[1]]),perDevice:S.bookingPerDevice,perSlot:S.bookingPerSlot,durations:S.bookingDurations.join(', ')},
 share:{title:sh.title||'',overview:!!sh.overview,lc:!!sh.lc,grind:!!sh.grind,jobs:!!sh.jobs,lcNames:!!sh.lcNames,friends:!!sh.friends,offReasons:!!sh.offReasons},
 platforms:[...S.jobPlatforms],
-overlay:{corner:(S.overlay||{}).corner||'br',size:(S.overlay||{}).size||'m',opacity:+((S.overlay||{}).opacity||70),offset:+((S.overlay||{}).offset??16),timer:(S.overlay||{}).timer!==false}};}
+overlay:{corner:(S.overlay||{}).corner||'br',size:(S.overlay||{}).size||'m',opacity:+((S.overlay||{}).opacity||70),offset:+((S.overlay||{}).offset??4),timer:(S.overlay||{}).timer!==false}};}
 
 // ---- change tracking ----
 function mark(){const tabs={};

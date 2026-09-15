@@ -69,8 +69,10 @@ fn monitors(app: AppHandle) -> Vec<serde_json::Value> {
         .map(|(i, m)| {
             let p = m.position();
             let s = m.size();
+            let wa = m.work_area();   // the display minus its taskbar / dock
             serde_json::json!({ "index": i, "name": m.name().cloned().unwrap_or_else(|| format!("Display {}", i + 1)),
-                "x": p.x, "y": p.y, "width": s.width, "height": s.height, "scale": m.scale_factor() })
+                "x": p.x, "y": p.y, "width": s.width, "height": s.height, "scale": m.scale_factor(),
+                "wx": wa.position.x, "wy": wa.position.y, "ww": wa.size.width, "wh": wa.size.height })
         })
         .collect()
 }
