@@ -5,7 +5,7 @@
   const T = window.__TAURI__;
   const { invoke } = T.core;
   const win = T.window.getCurrentWindow();
-  const { LogicalPosition, LogicalSize } = T.window;
+  const { PhysicalPosition, PhysicalSize } = T.window;
   const store = await T.store.load('settings.json', { autoSave: true });
   const $ = id => document.getElementById(id);
 
@@ -122,14 +122,17 @@
     let mons = [];
     try { mons = await invoke('monitors'); } catch (e) {}
     const m = mons[monitor] || mons[0];
-    await win.setSize(new LogicalSize(w, h));
+    // work in physical pixels of the target display: the window may sit on a display with another DPI
+    const scale = (m && m.scale) || 1;
+    const pw = Math.round(w * scale), ph = Math.round(h * scale);
+    await win.setSize(new PhysicalSize(pw, ph));
     if (!m) return;
-    const scale = m.scale || 1;
-    const mx = m.x / scale, my = m.y / scale, mw = m.width / scale, mh = m.height / scale;
-    const off = prefs.offset || 0;
-    const x = prefs.corner.endsWith('l') ? mx + off : mx + mw - w - off;
-    const y = prefs.corner.startsWith('t') ? my + off : my + mh - h - off - 40;   // 40: stay above a taskbar/dock
-    await win.setPosition(new LogicalPosition(Math.round(x), Math.round(y)));
+    const off = Math.round((prefs.offset || 0) * scale), bar = Math.round(40 * scale);   // 40: stay above a taskbar/dock
+    const x = prefs.corner.endsWith('l') ? m.x + off : m.x + m.width - pw - off;
+    const y = prefs.corner.startsWith('t') ? m.y + off : m.y + m.height - ph - off - bar;
+    await win.setPosition(new PhysicalPosition(x, y));
+    // the size is re-applied after the move: the first call used the old display's DPI
+    await win.setSize(new PhysicalSize(pw, ph));
   }
   async function show() { document.body.classList.remove('hidden'); if (!shown) { shown = true; await win.show(); await win.setAlwaysOnTop(true); await win.setIgnoreCursorEvents(true); } }
   async function hide() { document.body.classList.add('hidden'); if (shown) { shown = false; await win.hide(); } }
