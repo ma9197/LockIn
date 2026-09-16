@@ -137,8 +137,11 @@
     await win.setPosition(new PhysicalPosition(x, y));
     // the size is re-applied after the move: the first call used the old display's DPI
     await win.setSize(new PhysicalSize(pw, ph));
+    if (shown) await onTop();
   }
-  async function show() { document.body.classList.remove('hidden'); if (!shown) { shown = true; await win.show(); await win.setAlwaysOnTop(true); await win.setIgnoreCursorEvents(true); } }
+  async function show() { document.body.classList.remove('hidden'); if (!shown) { shown = true; await win.show(); await onTop(); await win.setIgnoreCursorEvents(true); } }
+  // re-assert the topmost band: an installer relaunch, a fullscreen app or another tool can push the window down
+  async function onTop() { try { await win.setAlwaysOnTop(false); await win.setAlwaysOnTop(true); } catch (e) {} }
   async function hide() { document.body.classList.add('hidden'); if (shown) { shown = false; await win.hide(); } }
 
   // ---- events from the tray / pairing window ----
@@ -156,6 +159,7 @@
 
   if (!token) invoke('open_pair');
   setInterval(render, 1000);
+  setInterval(() => { if (shown) onTop(); }, 5000);
   poll();
   setTimeout(checkUpdate, 20000);
   setInterval(checkUpdate, 24 * 3600 * 1000);

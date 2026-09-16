@@ -1,6 +1,6 @@
 [package]
 name = "lockin-overlay"
-version = "1.0.2"
+version = "1.0.3"
 description = "LockIn desktop overlay: the live grind session and focus timer, floating over any app"
 authors = ["LockIn contributors"]
 license = "MIT"
