@@ -217,6 +217,8 @@ app.get('/overlay/download', async c => {
   const os = /Macintosh|Mac OS X/i.test(ua) ? 'mac' : /Windows/i.test(ua) ? 'windows' : (c.req.query('os') === 'mac' ? 'mac' : 'windows');
   const want = c.req.query('os') === 'mac' ? 'mac' : c.req.query('os') === 'windows' ? 'windows' : os;
   const releases = 'https://github.com/' + OVERLAY_REPO + '/releases/latest';
+  // no-store: the edge must never keep a redirect that pointed at an older release (or at the fallback page)
+  const go = url => new Response(null, { status: 302, headers: { Location: url, 'Cache-Control': 'no-store' } });
   try {
     // the updater manifest is a plain release asset (no API, no rate limit) and names the version + the Windows files;
     // the Mac disk image follows the bundler's naming for that version
@@ -224,19 +226,19 @@ app.get('/overlay/download', async c => {
     let r = await cache.match(ck);
     if (!r) {
       const m = await fetch(releases + '/download/latest.json', { headers: { 'User-Agent': 'lockin-overlay-download' }, redirect: 'follow' });
-      if (!m.ok) return c.redirect(releases);
+      if (!m.ok) return go(releases);
       const j = await m.json();
       const p = j.platforms || {};
       const win = (p['windows-x86_64-msi'] || p['windows-x86_64'] || p['windows-x86_64-nsis'] || {}).url;
       const v = String(j.version || '').replace(/[^0-9.]/g, '');
       const mac = v ? 'https://github.com/' + OVERLAY_REPO + '/releases/download/overlay-v' + v + '/LockIn.Overlay_' + v + '_universal.dmg' : '';
-      if (!win) return c.redirect(releases);
+      if (!win) return go(releases);
       r = new Response(JSON.stringify({ windows: win, mac }), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' } });
       c.executionCtx.waitUntil(cache.put(ck, r.clone()));
     }
     const u = await r.json();
-    return c.redirect(u[want] || releases);
-  } catch (e) { return c.redirect(releases); }
+    return go(u[want] || releases);
+  } catch (e) { return go(releases); }
 });
 app.post('/api/auth/reset', async c => {
   if (!sameOrigin(c.req.raw)) return json(c, { error: 'bad origin' }, 403);
