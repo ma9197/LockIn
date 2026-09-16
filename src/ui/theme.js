@@ -141,7 +141,8 @@ p{line-height:1.55}
 .dh-top{display:flex;align-items:center;gap:12px 12px;flex-wrap:wrap}
 .dh-title{flex:1;min-width:120px}
 .dh-title h1{font-size:28px;line-height:1.05}
-.dh-chips{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.dh-actions{display:flex;gap:8px;flex-wrap:wrap;margin-left:auto}
+.dh-chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .dh-chips .chip,.dh-chips .pill{padding:8px 12px;font:700 13px var(--disp);border-radius:99px}
 .dh-chips .pill:empty{display:none}
 .dh-chips button.chip{cursor:pointer;color:var(--ink)}
@@ -150,7 +151,7 @@ p{line-height:1.55}
 .dh-date{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;font:700 15px var(--disp);color:var(--ink);text-align:center}
 .dh-btn{width:40px;height:40px;padding:0;border-radius:12px;background:var(--surface2);border:1px solid var(--line2);color:var(--ink2);font-size:24px;line-height:1;flex:none}
 .dh-btn:hover{color:var(--ink);border-color:var(--ink3)}
-@media(max-width:560px){.dh-chips{margin-left:0;width:100%}}
+@media(max-width:560px){.dh-actions{margin-left:0;width:100%}.dh-actions button{flex:1;min-width:0;white-space:nowrap}.dh-chips{margin-top:8px}}
 
 /* ---------- goal rings row ---------- */
 .ringrow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(104px,1fr);gap:12px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 8px;scroll-snap-type:x proximity;margin:0 -2px}

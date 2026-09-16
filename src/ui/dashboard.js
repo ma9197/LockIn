@@ -6,12 +6,16 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
 <div id="dayHeader" class="dh">
   <div class="dh-top">
     <div class="dh-title"><h1 id="dtitle">Today</h1></div>
-    <div class="dh-chips">
-      <span id="phase" class="pill"></span>
-      <span id="streak" class="chip" style="display:none"></span>
-      <button id="modeT" class="chip"></button>
-      <button id="offBtn" class="chip" onclick="offDayFlow()" style="display:none">💤 Off day</button>
+    <div class="dh-actions">
+      <button class="sm ghost" onclick="openGrindLog()">✍️ Log a past grind</button>
+      <button class="sm pri" id="adhocBtn" onclick="startGrind(null)" style="display:none">🔥 Start grind now</button>
     </div>
+  </div>
+  <div class="dh-chips">
+    <span id="phase" class="pill"></span>
+    <span id="streak" class="chip" style="display:none" title="day streak"></span>
+    <button id="modeT" class="chip"></button>
+    <button id="offBtn" class="chip" onclick="offDayFlow()" style="display:none">💤 Off day</button>
   </div>
   <div class="dh-nav">
     <button class="dh-btn" onclick="nav(-1)" aria-label="Previous day">‹</button>
@@ -124,9 +128,7 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
   </div>
   <div id="secSchedule">
   <h2>Schedule</h2>
-  <div class="card"><div class="tl2" id="blocks"></div>
-    <div class="cardfoot"><button class="sm ghost" onclick="openGrindLog()">✍️ Log a past grind</button><button class="sm pri" id="adhocBtn" onclick="startGrind(null)" style="display:none">🔥 Start grind now</button></div>
-  </div>
+  <div class="card"><div class="tl2" id="blocks"></div></div>
   </div>
   <div id="secStats">
   <h2>Today in numbers</h2>
@@ -574,7 +576,7 @@ $('dsub').innerHTML=esc(dd.toLocaleDateString('en-US',{month:'long',day:'numeric
 if(J.phase){$('phase').textContent=J.phase.name;$('phase').style.background=J.phase.color+'22';$('phase').style.color=J.phase.color;}
 else $('phase').textContent='';
 $('streak').style.display=J.streak>0?'':'none';
-$('streak').innerHTML='🔥 <b class="num">'+J.streak+'</b>&nbsp;day streak';
+$('streak').innerHTML='🔥 <b class="num">'+J.streak+'</b>';$('streak').setAttribute('aria-label',J.streak+' day streak');
 const LAY=J.layouts||[];const layIc=n=>/night/i.test(n)?'🌙':/morning/i.test(n)?'☀️':/low/i.test(n)?'🪫':'🗓';
 $('modeT').style.display=LAY.length>1||J.lowLoad?'':'none';
 $('modeT').textContent=J.lowLoad?'🪫 low load':layIc(J.mode)+' '+J.mode;
