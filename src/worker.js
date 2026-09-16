@@ -218,16 +218,24 @@ app.get('/overlay/download', async c => {
   const want = c.req.query('os') === 'mac' ? 'mac' : c.req.query('os') === 'windows' ? 'windows' : os;
   const releases = 'https://github.com/' + OVERLAY_REPO + '/releases/latest';
   try {
-    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest-v3');
-    const pickFrom = rel => { const assets = (rel && rel.assets) || [];
-      return want === 'mac' ? assets.find(a => /\.dmg$/i.test(a.name)) : (assets.find(a => /\.msi$/i.test(a.name)) || assets.find(a => /setup.*\.exe$/i.test(a.name)) || assets.find(a => /\.exe$/i.test(a.name))); };
-    const fresh = async () => { const r = await fetch('https://api.github.com/repos/' + OVERLAY_REPO + '/releases/latest', { headers: { 'User-Agent': 'lockin-overlay-download', Accept: 'application/vnd.github+json' } }); return r.ok ? r.json() : null; };
-    let cached = await cache.match(ck);
-    let rel = cached ? await cached.json() : null, pick = pickFrom(rel);
-    // a release whose files are still uploading (CI) must not be cached as "no download": refetch, cache only a complete one
-    if (!pick) { rel = await fresh(); pick = pickFrom(rel);
-      if (pick) c.executionCtx.waitUntil(cache.put(ck, new Response(JSON.stringify(rel), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' } }))); }
-    return c.redirect(pick ? pick.browser_download_url : releases);
+    // the updater manifest is a plain release asset (no API, no rate limit) and names the version + the Windows files;
+    // the Mac disk image follows the bundler's naming for that version
+    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest-v4');
+    let r = await cache.match(ck);
+    if (!r) {
+      const m = await fetch(releases + '/download/latest.json', { headers: { 'User-Agent': 'lockin-overlay-download' }, redirect: 'follow' });
+      if (!m.ok) return c.redirect(releases);
+      const j = await m.json();
+      const p = j.platforms || {};
+      const win = (p['windows-x86_64-msi'] || p['windows-x86_64'] || p['windows-x86_64-nsis'] || {}).url;
+      const v = String(j.version || '').replace(/[^0-9.]/g, '');
+      const mac = v ? 'https://github.com/' + OVERLAY_REPO + '/releases/download/overlay-v' + v + '/LockIn.Overlay_' + v + '_universal.dmg' : '';
+      if (!win) return c.redirect(releases);
+      r = new Response(JSON.stringify({ windows: win, mac }), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' } });
+      c.executionCtx.waitUntil(cache.put(ck, r.clone()));
+    }
+    const u = await r.json();
+    return c.redirect(u[want] || releases);
   } catch (e) { return c.redirect(releases); }
 });
 app.post('/api/auth/reset', async c => {
