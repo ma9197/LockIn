@@ -5,12 +5,19 @@ export const jobsPage = (cfg) => shell('LockIn · Jobs', '/jobs', `
   <div class="ph-t"><h1>Applications</h1><p class="ph-d">Every application you send, with where it stands. Adding one bumps today's goal.</p></div>
   <div class="ph-a"><span id="todayChip" class="chip"></span></div>
 </div>
-<div class="sech">
-  <h2>Hunting grounds</h2>
-  <button class="sm" onclick="openLink()">＋ Link</button>
-  <button class="pri sm" id="openAllBtn" onclick="openAll()" style="display:none">🚀 Open all</button>
+<div class="card acc" id="lkAcc" style="margin-top:16px">
+  <div class="acc-h" id="lkHead">
+    <div class="grow" style="min-width:0"><b>🔗 Hunting grounds</b><div class="tiny" id="lkCount" style="margin-top:2px">your filtered job searches, one tap each</div></div>
+    <span class="tl2-x">›</span>
+  </div>
+  <div class="acc-b" style="margin-top:16px">
+    <div class="row" style="justify-content:flex-end">
+      <button class="sm" onclick="openLink()">＋ Link</button>
+      <button class="pri sm" id="openAllBtn" onclick="openAll()" style="display:none">🚀 Open all</button>
+    </div>
+    <div class="snipgrid" id="links"></div>
+  </div>
 </div>
-<div class="snipgrid" id="links"></div>
 
 <h2>Log an application</h2>
 <div class="card">
@@ -99,11 +106,14 @@ $('list').innerHTML='<table class="jtable"><thead><tr><th>Date</th><th>Job title
 +'<td>'+statusSel(j)+'</td>'
 +'<td><button class="ghost sm" onclick="delJob('+j.id+')" aria-label="delete">✕</button></td>'
 +'</tr>').join('')+'</tbody></table>'
-+jobs.map(j=>'<div class="jcard'+(+j.stage_done?' jd':'')+'" style="--ac:'+ST[j.status][1]+'"><b class="jt">'+esc(j.title)+(j.source==='agent'?' <span title="logged by your agent">🤖</span>':'')+'</b>'
-+'<div class="muted jm">'+esc(j.company)+(j.platform?' · '+esc(j.platform):'')+(j.location?' · '+esc(j.location):'')+(j.salary?' · '+esc(j.salary):'')+'</div>'
-+'<div class="row jrow">'+statusSel(j)+'<span class="tiny num">'+fmtD(j.date)+'</span>'
+// phone card: title with the delete in its corner, one meta line, then status + tick on the left and date + posting on the right
++jobs.map(j=>'<div class="jcard'+(+j.stage_done?' jd':'')+'" style="--ac:'+ST[j.status][1]+'">'
++'<div class="jhead"><b class="jt">'+esc(j.title)+(j.source==='agent'?' <span title="logged by your agent">🤖</span>':'')+'</b>'
++'<button class="ghost jx" onclick="delJob('+j.id+')" aria-label="delete">✕</button></div>'
++'<div class="muted jm"><span class="jdate num">'+fmtD(j.date)+'</span> · '+esc(j.company)+(j.platform?' · '+esc(j.platform):'')+(j.location?' · '+esc(j.location):'')+(j.salary?' · '+esc(j.salary):'')+'</div>'
++'<div class="jrow">'+statusSel(j)+'<span class="jr2">'
 +(j.url?'<a class="jlink" href="'+esc(j.url)+'" target="_blank" rel="noopener">\u2197 Posting</a>':'')
-+'<button class="ghost sm" onclick="delJob('+j.id+')" aria-label="delete">✕</button></div></div>').join('');}
++'</span></div></div>').join('');}
 async function load(){
 const j=await api('/api/jobs');
 $('todayChip').innerHTML='📨 today: <b class="num">'+j.todayGoal.done+'</b>/'+j.todayGoal.goal;
@@ -125,5 +135,10 @@ function platValue(){return $('j-platform').value==='Other'?($('j-platform-other
 async function loadPlats(){
 const s=await api('/api/settings');
 $('j-platform').innerHTML='<option value="">-</option>'+s.jobPlatforms.map(p=>'<option>'+esc(p)+'</option>').join('')+'<option>Other</option>';}
+// hunting grounds fold like the LeetCode tabs: closed by default, the header carries the count
+$('lkHead').onclick=()=>{$('lkAcc').classList.toggle('open');};
+function lkCount(){const n=LK.length,b=LK.filter(l=>l.in_bundle).length;
+$('lkCount').textContent=n?(n+' saved'+(b?' · '+b+' in Open all':'')):'your filtered job searches, one tap each';}
+const _rl=renderLinks;renderLinks=function(){_rl.apply(this,arguments);lkCount();};
 loadPlats();loadLinks();load();
 </script>`, { cfg, mclock: cfg && cfg.mclock });

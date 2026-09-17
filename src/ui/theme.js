@@ -769,14 +769,16 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
   .jcard{display:block;border:1px solid var(--line2);border-left:4px solid var(--ac,var(--line2));border-radius:12px;padding:16px;margin:12px 0;background:var(--surface2)}
   .jcard:first-child{margin-top:0}.jcard:last-child{margin-bottom:0}
   .jcard select{background:var(--well)}
-  .jcard .jt{display:block;font:700 15px/1.3 var(--body)}
+  .jcard .jhead{display:flex;align-items:flex-start;gap:8px}
+  .jcard .jt{flex:1;min-width:0;font:700 15px/1.3 var(--body)}
+  .jcard .jx{flex:none;width:32px;height:32px;min-height:0;padding:0;margin:-6px -8px 0 0;color:var(--ink3);font-size:14px}
   .jcard .jm{font-size:13px;margin-top:4px}
-  .jcard .jrow{margin-top:12px;gap:8px}
-  .jcard .jrow{flex-wrap:wrap}
-  .jcard .jrow .jstat{flex:1 1 auto;min-width:150px;flex-wrap:nowrap}
+  .jcard .jrow{margin-top:12px;display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap}
+  .jcard .jrow .jstat{flex:0 1 auto;min-width:0;flex-wrap:nowrap}
   .jcard .jrow .jstat .jdone{flex:none}
-  .jcard .jrow select{flex:1 1 112px;min-width:112px;width:auto;padding:8px 12px;font-size:13px}
-  .jcard .jrow .tiny{white-space:nowrap}
+  .jcard .jrow select{flex:0 1 auto;min-width:0;width:auto;padding:8px 32px 8px 12px;font-size:13px}
+  .jcard .jr2{display:inline-flex;align-items:center;gap:10px;margin-left:auto}
+  .jcard .jdate{color:var(--ink);font-weight:700}
 }
 
 /* ---------- settings: grind block rows (fit 375px, no shift) ---------- */
