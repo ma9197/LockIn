@@ -222,7 +222,7 @@ app.get('/overlay/download', async c => {
   try {
     // the updater manifest is a plain release asset (no API, no rate limit) and names the version + the Windows files;
     // the Mac disk image follows the bundler's naming for that version
-    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest-v4');
+    const cache = caches.default, ck = new Request('https://cache.lockin/overlay-latest-v5');
     let r = await cache.match(ck);
     if (!r) {
       const m = await fetch(releases + '/download/latest.json', { headers: { 'User-Agent': 'lockin-overlay-download' }, redirect: 'follow' });
