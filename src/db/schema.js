@@ -194,11 +194,13 @@ CREATE TABLE IF NOT EXISTS share_gate (
 );
 `;
 
-export const SCHEMA = 3;
+export const SCHEMA = 4;
 // v2: the overlay's old default edge distance (16) becomes the new default (4); a stored 16 was never a choice
 export const MIGRATIONS = [{ v: 1, sql: SCHEMA_V1 }, { v: 2, sql: "DELETE FROM settings WHERE key='ov_offset' AND value='16'" },
   // v3: a stage can be ticked as finished (OA submitted, interview held) while the status still names the stage
-  { v: 3, sql: 'ALTER TABLE jobs ADD COLUMN stage_done INTEGER NOT NULL DEFAULT 0' }];
+  { v: 3, sql: 'ALTER TABLE jobs ADD COLUMN stage_done INTEGER NOT NULL DEFAULT 0' },
+  // v4: link collections for the Links tab; their links live in `links` with kind 'c<id>'
+  { v: 4, sql: "CREATE TABLE IF NOT EXISTS link_collections (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, emoji TEXT NOT NULL DEFAULT '🔗', sort INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL DEFAULT (datetime('now')))" }];
 
 // DDL only, so splitting on ";" at line ends is safe (no string literals contain it).
 const statements = sql => sql.split(/;\s*\n/).map(s => s.trim()).filter(Boolean);

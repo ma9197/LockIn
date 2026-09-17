@@ -349,7 +349,7 @@ let S=null,D=null,B={};
 const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const PAL=['#FF6B35','#5EA2FF','#3DDC97','#9B6EF3','#FFB347','#FF5D73','#4f8ef7','#f3a33c'];
 const CEMO=['\\uD83E\\uDDE9','\\uD83D\\uDCE8','\\uD83D\\uDCDA','\\uD83D\\uDDC4\\uFE0F','\\uD83C\\uDFD7\\uFE0F','\\uD83D\\uDCAC','\\uD83C\\uDF99\\uFE0F','\\uD83D\\uDCDD','\\u2B50','\\uD83C\\uDFAF'];
-const MODS=[['leetcode','\\uD83E\\uDDE9 LeetCode tab','problem log, notes, visualizer, solve-time stats'],['jobs','\\uD83D\\uDCE8 Jobs tab','application tracker, funnel, platforms'],['copy','\\uD83D\\uDCCB Quick Copy','snippets for application forms'],['clock','\\uD83D\\uDD52 Day clock','the 12-hour dial on Today'],['friends','\\uD83C\\uDFAE Friends booking','public page where friends grab free slots']];
+const MODS=[['leetcode','\\uD83E\\uDDE9 LeetCode tab','problem log, notes, visualizer, solve-time stats'],['jobs','\\uD83D\\uDCE8 Jobs tab','application tracker, funnel, platforms'],['copy','\\uD83D\\uDCCB Quick Copy','snippets for application forms'],['links','\\uD83D\\uDD17 Links','collections of tabs, each with its own Open all'],['clock','\\uD83D\\uDD52 Day clock','the 12-hour dial on Today'],['friends','\\uD83C\\uDFAE Friends booking','public page where friends grab free slots']];
 const SHK=[['shOverview','overview'],['shLc','lc'],['shGrind','grind'],['shJobs','jobs'],['shLcNames','lcNames'],['shFriends','friends'],['shOffReasons','offReasons']];
 const LAYEMO={morning:'\\uD83C\\uDF05',night:'\\uD83C\\uDF19',low:'\\uD83E\\uDEAB',weekend:'\\uD83C\\uDFD6\\uFE0F',sunday:'\\uD83C\\uDFD6\\uFE0F'};
 // which draft keys belong to which section, for the change markers and the save bar text

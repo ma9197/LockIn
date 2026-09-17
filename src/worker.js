@@ -231,7 +231,8 @@ app.get('/overlay/download', async c => {
       const p = j.platforms || {};
       const win = (p['windows-x86_64-msi'] || p['windows-x86_64'] || p['windows-x86_64-nsis'] || {}).url;
       const v = String(j.version || '').replace(/[^0-9.]/g, '');
-      const mac = v ? 'https://github.com/' + OVERLAY_REPO + '/releases/download/overlay-v' + v + '/LockIn.Overlay_' + v + '_universal.dmg' : '';
+      // the workflow renames the disk image to 'LockIn Overlay Installer <v>.dmg' (GitHub stores spaces as dots)
+      const mac = v ? 'https://github.com/' + OVERLAY_REPO + '/releases/download/overlay-v' + v + '/LockIn.Overlay.Installer.' + v + '.dmg' : '';
       if (!win) return go(releases);
       r = new Response(JSON.stringify({ windows: win, mac }), { headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' } });
       c.executionCtx.waitUntil(cache.put(ck, r.clone()));

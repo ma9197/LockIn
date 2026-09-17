@@ -270,6 +270,7 @@ return '<h1>Last one: what is on</h1><p class="lead">Turn off what you will not 
 +(hasLc?T('leetcode','\\uD83E\\uDDE9 LeetCode tab','Problem log, notes, array visualizer, solve-time stats.'):'')
 +(hasJobs?T('jobs','\\uD83D\\uDCE8 Jobs tab','Application tracker with funnel and platform stats.'):'')
 +T('copy','\\uD83D\\uDCCB Quick Copy','Snippets for speed-filling application forms.')
++T('links','\\uD83D\\uDD17 Links','Collections of tabs you open together, each with its own Open all.')
 +T('clock','\\uD83D\\uDD52 Day clock','A 12-hour dial of your day on the Today page.')
 +T('friends','\\uD83C\\uDFAE Friends booking','A public page where friends grab your free slots. Off for most people.')
 +'</div>'

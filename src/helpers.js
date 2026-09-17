@@ -111,7 +111,7 @@ export async function loadCfg(db) {
   const sideTasks = (await db.prepare('SELECT * FROM side_tasks WHERE enabled=1 ORDER BY sort, id').all()).results;
   const builtin = name => { const c = categories.find(x => x.builtin === name); return c ? c.key : null; };
 
-  const modules = { leetcode: true, jobs: true, copy: true, friends: false, clock: true, ...(j('modules', {}) || {}) };
+  const modules = { leetcode: true, jobs: true, copy: true, links: true, friends: false, clock: true, ...(j('modules', {}) || {}) };
   if (!builtin('leetcode')) modules.leetcode = false;
   const sched = normSched(j('sched', null));
 

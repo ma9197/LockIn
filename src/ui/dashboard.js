@@ -190,7 +190,16 @@ return mods.map(m=>({t:m.t,m:Math.round(m.m/planned*total/5)*5}));}
 function renderBlocks(){
 const confirmed=J.sessions.filter(s=>['confirmed','done'].includes(s.status));
 const gblocks=grindBlocksOf(J.blocks);
+const absB=x=>{const s=hmMin(x.start);return [s,hmMin(x.end)+((x.endNextDay||hmMin(x.end)<s)?1440:0)];};
+const parent=[];
+J.blocks.forEach((b,i)=>{if(b.kind==='free'){parent.push(-1);return;}const [bs,be]=absB(b);
+let p=J.blocks.slice(0,i).findIndex(o=>{if(o.kind==='free')return false;const [os,oe]=absB(o);return bs<oe&&be>os;});
+while(p>=0&&parent[p]>=0)p=parent[p];parent.push(p);});
+// a nested block: its own start and end inside the parent card, so "SideChick 19:00-21:30 inside Minet" reads at a glance
+const nestRow=(k)=>'<div class="tl2-in"><span class="bub">'+fmtT(k.start)+'</span><span class="tl2-inline"><span class="tl2-indur">'+fmtDur(blockMin(k.start,k.end,k.endNextDay))+'</span></span><span class="bub">'+fmtT(k.end)+(k.endNextDay?' ⁺¹':'')+'</span><span class="lab">'+(k.emoji||BLK_IC[k.kind])+' '+esc(k.label)+'</span></div>';
 $('blocks').innerHTML=J.blocks.map((b,i)=>{
+if(parent[i]>=0)return '';
+const kids=J.blocks.filter((k,j)=>parent[j]===i);
 const dur=blockMin(b.start,b.end,b.endNextDay);
 const gIdx=gblocks.indexOf(b);
 let sub='',detail='',expandable=false;
@@ -219,20 +228,17 @@ detail='<div class="tl2-detail"><div class="blockpanel" onclick="event.stopPropa
 const mods2=scaleMods(modulesFor(gIdx),dur);
 sub='<div class="tl2-sub">'+mods2.map(m=>MOD[m.t].e+' '+fmtDur(m.m)).join(' · ')+'</div>';
 }
-// a solid block that starts inside an earlier solid block is shown nested under it
-const abs=x=>{const s=hmMin(x.start);return [s,hmMin(x.end)+((x.endNextDay||hmMin(x.end)<s)?1440:0)];};
-const [bs,be]=abs(b);
-const over=b.kind==='free'?null:J.blocks.slice(0,i).find(o=>{if(o.kind==='free')return false;const [os,oe]=abs(o);return bs<oe&&be>os;});
-return '<div class="tl2-item'+(openBlocks[i]?' open':'')+(over?' tl2-ov':'')+'" id="blk-'+i+'">'
+const nest=kids.length?'<div class="tl2-nest"><div class="tl2-nest-t">⧉ at the same time</div>'+kids.map(nestRow).join('')+'</div>':'';
+return '<div class="tl2-item'+(openBlocks[i]?' open':'')+'" id="blk-'+i+'">'
 +'<div class="tl2-rail"><span class="bub">'+fmtT(b.start)+'</span>'
 +'<div class="tl2-line" style="--rk:'+RAIL[b.kind]+'"><span class="tl2-dur">'+fmtDur(dur)+'</span></div>'
 +'<span class="bub">'+fmtT(b.end)+(b.endNextDay?' ⁺¹':'')+'</span></div>'
 +'<div class="tl2-body"><div class="tl2-head" '+(expandable?'onclick="toggleBlk('+i+')"':'')+'>'
 +'<span>'+(b.emoji||BLK_IC[b.kind])+'</span><span class="lab">'+esc(b.label)+'</span>'
-+(over?'<span class="pill" style="background:#3DDC9722;color:var(--mint)" title="at the same time as '+esc(over.label)+'">⧉ with '+esc(over.label)+'</span>':'')
++(kids.length?'<span class="pill" style="background:#3DDC9722;color:var(--mint)">⧉ +'+kids.length+'</span>':'')
 +(b.moved?'<span class="pill" style="background:#FFB34722;color:var(--ember2)">moved</span>':'')
 +(expandable?'<span class="tl2-x">›</span>':'')+'</div>'
-+sub+detail+'</div></div>';}).join('')||'<div class="skel">Free day</div>';}
++sub+nest+detail+'</div></div>';}).join('')||'<div class="skel">Free day</div>';}
 function toggleBlk(i){openBlocks[i]=!openBlocks[i];document.getElementById('blk-'+i).classList.toggle('open');}
 async function moveBlk(i){
 const b=J.blocks[i];

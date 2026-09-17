@@ -55,3 +55,17 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+      # macOS: the app is "Overlay", the disk image people download is "LockIn Overlay Installer"
+      - name: Rename the macOS disk image
+        if: matrix.os == 'macos-latest'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: overlay
+        run: |
+          V=$(node -p "require('./src-tauri/tauri.conf.json').version")
+          OLD="Overlay_${V}_universal.dmg"
+          NEW="LockIn Overlay Installer ${V}.dmg"
+          gh release download "${{ github.ref_name }}" --pattern "$OLD" --dir dl
+          mv "dl/$OLD" "dl/$NEW"
+          gh release upload "${{ github.ref_name }}" "dl/$NEW" --clobber
+          gh release delete-asset "${{ github.ref_name }}" "$OLD" -y

@@ -16,6 +16,7 @@ import { friendsPage } from './ui/friends.js';
 import { settingsPage } from './ui/settings.js';
 import { bookPage } from './ui/book.js';
 import { copyPage } from './ui/copy.js';
+import { linksPage } from './ui/links.js';
 import { leetcodePage } from './ui/leetcode.js';
 
 export function createUserApp() {
@@ -31,7 +32,7 @@ async function requireOwner(c) {
 }
 
 // ---- pages ----
-const OWNER_PAGES = { '/': dashboardPage, '/calendar': calendarPage, '/progress': progressPage, '/leetcode': leetcodePage, '/jobs': jobsPage, '/copy': copyPage, '/friends': friendsPage, '/settings': settingsPage };
+const OWNER_PAGES = { '/': dashboardPage, '/calendar': calendarPage, '/progress': progressPage, '/leetcode': leetcodePage, '/jobs': jobsPage, '/copy': copyPage, '/links': linksPage, '/friends': friendsPage, '/settings': settingsPage };
 for (const [path, page] of Object.entries(OWNER_PAGES)) {
   app.get(path, async c => {
     if (role(c) !== 'owner') return c.text('forbidden', 403);
@@ -152,7 +153,9 @@ app.get('/api/share/progress', async c => {
     if (!sh.lcNames) { lc.days = []; lc.problems = []; }
     out.lc = lc; out.lc30 = p.lc30;
   }
-  if (sh.grind) { out.grind = p.grind; out.heat = p.heat; }
+  if (sh.grind) { out.grind = p.grind; out.heat = p.heat;
+    // the shape of the week: side tasks are schedule, not secrets, and they explain the hours
+    out.sideTasks = (await c.env.DB.prepare('SELECT name,emoji,days,start,end FROM side_tasks WHERE enabled=1 ORDER BY sort, id').all()).results; }
   if (sh.jobs) { out.funnel = p.funnel; out.byPlatform = p.byPlatform; out.apps30 = p.apps30; out.history = { apps: p.history.apps }; out.jobsMeta = p.jobsMeta; }
   if (sh.friends) out.friends = p.friends;
   return json(c, out);
@@ -239,7 +242,35 @@ const cleanUrl = u => {
   return v;
 };
 const LINK_KINDS = ['jobs', 'leetcode'];
-const linkKind = v => LINK_KINDS.includes(String(v || '')) ? String(v) : 'jobs';
+// 'c<id>' = a Links-tab collection
+const linkKind = v => { const s = String(v || ''); return LINK_KINDS.includes(s) || /^c\d{1,9}$/.test(s) ? s : 'jobs'; };
+// ---- link collections (Links tab) ----
+app.get('/api/collections', async c => {
+  const db = c.env.DB;
+  const cols = (await db.prepare('SELECT * FROM link_collections ORDER BY sort, id').all()).results;
+  const links = (await db.prepare("SELECT * FROM links WHERE kind LIKE 'c%' ORDER BY sort, id").all()).results;
+  return json(c, { collections: cols.map(k => ({ ...k, links: links.filter(l => l.kind === 'c' + k.id) })) });
+});
+app.post('/api/collections', async c => {
+  const b = await c.req.json().catch(() => ({}));
+  const name = String(b.name || '').trim().slice(0, 40);
+  if (!name) return json(c, { error: 'name required' }, 400);
+  const r = await c.env.DB.prepare('INSERT INTO link_collections (name, emoji) VALUES (?, ?)').bind(name, String(b.emoji || '🔗').slice(0, 8)).run();
+  return json(c, { ok: true, id: r.meta.last_row_id });
+});
+app.patch('/api/collections/:id', async c => {
+  const b = await c.req.json().catch(() => ({}));
+  const name = String(b.name || '').trim().slice(0, 40);
+  if (!name) return json(c, { error: 'name required' }, 400);
+  await c.env.DB.prepare('UPDATE link_collections SET name=?, emoji=? WHERE id=?').bind(name, String(b.emoji || '🔗').slice(0, 8), +c.req.param('id')).run();
+  return json(c, { ok: true });
+});
+app.delete('/api/collections/:id', async c => {
+  const id = +c.req.param('id');
+  await c.env.DB.prepare('DELETE FROM links WHERE kind=?').bind('c' + id).run();
+  await c.env.DB.prepare('DELETE FROM link_collections WHERE id=?').bind(id).run();
+  return json(c, { ok: true });
+});
 app.get('/api/links', async c => {
   const kind = linkKind(c.req.query('kind'));
   const links = (await c.env.DB.prepare('SELECT * FROM links WHERE kind=? ORDER BY sort, id').bind(kind).all()).results;
@@ -1114,7 +1145,11 @@ async function buildProgress(db, cfg) {
     grind: { target: cfg.grindTarget, total: g.total || 0, days: g.days || 0, avg: g.days ? Math.round((g.total / g.days) * 10) / 10 : 0, overtime: g.overtime || 0,
       targetDays: gtar.hit || 0, dow, last14: grind14, moduleTotals, moduleDays } };
 }
-app.get('/api/progress', async c => json(c, await buildProgress(c.env.DB, c.get('cfg'))));
+app.get('/api/progress', async c => {
+  const p = await buildProgress(c.env.DB, c.get('cfg'));
+  p.sideTasks = (await c.env.DB.prepare('SELECT name,emoji,days,start,end FROM side_tasks WHERE enabled=1 ORDER BY sort, id').all()).results;
+  return json(c, p);
+});
 
 // ---- sessions (owner) ----
 app.get('/api/sessions', async c => {
@@ -1205,7 +1240,7 @@ const applySettings = async (c, b) => {
   if (b.clock24 !== undefined) await setSetting(db, 'clock_24h', b.clock24 ? '1' : '0');
   if (b.modules !== undefined && typeof b.modules === 'object') {
     const m = { ...cfg.modules };
-    for (const k of ['leetcode', 'jobs', 'copy', 'friends', 'clock']) if (b.modules[k] !== undefined) m[k] = !!b.modules[k];
+    for (const k of ['leetcode', 'jobs', 'copy', 'links', 'friends', 'clock']) if (b.modules[k] !== undefined) m[k] = !!b.modules[k];
     await setSetting(db, 'modules', JSON.stringify(m));
   }
   if (b.grindTarget !== undefined) await setSetting(db, 'grind_target_hours', String(Math.min(16, Math.max(1, +b.grindTarget || 6))));

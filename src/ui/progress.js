@@ -74,6 +74,7 @@ ${pane('grind', `<section class="tabpane${firstTab === 'grind' ? ' on' : ''}" da
   <div class="card chartcard" id="dowCard"><div class="skel">Loading…</div></div>
   <div class="card chartcard" id="chart-grind"><div class="skel">Loading…</div></div>
   <div class="card" id="modsplit" style="display:none"></div>
+  <div class="card" id="sideCard" style="display:none"></div>
 </section>`)}
 
 ${pane('jobs', `<section class="tabpane${firstTab === 'jobs' ? ' on' : ''}" data-t="jobs">
@@ -434,6 +435,11 @@ tip:d=>'<b>'+fmtD(d.d)+'</b><br>'+(d.v?nf(d.v)+' hours grinded':'no grind logged
 summary:st=>{const hit=st.data.filter(d=>d.hit).length;
 return [['total',nf(st.sum)+'h'],['avg / day',nf(st.avg)+'h'],['biggest day',nf(st.best)+'h'],[GT+'h target',hit+' / '+st.n]];}});
 const MODN=Object.fromEntries(CATS.map(c=>[c.key,c.emoji+' '+c.name]));
+// side tasks: the fixed shape of the week around the grind
+if($('sideCard')&&j.sideTasks&&j.sideTasks.length){$('sideCard').style.display='';
+$('sideCard').innerHTML='<div class="bp-label">Side tasks every week</div><div class="sidelist">'+j.sideTasks.map(t=>{
+const days=String(t.days||'').split(',').filter(Boolean).map(Number);
+return '<div class="siderow"><span class="st-em">'+(t.emoji||'\uD83D\uDCCC')+'</span><b>'+esc(t.name)+'</b><span class="st-days">'+DOWN.map((d,i)=>'<i class="'+(days.includes(i)?'on':'')+'">'+d[0]+'</i>').join('')+'</span><span class="st-time num">'+fmtT(t.start)+' \u2013 '+fmtT(t.end)+'</span></div>';}).join('')+'</div>';}
 const mt=Object.entries(G.moduleTotals||{});
 if(mt.length){$('modsplit').style.display='';
 const grand=mt.reduce((a,b)=>a+b[1],0);

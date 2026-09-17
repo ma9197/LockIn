@@ -598,6 +598,14 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .mixleg{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:12px}
 .mixleg span{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink2)}
 .mixleg i{flex:none;width:10px;height:10px;border-radius:3px}
+.sidelist{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.siderow{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;border-radius:10px;background:var(--surface2);border:1px solid var(--line2);border-left:3px solid var(--mint)}
+.siderow b{font:700 14px var(--body)}
+.siderow .st-em{font-size:18px}
+.st-days{display:inline-flex;gap:2px}
+.st-days i{font-style:normal;width:20px;height:20px;border-radius:6px;display:inline-grid;place-items:center;font:700 10px var(--disp);color:var(--ink3);background:var(--surface)}
+.st-days i.on{color:#06281A;background:var(--mint)}
+.siderow .st-time{margin-left:auto;font:700 12px var(--disp);color:var(--ink2);white-space:nowrap}
 .mixnote{margin-top:12px;font-size:13px;line-height:1.55;color:var(--ink2)}
 .mixnote b{font-family:var(--disp);color:var(--ink)}
 /* weekday grind pattern */
@@ -673,7 +681,15 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .tl2{display:flex;flex-direction:column;gap:24px}
 .tl2-item{display:grid;grid-template-columns:96px 1fr;gap:16px}
 .tl2-rail{display:flex;flex-direction:column;align-items:center;min-width:96px}
-.tl2-item.tl2-ov{margin-left:20px;padding-left:12px;border-left:2px dashed var(--line2);margin-top:-8px}
+/* blocks that run at the same time live inside the parent card, each with its own start and end */
+.tl2-nest{margin-top:10px;padding:10px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line2);border-left:3px solid var(--mint)}
+.tl2-nest-t{font:700 11px var(--disp);letter-spacing:.06em;text-transform:uppercase;color:var(--mint);margin-bottom:8px}
+.tl2-in{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
+.tl2-in+.tl2-in{margin-top:8px}
+.tl2-in .bub{font-size:11px;padding:3px 10px}
+.tl2-inline{height:2px;background:var(--mint);position:relative;min-width:40px}
+.tl2-indur{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font:700 11px var(--disp);color:var(--ink2);background:var(--surface2);padding:0 6px;white-space:nowrap}
+.tl2-in .lab{grid-column:1/-1;font-weight:700;margin-top:-2px}
 .bub{background:var(--surface2);border:1px solid var(--line2);border-radius:99px;padding:4px 12px;
   font:700 12px var(--disp);font-variant-numeric:tabular-nums;white-space:nowrap;z-index:1}
 .tl2-line{flex:1;width:2px;background:var(--rk,#5C6779);min-height:34px;position:relative;margin:4px 0}
@@ -928,12 +944,13 @@ const ICONS = {
   jobs: 'M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M3 9a2 2 0 012-2h14a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2zM3 13h18',
   leetcode: 'M8 6l-5 6 5 6M16 6l5 6-5 6M13.5 4l-3 16',
   copy: 'M9 9V5a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2h-4M5 9h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2v-8a2 2 0 012-2z',
+  links: 'M10 13a5 5 0 007.5.5l3-3a5 5 0 00-7-7l-1.7 1.7M14 11a5 5 0 00-7.5-.5l-3 3a5 5 0 007 7l1.7-1.7',
 };
-const NAVITEMS = [['/', 'Today', 'today'], ['/calendar', 'Calendar', 'calendar'], ['/progress', 'Progress', 'progress'], ['/leetcode', 'LeetCode', 'leetcode'], ['/jobs', 'Jobs', 'jobs'], ['/copy', 'Copy', 'copy'], ['/friends', 'Friends', 'friends'], ['/settings', 'Settings', 'settings']];
+const NAVITEMS = [['/', 'Today', 'today'], ['/calendar', 'Calendar', 'calendar'], ['/progress', 'Progress', 'progress'], ['/leetcode', 'LeetCode', 'leetcode'], ['/jobs', 'Jobs', 'jobs'], ['/copy', 'Copy', 'copy'], ['/links', 'Links', 'links'], ['/friends', 'Friends', 'friends'], ['/settings', 'Settings', 'settings']];
 export const ic = (name, size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="${ICONS[name]}"/></svg>`;
 
 // which nav items belong to which optional module
-const MODULE_OF_PATH = { '/leetcode': 'leetcode', '/jobs': 'jobs', '/copy': 'copy', '/friends': 'friends' };
+const MODULE_OF_PATH = { '/leetcode': 'leetcode', '/jobs': 'jobs', '/copy': 'copy', '/links': 'links', '/friends': 'friends' };
 const navItems = u => NAVITEMS.filter(([h]) => !MODULE_OF_PATH[h] || !u || !u.modules || u.modules[MODULE_OF_PATH[h]] !== false);
 const navHTML = (on, u) => `
 <div class="navwrap"><nav class="nav" id="mnav">${navItems(u).map(([h, l, i]) =>
