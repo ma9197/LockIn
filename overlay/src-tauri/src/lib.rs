@@ -94,6 +94,9 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![open_pair, set_status, monitors])
         .setup(|app| {
             let handle = app.handle().clone();
+            // a menu-bar helper on macOS: no Dock icon, no app switcher entry (Windows has skipTaskbar for the same effect)
+            #[cfg(target_os = "macos")]
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             // ---- tray menu ----
             let status = MenuItem::with_id(app, "status", "○ Not connected", false, None::<&str>)?;

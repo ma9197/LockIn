@@ -277,7 +277,7 @@ ${sec('overlay', 'Desktop overlay', 'A small chip on your desktop with the live 
   <div class="acrow" style="border-top:0">
     <div class="acl"><span class="tile">🖥️</span><div><b>Get LockIn Overlay</b><p>A 6 MB helper that lives in your tray. Free and open source, updates itself.</p></div></div>
     <div class="acr"><div class="row" style="gap:8px;flex-wrap:wrap"><a class="btnlink pri" id="ovDl" href="/overlay/download">⬇ Download</a><a class="btnlink" id="ovDlOther" href="/overlay/download?os=mac">for Mac</a></div>
-      <div class="hint" id="ovDlHint">First launch: Windows may say “Windows protected your PC”, click <b>More info → Run anyway</b>. On a Mac, right-click the app → <b>Open</b> once. The build is not code-signed yet.</div></div>
+      <div class="hint" id="ovDlHint">First launch: Windows may say “Windows protected your PC”, click <b>More info → Run anyway</b>. On a Mac, drag the app to Applications, open it once with right-click → <b>Open</b>; on macOS 15 go to <b>System Settings → Privacy &amp; Security → Open Anyway</b>. If it says the app is damaged, run <code>xattr -cr "/Applications/LockIn Overlay.app"</code> in Terminal once. The build is not notarized yet.</div></div>
   </div>
   <div class="acrow">
     <div class="acl"><span class="tile">🔗</span><div><b>Pair this computer</b><p>The helper needs a code from here. It gets a token that can only read what is running, nothing else.</p></div></div>

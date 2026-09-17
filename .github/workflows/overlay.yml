@@ -49,7 +49,7 @@ jobs:
             The desktop overlay for LockIn: your live grind session and focus timer floating over any app.
 
             **Windows:** run the `.exe` installer. SmartScreen may say "Windows protected your PC": click *More info → Run anyway* (the build is not code-signed).
-            **macOS:** open the `.dmg`, drag LockIn Overlay to Applications, then right-click the app → *Open* the first time (Gatekeeper, unsigned build).
+            **macOS:** open the `.dmg`, drag LockIn Overlay to Applications, then right-click the app → *Open* the first time. On macOS 15: System Settings → Privacy & Security → *Open Anyway*. If it says the app is damaged, run `xattr -cr "/Applications/LockIn Overlay.app"` in Terminal once (ad-hoc signed, not notarized).
 
             Then in LockIn: Settings → Integrations → Desktop overlay → Generate code.
           releaseDraft: false
