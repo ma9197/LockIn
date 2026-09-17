@@ -82,7 +82,8 @@ button.rose.outl:hover{background:#FF5D7318}
 .chips{display:flex;gap:8px}
 .chips button{flex:1;min-width:0;padding:8px 0;font-size:12px}
 .chips button.on{background:var(--ember);color:#0B0E14;border-color:var(--ember)}
-.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;flex:1;min-width:0;max-width:300px}
+.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;flex:1 1 260px;min-width:220px;max-width:320px}
+.tm24{font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.04em}
 .sw button{width:100%;aspect-ratio:1;height:auto;min-height:28px;border-radius:8px;border:2px solid transparent;padding:0}
 .sw button.on{border-color:#fff;box-shadow:0 0 0 2px var(--surface2)}
 .em{display:flex;gap:4px;flex-wrap:wrap}
@@ -509,7 +510,7 @@ const names=Object.keys(LAY.layouts);
 $('layouts').innerHTML=names.map(n=>'<div class="item" style="--ac:'+(n===LAY.default?'var(--ember)':n==='low'?'var(--violet)':'var(--line2)')+'"><div class="ihead"><span class="tile">'+(LAYEMO[n]||'\\uD83D\\uDDD3\\uFE0F')+'</span><b class="nm">'+esc2(n)+'</b>'
 +(n===LAY.default?'<span class="pill defpill">default</span>':'<button class="ghost sm" onclick="D.sched.default=\\''+q(n)+'\\';renderLayouts();mark()">Make default</button>')
 +(names.length>1?'<button class="xbtn" onclick="delLayout(\\''+q(n)+'\\')" aria-label="Remove layout">\\u2715</button>':'')+'</div>'
-+'<div class="ibody">'+LAY.layouts[n].map((b,i)=>'<div class="rng blk"><span class="lbl">Block '+(i+1)+'</span><input type="time" value="'+b[0]+'" onchange="D.sched.layouts[\\''+q(n)+'\\']['+i+'][0]=this.value;mark()" aria-label="start"><span class="tiny">to</span><input type="time" value="'+b[1]+'" onchange="D.sched.layouts[\\''+q(n)+'\\']['+i+'][1]=this.value;mark()" aria-label="end">'
++'<div class="ibody">'+LAY.layouts[n].map((b,i)=>'<div class="rng blk"><span class="lbl">Block '+(i+1)+'</span>'+TI(b[0],'onchange="D.sched.layouts[\\''+q(n)+'\\']['+i+'][0]=this.value;mark()" aria-label="start"')+'<span class="tiny">to</span>'+TI(b[1],'onchange="D.sched.layouts[\\''+q(n)+'\\']['+i+'][1]=this.value;mark()" aria-label="end"')+''
 +(LAY.layouts[n].length>1?'<button class="xbtn" onclick="D.sched.layouts[\\''+q(n)+'\\'].splice('+i+',1);renderLayouts();mark()" aria-label="Remove block">\\u2715</button>':'<span style="width:38px;flex:none"></span>')+'</div>').join('')+'</div>'
 +(LAY.layouts[n].length<4?'<div class="ifoot"><button class="sm" onclick="D.sched.layouts[\\''+q(n)+'\\'].push([\\'19:00\\',\\'21:00\\']);renderLayouts();mark()">\\uFF0B Add block</button><span class="tiny">up to four</span></div>':'')+'</div>').join('');
 const one=names.length<2;$('layAssign').style.display=one?'none':'';
@@ -528,7 +529,7 @@ $('sides').innerHTML=SD.length?SD.map((t,i)=>'<div class="item'+(t.enabled?'':' 
 +'<div class="toggle'+(t.enabled?' on':'')+'" role="switch" tabindex="0" aria-checked="'+(!!t.enabled)+'" aria-label="on" onclick="D.sides['+i+'].enabled=D.sides['+i+'].enabled?0:1;renderSides();mark()"></div>'
 +'<button class="xbtn" onclick="D.sides.splice('+i+',1);renderSides();mark()" aria-label="Remove side task">\\u2715</button></div>'
 +'<div class="ibody"><div class="cklab">Days</div><div class="chips" style="margin-top:8px">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" onclick="tgDay('+i+','+di+')">'+d+'</button>').join('')+'</div>'
-+'<div class="cklab">Time</div><div class="rng" style="margin-top:8px"><input type="time" value="'+t.start+'" onchange="D.sides['+i+'].start=this.value;mark()" aria-label="start"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="D.sides['+i+'].end=this.value;mark()" aria-label="end"></div>'
++'<div class="cklab">Time</div><div class="rng" style="margin-top:8px">'+TI(t.start,'onchange="D.sides['+i+'].start=this.value;mark()" aria-label="start"')+'<span class="tiny">to</span>'+TI(t.end,'onchange="D.sides['+i+'].end=this.value;mark()" aria-label="end"')+'</div>'
 +'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:8px"><input type="date" value="'+(t.date_from||'')+'" onchange="D.sides['+i+'].date_from=this.value||null;mark()" aria-label="from"><span class="tiny">and</span><input type="date" value="'+(t.date_to||'')+'" onchange="D.sides['+i+'].date_to=this.value||null;mark()" aria-label="to"></div><div class="hint" style="margin-top:8px">Empty dates = every week.</div></div>'
 +'<div class="ifoot"><div class="em">'+EM.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" onclick="D.sides['+i+'].emoji=this.textContent;renderSides();mark()" aria-label="emoji">'+e+'</button>').join('')+'</div><span class="grow"></span><button class="sm" onclick="cloneSide('+i+')" title="the same task at another time of day">\\uFF0B Another time</button></div></div>').join('')
 :'<div class="empty">Nothing yet.<br><span class="tiny">Gym, a class, a shift: add what takes real time each week.</span></div>';}
@@ -540,7 +541,9 @@ function cloneSide(i){const t=D.sides[i];const [h,m]=t.end.split(':').map(Number
 D.sides.splice(i+1,0,{id:null,name:t.name,emoji:t.emoji,days:[...t.days],start:p(h+1),end:p(h+2),date_from:t.date_from,date_to:t.date_to,enabled:1});renderSides();mark();}
 
 // ---- booking windows ----
-function renderAvail(){const AVW=D.booking.avail;$('avail').innerHTML=AVW.map((a,i)=>'<div class="rng"><input type="time" value="'+a[0]+'" onchange="D.booking.avail['+i+'][0]=this.value;mark()" aria-label="from"><span class="tiny">to</span><input type="time" value="'+a[1]+'" onchange="D.booking.avail['+i+'][1]=this.value;mark()" aria-label="to"><button class="xbtn" onclick="D.booking.avail.splice('+i+',1);renderAvail();mark()" aria-label="Remove window">\\u2715</button></div>').join('')||'<div class="hint" style="margin:0">No windows: nothing is bookable.</div>';}
+// 24-hour users get a typed HH:MM field (the native picker follows the browser locale, not the setting)
+function TI(v,attrs){return (window.__U&&window.__U.clock24)?'<input type="text" class="tm24" inputmode="numeric" maxlength="5" placeholder="HH:MM" value="'+v+'" '+attrs.replace('onchange="','onchange="tmNorm(this);')+'>':'<input type="time" value="'+v+'" '+attrs+'>';}
+function renderAvail(){const AVW=D.booking.avail;$('avail').innerHTML=AVW.map((a,i)=>'<div class="rng">'+TI(a[0],'onchange="D.booking.avail['+i+'][0]=this.value;mark()" aria-label="from"')+'<span class="tiny">to</span>'+TI(a[1],'onchange="D.booking.avail['+i+'][1]=this.value;mark()" aria-label="to"')+'<button class="xbtn" onclick="D.booking.avail.splice('+i+',1);renderAvail();mark()" aria-label="Remove window">\\u2715</button></div>').join('')||'<div class="hint" style="margin:0">No windows: nothing is bookable.</div>';}
 function addAvail(){if(D.booking.avail.length>=4)return toast('4 windows max');D.booking.avail.push(['12:00','15:00']);renderAvail();mark();}
 
 // ---- clocks (the top-right one previews live through window.__MCLOCK) ----

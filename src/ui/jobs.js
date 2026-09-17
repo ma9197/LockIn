@@ -50,7 +50,7 @@ export const jobsPage = (cfg) => shell('LockIn · Jobs', '/jobs', `
 <div class="card jwrap" id="list"><div class="skel">Loading…</div></div>
 <p class="hint">🤖 An agent can log applications here for you. The key is in <a href="/settings#api">Settings → Integrations</a>.</p>
 <div id="modalHost"></div>
-<style>.hide{display:none}.fgrid>div>label.fld{margin-top:0}.fgrid>div{margin-top:4px}</style>
+<style>.hide{display:none}</style>
 `, `<script>
 const ST={applied:['Applied','#5EA2FF'],oa:['OA','#9B6EF3'],interview:['Interview','#FFB347'],offer:['OFFER 🎉','#3DDC97'],rejected:['Rejected','#5C6779']};
 // stages with something to do: they get a tick, so a finished OA or interview still reads as that status but not as a to-do
@@ -134,7 +134,8 @@ function platChange(){$('j-platform-other').style.display=$('j-platform').value=
 function platValue(){return $('j-platform').value==='Other'?($('j-platform-other').value.trim()||'Other'):$('j-platform').value;}
 async function loadPlats(){
 const s=await api('/api/settings');
-$('j-platform').innerHTML='<option value="">-</option>'+s.jobPlatforms.map(p=>'<option>'+esc(p)+'</option>').join('')+'<option>Other</option>';}
+const P=s.jobPlatforms.filter(p=>p.toLowerCase()!=='other');
+$('j-platform').innerHTML='<option value="">-</option>'+P.map(p=>'<option>'+esc(p)+'</option>').join('')+'<option>Other</option>';}
 // hunting grounds fold like the LeetCode tabs: closed by default, the header carries the count
 $('lkHead').onclick=()=>{$('lkAcc').classList.toggle('open');};
 function lkCount(){const n=LK.length,b=LK.filter(l=>l.in_bundle).length;

@@ -37,7 +37,7 @@ export const onboardPage = (user) => shell('LockIn · Setup', null, `
 .chips{display:flex;gap:4px}
 .chips button{flex:1;min-width:0;padding:8px 0;font-size:12px}
 .chips button.on{background:var(--ember);color:#0B0E14;border-color:var(--ember)}
-.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;flex:1;min-width:0;max-width:300px}
+.sw{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:8px;flex:1 1 260px;min-width:220px;max-width:320px}
 .sw button{width:100%;aspect-ratio:1;height:auto;min-height:28px;border-radius:8px;border:2px solid transparent;padding:0}
 .sw button.on{border-color:#fff;box-shadow:0 0 0 2px var(--surface2)}
 .em{display:flex;gap:4px;flex-wrap:wrap}
@@ -72,7 +72,23 @@ export const onboardPage = (user) => shell('LockIn · Setup', null, `
 .sum div{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}
 .sum div:last-child{border-bottom:0}
 .sum span:first-child{flex:none;width:96px;font:700 11px var(--disp);color:var(--ink3);text-transform:uppercase;letter-spacing:.08em;padding-top:2px}
-.sum span:last-child{color:var(--ink2);min-width:0}
+.sum span:last-child{color:var(--ink);min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
+.sum span:last-child>b{font:700 14px var(--body);color:var(--ink)}
+.sum span:last-child>em{font-style:normal;color:var(--ink2);font-size:13px}
+.sumchips{display:flex;flex-wrap:wrap;gap:6px}
+.sumchips i{font-style:normal;display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:99px;border:1px solid var(--line2);border-left:3px solid var(--c,var(--line2));background:var(--surface);font-size:12px;color:var(--ink)}
+.sumchips i b{color:var(--ink)}
+.sumtasks{display:flex;flex-direction:column;gap:6px}
+.sumtask{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-radius:10px;background:var(--surface);border:1px solid var(--line2);border-left:3px solid var(--mint)}
+.sumtask b{font:700 13px var(--body);color:var(--ink)}
+.st-em{font-size:16px}
+.st-days{display:inline-flex;gap:2px}
+.st-days i{font-style:normal;width:18px;height:18px;border-radius:5px;display:inline-grid;place-items:center;font:700 10px var(--disp);color:var(--ink3);background:var(--surface2)}
+.st-days i.on{color:#06281A;background:var(--mint)}
+.st-time{margin-left:auto;font:700 12px var(--disp);color:var(--ink2);white-space:nowrap}
+.ferr{color:var(--rose);font:600 12px var(--body);margin-top:6px}
+.ferr.warn{color:var(--ember2)}
+.tm24{font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.04em}
 .sum b{color:var(--ink)}
 .tzclock{font:800 28px var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 .idrow{display:flex;align-items:center;gap:12px}
@@ -117,11 +133,22 @@ const first=i=>i===0?' first':'';
 
 // ---- previews ----
 function strip(blocks,sides){
-const seg=(s,e,col,lab)=>{let a=mn(s),b=mn(e);if(b<=a)b+=1440;const one=(x,y)=>'<i style="left:'+(x/1440*100)+'%;width:'+((y-x)/1440*100)+'%;background:'+col+'" title="'+esc2(lab)+'"></i>';
-return b>1440?one(a,1440)+one(0,b-1440):one(a,b);};
-return '<div class="strip">'+(blocks||[]).filter(b=>hm(b[0])&&hm(b[1])).map(b=>seg(b[0],b[1],'var(--ember)','grind')).join('')
-+(sides||[]).filter(t=>hm(t.start)&&hm(t.end)).map(t=>seg(t.start,t.end,'var(--mint)',t.name||'side task')).join('')
+// every item is placed in the first lane where it does not overlap an earlier item, so two side tasks at the
+// same hour sit one under the other instead of painting over each other
+const items=[];
+const add=(s,e,col,lab)=>{let a=mn(s),b=mn(e);if(b<=a)b+=1440;if(b>1440){items.push({a:a,b:1440,col:col,lab:lab});items.push({a:0,b:b-1440,col:col,lab:lab});}else items.push({a:a,b:b,col:col,lab:lab});};
+(blocks||[]).filter(b=>hm(b[0])&&hm(b[1])).forEach(b=>add(b[0],b[1],'var(--ember)','grind'));
+(sides||[]).filter(t=>hm(t.start)&&hm(t.end)).forEach(t=>add(t.start,t.end,'var(--mint)',t.name||'side task'));
+items.sort((x,y)=>x.a-y.a||x.b-y.b);
+const lanes=[];
+for(const it of items){let L=lanes.findIndex(end=>end<=it.a);if(L<0){L=lanes.length;lanes.push(0);}lanes[L]=it.b;it.lane=L;}
+const n=Math.max(1,lanes.length),H=n===1?24:n*16+(n-1)*3;
+return '<div class="strip" style="height:'+H+'px">'+items.map(it=>'<i style="left:'+(it.a/1440*100)+'%;width:'+((it.b-it.a)/1440*100)+'%;background:'+it.col+';'+(n>1?'top:'+(it.lane*19)+'px;bottom:auto;height:16px;':'')+'" title="'+esc2(it.lab)+'"></i>').join('')
 +'</div><div class="strip-ax"><span>12am</span><span>6am</span><span>12pm</span><span>6pm</span><span>12am</span></div>';}
+// 24-hour users type 21:30 into a plain field (the native picker follows the browser locale, not this choice)
+function TI(v,attrs){return S.clock24?'<input type="text" class="tm24" inputmode="numeric" maxlength="5" placeholder="HH:MM" value="'+v+'" '+attrs.replace('onchange="','onchange="tmNorm(this);')+'>':'<input type="time" value="'+v+'" '+attrs+'>';}
+const dateErr=(a,b)=>a&&b&&ymd(a)&&ymd(b)&&b<a?'<div class="ferr">Ends before it starts</div>':'';
+const longErr=(a,b)=>{if(!(a&&b&&ymd(a)&&ymd(b)&&b>=a))return '';const d=Math.round((new Date(b+'T12:00:00Z')-new Date(a+'T12:00:00Z'))/864e5)+1;return d>400?'<div class="ferr warn">'+d+' days. Is the year right?</div>':'';};
 const dayCount=p=>Math.max(1,Math.round((new Date(p.end+'T12:00:00Z')-new Date(p.start+'T12:00:00Z'))/864e5)+1);
 function racePrev(){const ph=S.phases.filter(p=>ymd(p.start)&&ymd(p.end)&&p.end>=p.start);if(S.noPlan||!ph.length)return '';
 const tot=ph.reduce((a,p)=>a+dayCount(p),0);
@@ -187,7 +214,7 @@ return '<h1>Your plan</h1><p class="lead">A plan is a few phases with dates. It 
 +(S.noPlan?'':'<div class="lst" id="phl">'+S.phases.map((p,i)=>'<div class="item'+first(i)+'" style="--ac:'+p.color+'"><div class="ihead"><input class="nm" placeholder="Phase name" value="'+esc2(p.name)+'" oninput="S.phases['+i+'].name=this.value;prev()" aria-label="Phase name">'
 +'<button class="sm lowbtn '+(p.low?'on':'')+'" data-a="lowPhase" data-i="'+i+'">'+(p.low?'\\uD83E\\uDEAB Low load':'Normal')+'</button>'
 +'<button class="xbtn" data-a="delPhase" data-i="'+i+'" aria-label="Remove phase">\\u2715</button></div>'
-+'<div class="ibody"><div class="rng"><input type="date" value="'+p.start+'" onchange="S.phases['+i+'].start=this.value;prev()" aria-label="start"><span class="tiny">to</span><input type="date" value="'+p.end+'" onchange="S.phases['+i+'].end=this.value;prev()" aria-label="end"></div></div>'
++'<div class="ibody"><div class="rng"><input type="date" value="'+p.start+'" onchange="S.phases['+i+'].start=this.value;rerender()" aria-label="start"><span class="tiny">to</span><input type="date" value="'+p.end+'"'+(dateErr(p.start,p.end)?' class="err"':'')+' onchange="S.phases['+i+'].end=this.value;rerender()" aria-label="end"></div>'+dateErr(p.start,p.end)+longErr(p.start,p.end)+'</div>'
 +'<div class="ifoot"><span class="cklab" style="margin:0;flex:none">Colour</span><div class="sw">'+PAL.map(c=>'<button style="background:'+c+'" class="'+(p.color===c?'on':'')+'" data-a="phaseColor" data-i="'+i+'" data-v="'+c+'" aria-label="colour"></button>').join('')+'</div></div></div>').join('')
 +'</div><button class="addbtn" data-a="addPhase">\\uFF0B Add phase</button>'
 +'<div class="hint">Phases run back to back. The first start and the last end are your plan window.</div>');}
@@ -204,7 +231,7 @@ return '<h1>When do you grind?</h1><p class="lead">A layout is up to four blocks
 +'<div class="lst">'+names.map((n,ni)=>'<div class="item'+first(ni)+'" style="--ac:'+(n===S.def?'var(--ember)':n==='low'?'var(--violet)':'var(--line2)')+'"><div class="ihead"><span class="tile">'+(LAYEMO[n]||'\\uD83D\\uDDD3\\uFE0F')+'</span><b class="nm">'+(n==='low'?'Low-load days':esc2(n))+'</b>'
 +(n===S.def?'<span class="pill defpill">default</span>':(n==='low'?'':'<button class="ghost sm" data-a="layoutDef" data-v="'+n+'">Make default</button>'))
 +(names.length>1&&n!=='low'?'<button class="xbtn" data-a="layoutDel" data-v="'+n+'" aria-label="Remove layout">\\u2715</button>':'')+'</div>'
-+'<div class="ibody">'+S.layouts[n].map((b,i)=>'<div class="rng blk"><span class="lbl">Block '+(i+1)+'</span><input type="time" value="'+b[0]+'" onchange="S.layouts[this.dataset.n][this.dataset.i][0]=this.value;prev()" data-n="'+n+'" data-i="'+i+'" aria-label="start"><span class="tiny">to</span><input type="time" value="'+b[1]+'" onchange="S.layouts[this.dataset.n][this.dataset.i][1]=this.value;prev()" data-n="'+n+'" data-i="'+i+'" aria-label="end">'
++'<div class="ibody">'+S.layouts[n].map((b,i)=>'<div class="rng blk"><span class="lbl">Block '+(i+1)+'</span>'+TI(b[0],'onchange="S.layouts[this.dataset.n][this.dataset.i][0]=this.value;prev()" oninput="S.layouts[this.dataset.n][this.dataset.i][0]=this.value;prev()" data-n="'+n+'" data-i="'+i+'" aria-label="start"')+'<span class="tiny">to</span>'+TI(b[1],'onchange="S.layouts[this.dataset.n][this.dataset.i][1]=this.value;prev()" oninput="S.layouts[this.dataset.n][this.dataset.i][1]=this.value;prev()" data-n="'+n+'" data-i="'+i+'" aria-label="end"')
 +(S.layouts[n].length>1?'<button class="xbtn" data-a="blockDel" data-v="'+n+'" data-i="'+i+'" aria-label="Remove block">\\u2715</button>':'<span style="width:38px;flex:none"></span>')+'</div>').join('')+'</div>'
 +(S.layouts[n].length<4?'<div class="ifoot"><button class="sm" data-a="blockAdd" data-v="'+n+'">\\uFF0B Add block</button><span class="tiny">up to four</span></div>':'')+'</div>').join('')+'</div>'
 +(S.layouts.night?'':'<button class="addbtn" data-a="addNight">\\uD83C\\uDF19 Add a Night owl layout</button>')
@@ -227,8 +254,8 @@ return '<h1>What else takes time?</h1><p class="lead">Recurring things that are 
 +(S.side.length?'<div class="lst">'+S.side.map((t,i)=>'<div class="item'+first(i)+'" style="--ac:var(--mint)"><div class="ihead"><span class="tile">'+t.emoji+'</span><input class="nm" value="'+esc2(t.name)+'" oninput="S.side['+i+'].name=this.value;prev()" placeholder="Gym, Algorithms class, Shift\\u2026" aria-label="Side task name">'
 +'<button class="xbtn" data-a="sideDel" data-i="'+i+'" aria-label="Remove side task">\\u2715</button></div>'
 +'<div class="ibody"><div class="cklab">Days</div><div class="chips" style="margin-top:8px">'+DN.map((d,di)=>'<button class="'+(t.days.includes(di)?'on':'')+'" data-a="sideDay" data-i="'+i+'" data-v="'+di+'">'+d+'</button>').join('')+'</div>'
-+'<div class="cklab">Time</div><div class="rng" style="margin-top:8px"><input type="time" value="'+t.start+'" onchange="S.side['+i+'].start=this.value;prev()" aria-label="start"><span class="tiny">to</span><input type="time" value="'+t.end+'" onchange="S.side['+i+'].end=this.value;prev()" aria-label="end"></div>'
-+'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:8px"><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value" aria-label="from"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'" onchange="S.side['+i+'].to=this.value" aria-label="to"></div>'
++'<div class="cklab">Time</div><div class="rng" style="margin-top:8px">'+TI(t.start,'onchange="S.side['+i+'].start=this.value;prev()" oninput="S.side['+i+'].start=this.value;prev()" aria-label="start"')+'<span class="tiny">to</span>'+TI(t.end,'onchange="S.side['+i+'].end=this.value;prev()" oninput="S.side['+i+'].end=this.value;prev()" aria-label="end"')+'</div>'
++'<div class="cklab">Only between (optional)</div><div class="rng" style="margin-top:8px"><input type="date" value="'+(t.from||'')+'" onchange="S.side['+i+'].from=this.value;rerender()" aria-label="from"><span class="tiny">and</span><input type="date" value="'+(t.to||'')+'"'+(dateErr(t.from,t.to)?' class="err"':'')+' onchange="S.side['+i+'].to=this.value;rerender()" aria-label="to"></div>'+dateErr(t.from,t.to)
 +'<div class="hint" style="margin-top:8px">Leave the dates empty for every week.</div></div>'
 +'<div class="ifoot"><div class="em">'+SEMO.map(e=>'<button class="'+(t.emoji===e?'on':'')+'" data-a="sideEmoji" data-i="'+i+'" data-v="'+e+'" aria-label="emoji">'+e+'</button>').join('')+'</div><span class="grow"></span><button class="sm" data-a="sideClone" data-i="'+i+'" title="the same task at another time of day">\\uFF0B Another time</button></div></div>').join('')+'</div>'
 +'<button class="addbtn" data-a="addSide">\\uFF0B Add side task</button>'
@@ -248,14 +275,14 @@ return '<h1>Last one: what is on</h1><p class="lead">Turn off what you will not 
 +'</div>'
 +'<div class="fg"><label class="fld" for="target">Daily grind target (hours)</label><input id="target" type="number" min="1" max="16" step="0.5" value="'+S.target+'" style="width:140px" oninput="S.target=+this.value||6">'
 +'<div class="hint">Drives the heat map and the "target hit" stats. 6 is a full day of focus.</div></div>'
-+(S.modules.friends?'<div class="fg"><label class="fld">Bookable window</label><div class="rng"><input type="time" id="av0" value="'+S.avail[0][0]+'" aria-label="from"><span class="tiny">to</span><input type="time" id="av1" value="'+S.avail[0][1]+'" aria-label="to"></div><div class="hint">Whatever is left of this window after grind and side tasks is what friends can book.</div></div>':'')
++(S.modules.friends?'<div class="fg"><label class="fld">Bookable window</label><div class="rng">'+TI(S.avail[0][0],'id="av0" onchange="" aria-label="from"')+'<span class="tiny">to</span>'+TI(S.avail[0][1],'id="av1" onchange="" aria-label="to"')+'</div><div class="hint">Whatever is left of this window after grind and side tasks is what friends can book.</div></div>':'')
 +'<div class="prev"><div class="pl">Ready to build</div><div class="sum">'
-+'<div><span>You</span><span><b>'+esc2(S.name||'?')+'</b> \\u00b7 '+location.host+'/u/'+esc2(S.handle||'?')+'/</span></div>'
-+'<div><span>Time</span><span>'+esc2(S.tz.replace(/_/g,' '))+' \\u00b7 '+(S.clock24?'24-hour':'12-hour')+'</span></div>'
-+'<div><span>Plan</span><span>'+(ph.length?'<b>'+ph.length+' phase'+(ph.length>1?'s':'')+'</b> \\u00b7 '+tot+' days \\u00b7 '+ph.map(p=>esc2(p.name)).join(', '):'none yet')+'</span></div>'
-+'<div><span>Layouts</span><span>'+Object.keys(S.layouts).map(n=>'<b>'+esc2(n)+'</b> '+S.layouts[n].length+' block'+(S.layouts[n].length>1?'s':'')).join(' \\u00b7 ')+'</span></div>'
-+'<div><span>Categories</span><span>'+S.cats.map(c=>c.emoji+' '+esc2(c.name)+' <b>'+c.wd+'</b>/day').join(' \\u00b7 ')+'</span></div>'
-+'<div><span>Side tasks</span><span>'+(S.side.length?S.side.map(t=>t.emoji+' '+esc2(t.name)+' '+t.days.map(d=>DN[d]).join(' ')+' '+fmtH(t.start)+'\\u2013'+fmtH(t.end)).join(' \\u00b7 '):'none')+'</span></div>'
++'<div><span>You</span><span><b>'+esc2(S.name||'?')+'</b><em>'+location.host+'/u/'+esc2(S.handle||'?')+'/</em></span></div>'
++'<div><span>Time</span><span><b>'+esc2(S.tz.replace(/_/g,' '))+'</b><em>'+(S.clock24?'24-hour clock':'12-hour clock')+'</em></span></div>'
++'<div><span>Plan</span><span>'+(ph.length?'<b>'+ph.length+' phase'+(ph.length>1?'s':'')+' \\u00b7 '+tot+' days</b><span class="sumchips">'+ph.map(p=>'<i style="--c:'+p.color+'">'+esc2(p.name)+'</i>').join('')+'</span>':'<em>none yet</em>')+'</span></div>'
++'<div><span>Layouts</span><span><span class="sumchips">'+Object.keys(S.layouts).map(n=>'<i style="--c:'+(n===S.def?'var(--ember)':'var(--ink3)')+'">'+esc2(n)+' \\u00b7 '+S.layouts[n].length+' block'+(S.layouts[n].length>1?'s':'')+'</i>').join('')+'</span></span></div>'
++'<div><span>Categories</span><span><span class="sumchips">'+S.cats.map(c=>'<i style="--c:'+c.color+'">'+c.emoji+' '+esc2(c.name)+' <b>'+c.wd+'</b>/day</i>').join('')+'</span></span></div>'
++'<div><span>Side tasks</span><span>'+(S.side.length?'<div class="sumtasks">'+S.side.map(t=>'<div class="sumtask"><span class="st-em">'+t.emoji+'</span><b>'+esc2(t.name||'?')+'</b><span class="st-days">'+DN.map((d,di)=>'<i class="'+(t.days.includes(di)?'on':'')+'">'+d[0]+'</i>').join('')+'</span><span class="st-time">'+fmtH(t.start)+' \\u2013 '+fmtH(t.end)+'</span></div>').join('')+'</div>':'<em>none</em>')+'</span></div>'
 +'</div><div class="hint">Your daily goals for every day of the plan are generated from these. Nothing else is seeded.</div></div>';}
 
 // ---- validation per step ----

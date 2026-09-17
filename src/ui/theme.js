@@ -157,7 +157,9 @@ p{line-height:1.55}
 .ringrow{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(104px,1fr);gap:12px;overflow-x:auto;scrollbar-width:none;padding:2px 2px 8px;scroll-snap-type:x proximity;margin:0 -2px}
 .ringrow::-webkit-scrollbar{display:none}
 .ringrow.few{grid-auto-columns:1fr}
-.ringcard{margin:0;padding:16px 8px 12px;scroll-snap-align:start;min-width:0}
+.ringcard{margin:0;padding:16px 8px 12px;scroll-snap-align:start;min-width:0;display:flex;flex-direction:column;align-items:stretch}
+.ringcard>div{display:flex;flex-direction:column;align-items:center;flex:1}
+.ringcard .ringbtns{margin-top:auto;padding-top:8px}
 .ringlab{font:700 11px/1.25 var(--disp);color:var(--ink2);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:26px}
 .ringrow .ring{width:84px;height:84px}
 .ring svg{width:100%;height:100%;display:block}
@@ -357,7 +359,10 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
 .rank{font:800 13px var(--disp);color:var(--ink3);min-width:26px}
 .win{border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:12px 0;background:var(--surface)}
 .editor{background:var(--surface2);border-radius:var(--rs);padding:16px;margin-top:12px}
-.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:end}
+.fgrid>div{display:flex;flex-direction:column;min-width:0}
+.fgrid>div>label.fld{margin-top:0}
+.fgrid input,.fgrid select{width:100%;min-width:0}
 
 /* ---------- progress tabs ---------- */
 .tabbar{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;background:var(--surface2);border:1px solid var(--line2);
@@ -802,10 +807,10 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 @media(max-width:520px){.bp-move{margin-left:0;width:100%}}
 
 /* ---------- today in numbers ---------- */
-.dstat-top{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-@media(min-width:520px){.dstat-top{grid-template-columns:repeat(4,1fr)}}
-.dstat{text-align:center;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:12px 8px}
-.dstat b{display:block;font:800 24px/1.1 var(--disp);font-variant-numeric:tabular-nums}
+.dstat-top{display:grid;grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:12px}
+.dstat{text-align:center;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:12px 8px;min-width:0}
+.dstat b{display:block;font:800 clamp(18px,2.2vw,24px)/1.1 var(--disp);font-variant-numeric:tabular-nums}
+.dstat span{display:block;overflow-wrap:anywhere}
 .dstat b small{font-size:13px;color:var(--ink3);font-weight:700}
 .dstat span{font:700 11px var(--disp);color:var(--ink2);letter-spacing:.06em;text-transform:uppercase}
 
@@ -941,14 +946,17 @@ const RUNTIME = `<div class="gpbar" id="gpause" style="display:none"></div><div 
 <button class="refresh-fab" onclick="location.reload()" aria-label="Refresh page" title="Refresh">↻</button><script>
 window.mclockHTML=function(cfg,now){
 const f=cfg.font||13,acc=cfg.accent||'#FF6B35';
-const parts=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).split(' ');
-const time=parts[0],ap=parts[1];
+const h24=!!(window.__U&&window.__U.clock24);
+const p2=n=>String(n).padStart(2,'0');
+// 24-hour: no AM/PM anywhere, leading zero on the hour, on every design
+const time=h24?p2(now.getHours())+':'+p2(now.getMinutes()):now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).split(' ')[0];
+const ap=h24?'':now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}).split(' ')[1];
 if(cfg.design==='led'){
-const s=now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit'}).split(' ');
-return '<span class="mc-led" style="font-size:'+(f+7)+'px;color:'+acc+';text-shadow:0 0 6px '+acc+',0 0 16px '+acc+'55">'+s[0]+'<small>'+s[1]+'</small></span>';}
+const s=h24?[time+':'+p2(now.getSeconds()),'']:now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit',second:'2-digit'}).split(' ');
+return '<span class="mc-led" style="font-size:'+(f+7)+'px;color:'+acc+';text-shadow:0 0 6px '+acc+',0 0 16px '+acc+'55">'+s[0]+(s[1]?'<small>'+s[1]+'</small>':'')+'</span>';}
 if(cfg.design==='flip'){
 const hh=time.split(':')[0],mm=time.split(':')[1];
-return '<span class="mc-flip" style="font-size:'+f+'px"><span class="fc">'+hh+'</span><span style="color:'+acc+'">:</span><span class="fc">'+mm+'</span><span class="fap">'+ap+'</span></span>';}
+return '<span class="mc-flip" style="font-size:'+f+'px"><span class="fc">'+hh+'</span><span style="color:'+acc+'">:</span><span class="fc">'+mm+'</span>'+(ap?'<span class="fap">'+ap+'</span>':'')+'</span>';}
 if(cfg.design==='analog'){
 const sz=Math.round(f*2.3),c=sz/2;
 const h=now.getHours()%12,m=now.getMinutes(),sec=now.getSeconds();
@@ -960,16 +968,16 @@ return '<span class="mc-analog"><svg width="'+sz+'" height="'+sz+'"><circle cx="
 +'<line x1="'+c+'" y1="'+c+'" x2="'+hd[0]+'" y2="'+hd[1]+'" stroke="#EDF1F7" stroke-width="2" stroke-linecap="round"/>'
 +'<line x1="'+c+'" y1="'+c+'" x2="'+md[0]+'" y2="'+md[1]+'" stroke="#EDF1F7" stroke-width="1.4" stroke-linecap="round"/>'
 +'<line x1="'+c+'" y1="'+c+'" x2="'+sd[0]+'" y2="'+sd[1]+'" stroke="'+acc+'" stroke-width="1" stroke-linecap="round"/>'
-+'<circle cx="'+c+'" cy="'+c+'" r="1.6" fill="'+acc+'"/></svg><span class="aap" style="font-size:'+f+'px">'+ap+'</span></span>';}
++'<circle cx="'+c+'" cy="'+c+'" r="1.6" fill="'+acc+'"/></svg><span class="aap" style="font-size:'+f+'px">'+(ap||time)+'</span></span>';}
 if(cfg.design==='ring'){
 const sz=Math.round(f*2.1),c=sz/2,r=c-3,CF=2*Math.PI*r;
 const frac=(now.getHours()*3600+now.getMinutes()*60+now.getSeconds())/86400;
 return '<span class="mc-ring" style="font-size:'+f+'px"><svg width="'+sz+'" height="'+sz+'" style="transform:rotate(-90deg)">'
 +'<circle cx="'+c+'" cy="'+c+'" r="'+r+'" fill="none" stroke="#263045" stroke-width="3"/>'
 +'<circle cx="'+c+'" cy="'+c+'" r="'+r+'" fill="none" stroke="'+acc+'" stroke-width="3" stroke-linecap="round" stroke-dasharray="'+CF+'" stroke-dashoffset="'+(CF*(1-frac))+'"/></svg>'
-+time+'<small>'+ap+'</small></span>';}
++time+(ap?'<small>'+ap+'</small>':'')+'</span>';}
 const pillAcc=cfg.accent?';color:'+acc:'';
-return '<span class="mc-pill" style="font-size:'+f+'px'+pillAcc+'">'+time+'<small>'+ap+'</small></span>';};
+return '<span class="mc-pill" style="font-size:'+f+'px'+pillAcc+'">'+time+(ap?'<small>'+ap+'</small>':'')+'</span>';};
 (function(){const lc=document.getElementById('mclockbox');
 const cfg=()=>window.__MCLOCK||{design:'pill',font:13,accent:''};
 const t=()=>lc.innerHTML=window.mclockHTML(cfg(),new Date());
@@ -982,6 +990,8 @@ window.addEventListener('resize',pub);})();
 </script><script>
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+// "9:30" / "930" / "21.30" -> "21:30"; anything else is left alone for the browser's own validation
+window.tmNorm=function(el){const v=String(el.value||'').trim();let m=v.match(/^(\\d{1,2})[:.h]?(\\d{2})$/);if(!m)return;let h=+m[1],mi=+m[2];if(h>23||mi>59)return;el.value=String(h).padStart(2,'0')+':'+String(mi).padStart(2,'0');};
 function fmtT(hm){if(!hm)return'';let[h,m]=hm.split(':').map(Number);if(window.__U&&window.__U.clock24)return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');const ap=h>=12?'PM':'AM';h=h%12||12;return h+':'+String(m).padStart(2,'0')+' '+ap;}
 const fmtR=(a,b)=>fmtT(a)+' – '+fmtT(b);
 const hmMin=hm=>{const[a,b]=hm.split(':').map(Number);return a*60+b;};
@@ -1009,9 +1019,12 @@ const capD=ds=>new Date(ds+'T12:00:00Z').toLocaleDateString('en-US',{month:'shor
 const days=[];let d=new Date(S+'T12:00:00Z');const end=new Date(E+'T12:00:00Z');
 while(d<=end){days.push(d.toISOString().slice(0,10));d=new Date(d);d.setUTCDate(d.getUTCDate()+1);}
 const idx=days.indexOf(current);
-el.innerHTML='<div class="race-track">'+days.map((ds,i)=>{
-const p=phases.find(p=>p.start_date<=ds&&p.end_date>=ds);
-const cls=ds<current?'past':ds===current?'today':'';
+// long plans: one segment per group of days, otherwise 800 hairline gaps swallow the colours
+const per=Math.max(1,Math.ceil(days.length/180));const groups=[];
+for(let i=0;i<days.length;i+=per)groups.push(days.slice(i,i+per));
+el.innerHTML='<div class="race-track">'+groups.map(g=>{
+const ds=g[0];const p=phases.find(p=>p.start_date<=ds&&p.end_date>=ds);
+const cls=g.includes(current)?'today':g[g.length-1]<current?'past':'';
 return '<div class="race-seg '+cls+'" style="--seg:'+(p?p.color:'#263045')+'"></div>';}).join('')+'</div>'
 +'<div class="race-cap"><span>'+capD(S)+'</span><b>'+(idx<0?(current<S?(()=>{const n=Math.round((new Date(S)-new Date(current))/864e5);return 'STARTS IN '+n+(n===1?' DAY':' DAYS')})():'DONE'):'DAY '+(idx+1)+' OF '+days.length)+'</b><span>'+capD(E)+'</span></div>';}
 
@@ -1170,7 +1183,9 @@ $('links').innerHTML=LK.length?LK.map(l=>
 async function loadLinks(){LK=(await api('/api/links?kind='+LKKIND)).links;renderLinks();}
 // NOTE: no 'noopener' feature string here — with it window.open always returns null,
 // which makes it impossible to tell "opened" from "blocked by Chrome".
+const IS_SAFARI=/Safari/.test(navigator.userAgent)&&!/Chrome|Chromium|Edg|Firefox/.test(navigator.userAgent);
 function popOpen(url){
+if(IS_SAFARI){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener';document.body.appendChild(a);a.click();a.remove();return true;}
 const w=window.open(url,'_blank');
 if(w){try{w.opener=null}catch(e){}return true;}
 return false;}
