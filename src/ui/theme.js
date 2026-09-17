@@ -773,8 +773,9 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
   .jcard .jm{font-size:13px;margin-top:4px}
   .jcard .jrow{margin-top:12px;gap:8px}
   .jcard .jrow{flex-wrap:wrap}
-  .jcard .jrow .jstat{flex:1;min-width:0}
-  .jcard .jrow select{flex:1;min-width:112px;width:auto;padding:8px 12px;font-size:13px}
+  .jcard .jrow .jstat{flex:1 1 auto;min-width:150px;flex-wrap:nowrap}
+  .jcard .jrow .jstat .jdone{flex:none}
+  .jcard .jrow select{flex:1 1 112px;min-width:112px;width:auto;padding:8px 12px;font-size:13px}
   .jcard .jrow .tiny{white-space:nowrap}
 }
 
