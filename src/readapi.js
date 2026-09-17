@@ -95,6 +95,7 @@ export const guides = cfg => {
     enums: {
       status: { applied: 'sent, no response yet', oa: 'online assessment received', interview: 'interviewing', offer: 'offer received', rejected: 'rejected' },
       source: 'agent = logged by the user\'s CV agent through the API. manual = added in the UI.',
+      stage_done: '1 = the user ticked the current stage as finished (OA submitted, interview held) and is waiting for the next step; 0 = that stage is still to do. Only meaningful for status oa and interview.',
     },
     countingRules: [
       'funnel.applied is the count of ALL job rows, not rows whose status is "applied". It is the top of the funnel.',

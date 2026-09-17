@@ -625,7 +625,10 @@ app.patch('/api/jobs/:id', async c => {
     const st = normStatus(b.status);
     if (!st) return json(c, { error: 'bad status, use one of: ' + JOB_STATUS.join(', ') }, 400);
     fields.push('status=?'); vals.push(st);
+    // a new stage is a new to-do: the tick resets unless the caller sets it in the same call
+    if (st !== cur.status && b.stage_done === undefined) fields.push('stage_done=0');
   }
+  if (b.stage_done !== undefined) { fields.push('stage_done=?'); vals.push(b.stage_done && b.stage_done !== '0' ? 1 : 0); }
   // moving an application to another day has to move its counter too
   let moved = null;
   if (b.date !== undefined) {

@@ -194,9 +194,11 @@ CREATE TABLE IF NOT EXISTS share_gate (
 );
 `;
 
-export const SCHEMA = 2;
+export const SCHEMA = 3;
 // v2: the overlay's old default edge distance (16) becomes the new default (4); a stored 16 was never a choice
-export const MIGRATIONS = [{ v: 1, sql: SCHEMA_V1 }, { v: 2, sql: "DELETE FROM settings WHERE key='ov_offset' AND value='16'" }];
+export const MIGRATIONS = [{ v: 1, sql: SCHEMA_V1 }, { v: 2, sql: "DELETE FROM settings WHERE key='ov_offset' AND value='16'" },
+  // v3: a stage can be ticked as finished (OA submitted, interview held) while the status still names the stage
+  { v: 3, sql: 'ALTER TABLE jobs ADD COLUMN stage_done INTEGER NOT NULL DEFAULT 0' }];
 
 // DDL only, so splitting on ";" at line ends is safe (no string literals contain it).
 const statements = sql => sql.split(/;\s*\n/).map(s => s.trim()).filter(Boolean);

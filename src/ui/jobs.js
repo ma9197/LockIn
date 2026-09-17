@@ -46,20 +46,26 @@ export const jobsPage = (cfg) => shell('LockIn · Jobs', '/jobs', `
 <style>.hide{display:none}.fgrid>div>label.fld{margin-top:0}.fgrid>div{margin-top:4px}</style>
 `, `<script>
 const ST={applied:['Applied','#5EA2FF'],oa:['OA','#9B6EF3'],interview:['Interview','#FFB347'],offer:['OFFER 🎉','#3DDC97'],rejected:['Rejected','#5C6779']};
+// stages with something to do: they get a tick, so a finished OA or interview still reads as that status but not as a to-do
+const DOABLE={oa:'OA submitted',interview:'Interview done'};
 $('j-date').value=todayU();
 const fmtD=ds=>new Date(ds+'T12:00:00Z').toLocaleDateString('en-US',{month:'short',day:'numeric',timeZone:'UTC'});
 function statusSel(j){
-return '<select onchange="setStatus('+j.id+',this.value)" style="background:'+ST[j.status][1]+'22;color:'+ST[j.status][1]+';border-color:'+ST[j.status][1]+'55">'
-+Object.entries(ST).map(([k,v])=>'<option value="'+k+'" '+(j.status===k?'selected':'')+'>'+v[0]+'</option>').join('')+'</select>';}
+const d=+j.stage_done?1:0;
+return '<span class="jstat"><select onchange="setStatus('+j.id+',this.value)" style="background:'+ST[j.status][1]+'22;color:'+ST[j.status][1]+';border-color:'+ST[j.status][1]+'55">'
++Object.entries(ST).map(([k,v])=>'<option value="'+k+'" '+(j.status===k?'selected':'')+'>'+v[0]+'</option>').join('')+'</select>'
++(DOABLE[j.status]?'<button type="button" class="jdone'+(d?' on':'')+'" onclick="setDone('+j.id+','+(d?0:1)+')" title="'+DOABLE[j.status]+(d?' · tap to undo':'? tap when it is done')+'" aria-pressed="'+(d?'true':'false')+'" aria-label="'+DOABLE[j.status]+'">\u2713</button>':'')
++'</span>';}
 let JOBS=[],FST=localStorage.getItem('jobs_status')||'all';
 function renderFilters(){
 const n=k=>JOBS.filter(j=>j.status===k).length;
+const dn=k=>DOABLE[k]?JOBS.filter(j=>j.status===k&&+j.stage_done).length:0;
 $('jFilters').innerHTML=[['all','All',''],...Object.entries(ST).map(([k,v])=>[k,v[0],v[1]])]
 .map(([k,label,col])=>{
 const on=FST===k,c=col||'var(--ink2)';
 return '<button class="sm" data-st="'+k+'" style="border-radius:99px;'
 +(on?'background:'+c+'22;border-color:'+c+';color:'+c+';':'')+'">'
-+label+' <b class="num" style="opacity:.65">'+(k==='all'?JOBS.length:n(k))+'</b></button>';}).join('');
++label+' <b class="num" style="opacity:.65">'+(k==='all'?JOBS.length:n(k))+'</b>'+(dn(k)?'<i class="jdc" title="'+dn(k)+' done, '+(n(k)-dn(k))+' still to do">\u2713'+dn(k)+'</i>':'')+'</button>';}).join('');
 $('jFilters').querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{
 FST=b.dataset.st;localStorage.setItem('jobs_status',FST);applyFilter();});}
 function applyFilter(){
@@ -67,6 +73,8 @@ const q=$('jSearch').value.trim().toLowerCase();
 $('jClear').style.display=q?'':'none';
 let list=JOBS;
 if(FST!=='all')list=list.filter(j=>j.status===FST);
+// inside a stage with to-dos the unfinished ones come first
+if(DOABLE[FST])list=list.slice().sort((a,b)=>(+a.stage_done)-(+b.stage_done));
 if(q)list=list.filter(j=>(j.title||'').toLowerCase().indexOf(q)>=0||(j.company||'').toLowerCase().indexOf(q)>=0);
 const filtered=q||FST!=='all';
 $('jCount').textContent=filtered?('showing '+list.length+' of '+JOBS.length):(JOBS.length+' logged');
@@ -80,7 +88,7 @@ if(!jobs.length){$('list').innerHTML='<div class="skel">'
 :(st&&st!=='all'?'<b>Nothing at '+ST[st][0]+' yet</b>Change a status above and it lands here.':'<b>No applications yet</b>Add the first one above. Every row here counts toward the day it was sent.'))
 +'</div>';return;}
 $('list').innerHTML='<table class="jtable"><thead><tr><th>Date</th><th>Job title</th><th>Company</th><th>Platform</th><th>Salary</th><th>Location</th><th>Status</th><th></th></tr></thead><tbody>'
-+jobs.map(j=>'<tr>'
++jobs.map(j=>'<tr'+(+j.stage_done?' class="jd"':'')+'>'
 +'<td class="num" style="white-space:nowrap;color:var(--ink2)">'+fmtD(j.date)+'</td>'
 +'<td><b>'+(j.url?'<a href="'+esc(j.url)+'" target="_blank" rel="noopener">'+esc(j.title)+' ↗</a>':esc(j.title))+'</b>'
 +(j.source==='agent'?' <span class="tiny" title="added by your AI agent">🤖</span>':'')+'</td>'
@@ -91,10 +99,10 @@ $('list').innerHTML='<table class="jtable"><thead><tr><th>Date</th><th>Job title
 +'<td>'+statusSel(j)+'</td>'
 +'<td><button class="ghost sm" onclick="delJob('+j.id+')" aria-label="delete">✕</button></td>'
 +'</tr>').join('')+'</tbody></table>'
-+jobs.map(j=>'<div class="jcard" style="--ac:'+ST[j.status][1]+'"><b class="jt">'+esc(j.title)+(j.source==='agent'?' <span title="logged by your agent">🤖</span>':'')+'</b>'
++jobs.map(j=>'<div class="jcard'+(+j.stage_done?' jd':'')+'" style="--ac:'+ST[j.status][1]+'"><b class="jt">'+esc(j.title)+(j.source==='agent'?' <span title="logged by your agent">🤖</span>':'')+'</b>'
 +'<div class="muted jm">'+esc(j.company)+(j.platform?' · '+esc(j.platform):'')+(j.location?' · '+esc(j.location):'')+(j.salary?' · '+esc(j.salary):'')+'</div>'
 +'<div class="row jrow">'+statusSel(j)+'<span class="tiny num">'+fmtD(j.date)+'</span>'
-+(j.url?'<a class="tiny" href="'+esc(j.url)+'" target="_blank" rel="noopener">posting ↗</a>':'')
++(j.url?'<a class="jlink" href="'+esc(j.url)+'" target="_blank" rel="noopener">\u2197 Posting</a>':'')
 +'<button class="ghost sm" onclick="delJob('+j.id+')" aria-label="delete">✕</button></div></div>').join('');}
 async function load(){
 const j=await api('/api/jobs');
@@ -106,6 +114,8 @@ if(!v('j-title')||!v('j-company'))return toast('Title and company are required')
 await api('/api/jobs',{body:{title:v('j-title'),company:v('j-company'),salary:v('j-salary'),location:v('j-location'),platform:platValue(),url:v('j-url'),date:v('j-date')}});
 ['j-title','j-salary','j-location','j-url','j-platform-other'].forEach(id=>$(id).value='');platChange();
 toast('📨 Logged · counter +1');load();}
+async function setDone(id,done){await api('/api/jobs/'+id,{method:'PATCH',body:{stage_done:done}});
+toast(done?'\u2713 Marked as done':'Back on the to-do list');load();}
 async function setStatus(id,status){await api('/api/jobs/'+id,{method:'PATCH',body:{status}});
 if(status==='offer')toast('🎉🎉🎉 LFG');load();}
 async function delJob(id){if(!confirm('Delete this application? Counter for that day goes down by 1.'))return;

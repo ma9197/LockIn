@@ -753,6 +753,17 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .jwrap{overflow-x:auto}
 .jcard{display:none}
 .status-pill{font:700 11px var(--disp);border-radius:99px;padding:4px 12px;display:inline-block}
+/* stage tick: unchecked = a quiet ring, checked = mint. The status stays what it is; the tick says that to-do is finished */
+.jstat{display:inline-flex;align-items:center;gap:8px}
+.jdone{width:30px;height:30px;min-height:0;padding:0;border-radius:99px;border:1.5px solid var(--line2);background:transparent;color:transparent;font:800 15px/1 var(--disp);display:inline-grid;place-items:center;flex:none;cursor:pointer}
+.jdone:hover{border-color:var(--ink3);color:var(--ink3);filter:none}
+.jdone.on{background:var(--mint);border-color:var(--mint);color:#06281A}
+.jtable tr.jd td,.jtable tr.jd td b,.jtable tr.jd td b a{color:var(--ink2)}
+.jcard.jd{border-left-color:var(--mint)}
+.jcard.jd .jt{color:var(--ink2)}
+.jdc{display:inline-flex;align-items:center;margin-left:6px;padding:1px 6px;border-radius:99px;background:rgba(61,220,151,.16);color:var(--mint);font:800 11px var(--disp);font-style:normal}
+.jlink{display:inline-flex;align-items:center;gap:4px;min-height:32px;padding:0 10px;border:1px solid var(--line2);border-radius:99px;color:var(--ice);font:700 12px var(--disp);text-decoration:none;white-space:nowrap;background:var(--surface)}
+.jlink:hover{border-color:var(--ice)}
 @media(max-width:700px){
   .jwrap table{display:none}
   .jcard{display:block;border:1px solid var(--line2);border-left:4px solid var(--ac,var(--line2));border-radius:12px;padding:16px;margin:12px 0;background:var(--surface2)}
@@ -761,7 +772,9 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
   .jcard .jt{display:block;font:700 15px/1.3 var(--body)}
   .jcard .jm{font-size:13px;margin-top:4px}
   .jcard .jrow{margin-top:12px;gap:8px}
-  .jcard .jrow select{flex:1;min-width:0;width:auto;padding:8px 12px;font-size:13px}
+  .jcard .jrow{flex-wrap:wrap}
+  .jcard .jrow .jstat{flex:1;min-width:0}
+  .jcard .jrow select{flex:1;min-width:112px;width:auto;padding:8px 12px;font-size:13px}
   .jcard .jrow .tiny{white-space:nowrap}
 }
 
