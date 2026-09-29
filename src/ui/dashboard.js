@@ -33,7 +33,7 @@ export const dashboardPage = (cfg) => shell('LockIn · Today', '/', `
         <b id="lgTitle">Grinding</b>
         <div class="tiny" id="lgSub"></div>
         <div class="row" style="gap:8px;margin-top:8px;flex-wrap:wrap">
-          <span class="pill" id="lgTask"></span><span class="tiny" id="lgSegs"></span>
+          <span class="lgtasks" id="lgTask"></span><span class="tiny" id="lgSegs"></span>
         </div>
       </div>
       <div class="lg-time">
@@ -258,38 +258,56 @@ return Math.max(1,Math.round((end-new Date(g.start_ts))/60000)-(g.paused_min||0)
 const otMin=g=>{if(!g.planned_end||!g.planned_start)return 0;
 const plan=Math.max(1,Math.round((new Date(g.planned_end)-new Date(g.planned_start))/60000));
 return Math.max(0,gMin(g)-plan);};
-function taskPicker(title,cb){
+// ---- several categories at once ----
+// cur_task is "leetcode" or "leetcode,applications"; splits entries with x ran at the same time as the one before
+const curTasks=a=>String((a&&a.cur_task)||'').split(',').filter(Boolean);
+const tasksLabel=ks=>ks.map(k=>MOD[k].e+' '+MOD[k].n).join(' + ');
+const tasksEmoji=ks=>ks.map(k=>MOD[k].e).join('');
+function segText(splits){const out=[];
+for(const s of splits||[]){if(s.x&&out.length){out[out.length-1].e+=MOD[s.t].e;continue;}out.push({e:MOD[s.t].e,m:s.m});}
+return out.map(o=>o.e+' '+fmtDur(o.m)).join(' · ');}
+// tiles light up when picked; nothing starts until Confirm
+function taskPicker(title,cb,pre,okLabel){
+const sel=new Set(pre||[]);
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<h1 style="font-size:20px">'+title+'</h1>'
-+'<p class="muted" style="margin-top:4px">Time counts toward this until you switch.</p>'
++'<p class="muted" style="margin-top:4px">Pick one or more. Things you do at the same time share the clock: the grind counts those minutes once, and every picked category gets them.</p>'
 +'<div class="taskgrid">'+Object.entries(MOD).map(([k,m])=>
-'<button class="taskbtn" data-t="'+k+'" style="--tc:'+m.c+'">'
-+'<span style="font-size:24px">'+m.e+'</span>'+m.n+'</button>').join('')+'</div>'
-+'<button class="ghost" style="width:100%;margin-top:12px" onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button>'
+'<button type="button" class="taskbtn'+(sel.has(k)?' on':'')+'" data-t="'+k+'" aria-pressed="'+sel.has(k)+'" style="--tc:'+m.c+'">'
++'<span class="tk">✓</span><span style="font-size:24px">'+m.e+'</span>'+m.n+'</button>').join('')+'</div>'
++'<div class="row" style="margin-top:16px;gap:8px"><button class="pri grow" id="tpOk"></button><button id="tpCancel">Cancel</button></div>'
 +'</div></div>';
-document.querySelectorAll('.taskbtn').forEach(b=>b.onclick=()=>{$('modalHost').innerHTML='';cb(b.dataset.t);});}
+const ok=$('tpOk');
+const sync=()=>{ok.disabled=!sel.size;ok.textContent=sel.size?(okLabel||'Confirm')+(sel.size>1?' · '+sel.size+' at once':''):'Pick at least one';};
+document.querySelectorAll('.taskbtn').forEach(b=>b.onclick=()=>{const k=b.dataset.t;
+if(sel.has(k))sel.delete(k);else sel.add(k);
+b.classList.toggle('on',sel.has(k));b.setAttribute('aria-pressed',String(sel.has(k)));sync();});
+ok.onclick=()=>{if(!sel.size)return;const ks=Object.keys(MOD).filter(k=>sel.has(k));$('modalHost').innerHTML='';cb(ks);};
+$('tpCancel').onclick=()=>{$('modalHost').innerHTML='';};
+sync();}
 function startGrind(blockIdx){
 let body={date:TODAY};
 if(blockIdx!==null){const b=J.blocks[blockIdx];
 body.block_label=b.label;body.planned_start=TODAY+'T'+b.start;
 body.planned_end=(b.endNextDay?nextDs(TODAY):TODAY)+'T'+b.end;}
 else body.block_label='Ad-hoc grind';
-taskPicker('🔥 What are you starting with?',async task=>{
-body.task=task;
-try{await api('/api/grind/start',{body});toast(MOD[task].e+' Checked in. Go.');load();gpCheck();}
-catch(e){toast(String(e))}});}
+taskPicker('🔥 What are you starting with?',async tasks=>{
+body.tasks=tasks;body.task=tasks[0];
+try{await api('/api/grind/start',{body});toast(tasksEmoji(tasks)+' Checked in. Go.');load();gpCheck();}
+catch(e){toast(String(e))}},[],'🔥 Start');}
+// switch = change the set: add one alongside, drop one, or swap everything
 function switchTask(){
 const a=J.active;if(!a)return;
-taskPicker('⇄ Switch to what?',async task=>{
-if(task===a.cur_task)return toast('Already on '+MOD[task].n);
-try{await api('/api/grind/switch',{body:{id:a.id,task}});toast('⇄ Now on '+MOD[task].e+' '+MOD[task].n);load();gpCheck();}
-catch(e){toast(String(e))}});}
+taskPicker('⇄ What are you on now?',async tasks=>{
+if(tasks.join(',')===a.cur_task)return toast('No change · still on '+tasksLabel(tasks));
+try{await api('/api/grind/switch',{body:{id:a.id,tasks}});toast('⇄ Now on '+tasksLabel(tasks));load();gpCheck();}
+catch(e){toast(String(e))}},curTasks(a),'Confirm');}
 function nextDs(ds){const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10);}
 async function checkout(){
 const j=await api('/api/grind/stop',{body:{id:J.active.id}});
 clearInterval(liveInt);liveInt=null;
 let splits=[];try{splits=JSON.parse(j.session.splits||'[]')}catch(e){}
-toast(splits.length?('💪 Saved · '+splits.map(s=>MOD[s.t].e+' '+fmtDur(s.m)).join(' · ')):'💪 Session saved');
+toast(splits.length?('💪 Saved · '+segText(splits)):'💪 Session saved');
 load();gpCheck();}
 function toggleLgMenu(force){const m=$('lgMenu');m.classList.toggle('on',force===undefined?!m.classList.contains('on'):force);}
 document.addEventListener('click',e=>{if(!e.target.closest('.lg-moreWrap'))toggleLgMenu(false);});
@@ -310,7 +328,7 @@ async function forgotSave(){const a=J.active;if(!a)return;const end=$('fc-time')
 if(!/^\\d{2}:\\d{2}$/.test(end))return toast('Pick a time');
 try{const j=await api('/api/grind/stop',{body:{id:a.id,end}});$('modalHost').innerHTML='';clearInterval(liveInt);liveInt=null;
 let splits=[];try{splits=JSON.parse(j.session.splits||'[]')}catch(e){}
-toast(splits.length?('💪 Saved to '+fmtT(end)+' · '+splits.map(s=>MOD[s.t].e+' '+fmtDur(s.m)).join(' · ')):'💪 Session saved to '+fmtT(end));load();gpCheck();}
+toast(splits.length?('💪 Saved to '+fmtT(end)+' · '+segText(splits)):'💪 Session saved to '+fmtT(end));load();gpCheck();}
 catch(e){toast(String(e))}}
 function renderLive(){
 const a=J.active;
@@ -319,11 +337,9 @@ if(!a){$('liveGrind').style.display='none';if(liveInt){clearInterval(liveInt);li
 $('liveGrind').style.display='';
 const paused=!!a.paused_at;
 $('lgTitle').textContent=(paused?'⏸ ':'🔒 ')+(a.block_label||'Grind')+(paused?' · paused':'');
-const ct=MOD[a.cur_task];
-$('lgTask').innerHTML=ct.e+' '+ct.n;
-$('lgTask').style.background=ct.c+'22';$('lgTask').style.color=ct.c;
+$('lgTask').innerHTML=curTasks(a).map(k=>'<span class="lgtk" style="background:'+MOD[k].c+'22;color:'+MOD[k].c+'">'+MOD[k].e+' '+MOD[k].n+'</span>').join('');
 let segs=[];try{segs=JSON.parse(a.splits||'[]')}catch(e){}
-$('lgSegs').textContent=segs.length?('done: '+segs.map(s=>MOD[s.t].e+' '+fmtDur(s.m)).join(' · ')):'';
+$('lgSegs').textContent=segs.length?('done: '+segText(segs)):'';
 $('lgPause').textContent=paused?'▶ Resume':'⏸ Pause';
 $('lgPause').classList.toggle('mint',paused);
 $('liveGrind').style.opacity=paused?'.65':'1';
@@ -371,13 +387,13 @@ function tIn(id,val,extra){return H24
 ?'<input id="'+id+'" type="text" class="tm24" inputmode="numeric" maxlength="5" placeholder="HH:MM" value="'+(val||'')+'" '+extra+'>'
 :'<input id="'+id+'" type="time" value="'+(val||'')+'" '+extra+'>';}
 function openGrindLog(){
-LOGSEGS=[{t:FIRSTCAT,e:''}];
+LOGSEGS=[{ts:[FIRSTCAT],e:''}];
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<h1 style="font-size:20px">✍️ Log a grind you forgot to record</h1>'
 +'<p class="muted" style="margin-top:4px">For '+(D===TODAY?'today':D)+'. Set when you started, then when each task ended. The next task starts where the last one stopped.</p>'
 +'<label class="fld">Started at</label>'
 +tIn('logStart','','oninput="logSummary()" onchange="tmNorm(this);logSummary()"')
-+'<label class="fld">What you did, and until when</label>'
++'<label class="fld">What you did, and until when</label><div class="hint" style="margin-top:0">Pick more than one when you did them at the same time.</div>'
 +'<div id="logSegs"></div>'
 +'<button class="sm" style="margin-top:8px" onclick="addLogSeg()">＋ Next task</button>'
 +'<div class="card" id="logSum" style="margin:16px 0 0;padding:12px;background:var(--surface2)"></div>'
@@ -389,8 +405,8 @@ setTimeout(()=>$('logStart').focus(),80);}
 function addLogSeg(){
 // the new task defaults to a different category than the one before it
 const last=LOGSEGS[LOGSEGS.length-1];const keys=Object.keys(MOD);
-const next=keys.find(k=>k!==(last&&last.t))||FIRSTCAT;
-LOGSEGS.push({t:next,e:''});renderLogSegs();
+const next=keys.find(k=>!(last&&last.ts.includes(k)))||FIRSTCAT;
+LOGSEGS.push({ts:[next],e:''});renderLogSegs();
 setTimeout(()=>{const el=$('logEnd'+(LOGSEGS.length-1));if(el)el.focus();},60);}
 // walk the rows: each start = previous end; an end earlier than its start means it ran past midnight
 function logPlan(){
@@ -406,13 +422,17 @@ if(bad)ok=false;cur=cur+m;}
 return {start:s0,rows:rows,ok:ok&&rows.every(r=>r.to!==null&&r.m>0)};}
 function renderLogSegs(){
 $('logSegs').innerHTML=LOGSEGS.map((s,i)=>
-'<div class="logseg"><div class="logseg-row">'
-+'<select onchange="LOGSEGS['+i+'].t=this.value">'
-+Object.entries(MOD).map(([k,m])=>'<option value="'+k+'"'+(s.t===k?' selected':'')+'>'+m.e+' '+m.n+'</option>').join('')+'</select>'
-+'<span class="logseg-until">until</span>'
+'<div class="logseg"><div class="logseg-cats">'
++Object.entries(MOD).map(([k,m])=>'<button type="button" class="lgcat'+(s.ts.includes(k)?' on':'')+'" style="--tc:'+m.c+'" data-i="'+i+'" data-k="'+k+'" aria-pressed="'+s.ts.includes(k)+'">'+m.e+' '+m.n+'</button>').join('')
++'</div><div class="logseg-row"><span class="logseg-until">until</span>'
 +tIn('logEnd'+i,s.e,'oninput="LOGSEGS['+i+'].e=this.value;logSummary()" onchange="tmNorm(this);LOGSEGS['+i+'].e=this.value;logSummary()" aria-label="ended at"')
 +(LOGSEGS.length>1?'<button class="ghost sm" onclick="LOGSEGS.splice('+i+',1);renderLogSegs()" aria-label="remove task">✕</button>':'<span></span>')
 +'</div><div class="logseg-note" id="logNote'+i+'"></div></div>').join('');
+document.querySelectorAll('#logSegs .lgcat').forEach(b=>b.onclick=()=>{
+const s=LOGSEGS[+b.dataset.i],k=b.dataset.k,on=s.ts.includes(k);
+if(on&&s.ts.length===1)return toast('Keep at least one');
+s.ts=Object.keys(MOD).filter(x=>x===k?!on:s.ts.includes(x));
+b.classList.toggle('on',!on);b.setAttribute('aria-pressed',String(!on));logSummary();});
 logSummary();}
 function logSummary(){
 const P=logPlan();
@@ -430,19 +450,19 @@ else{
 const endAt=P.start+total;
 html='<div class="row"><span>🔥 Total <b class="num">'+fmtDur(total)+'</b></span><span class="grow"></span>'
 +'<span class="num">'+fmtT(mHM(P.start))+' → '+fmtT(mHM(endAt))+(endAt>=1440?' ⁺¹':'')+'</span></div>'
-+'<div class="logbar">'+P.rows.filter(r=>r.m>0).map((r,i)=>{const s=LOGSEGS[P.rows.indexOf(r)];const md=MOD[s.t]||{};
-return '<i style="flex:'+r.m+';background:'+(md.c||'var(--ember)')+'" title="'+(md.n||'')+' '+fmtDur(r.m)+'"></i>';}).join('')+'</div>';}
++'<div class="logbar">'+P.rows.filter(r=>r.m>0).map(r=>{const s=LOGSEGS[P.rows.indexOf(r)];const cs=s.ts.map(k=>MOD[k].c);
+return '<i style="flex:'+r.m+';background:'+(cs.length>1?'linear-gradient(90deg,'+cs.join(',')+')':cs[0])+'" title="'+s.ts.map(k=>MOD[k].n).join(' + ')+' '+fmtDur(r.m)+'"></i>';}).join('')+'</div>';}
 $('logSum').innerHTML=html;}
 async function saveGrindLog(){
 const P=logPlan();
 if(P.start===null)return toast('Set the start time');
 const bad=P.rows.findIndex(r=>r.to===null||!r.m);
 if(bad>=0)return toast(P.rows[bad].bad?'Task '+(bad+1)+' runs over 12 hours. Check its end time':'Set when task '+(bad+1)+' ended');
-const segs=LOGSEGS.map((s,i)=>({t:s.t,m:P.rows[i].m}));
+const segs=LOGSEGS.map((s,i)=>({ts:s.ts,t:s.ts.join(','),m:P.rows[i].m}));
 try{
 const j=await api('/api/grind/log',{body:{date:D,start:mHM(P.start),segments:segs}});
 $('modalHost').innerHTML='';
-toast('✍️ '+fmtDur(j.total)+' recorded · '+segs.map(s=>MOD[s.t].e+' '+fmtDur(s.m)).join(' · '));load();}
+toast('✍️ '+fmtDur(j.total)+' recorded · '+segs.map(s=>tasksEmoji(s.ts)+' '+fmtDur(s.m)).join(' · '));load();}
 catch(e){toast(String(e))}}
 
 // ---- today in numbers ----
@@ -454,9 +474,9 @@ for(const g of sessions){
 total+=gMin(g);overtime+=otMin(g);paused+=(g.paused_min||0);
 let segs=[];try{segs=JSON.parse(g.splits||'[]')}catch(e){}
 let banked=0;
-for(const s of segs){addSeg(s.t,s.m);banked+=s.m;}
+for(const s of segs){addSeg(s.t,s.m);if(!s.x)banked+=s.m;}
 // running segment of an active session isn't in splits yet
-if(!g.end_ts&&g.cur_task){const live=Math.max(0,gMin(g)-banked);addSeg(g.cur_task,live);}}
+if(!g.end_ts&&g.cur_task){const live=Math.max(0,gMin(g)-banked);curTasks(g).forEach(k=>addSeg(k,live));}}
 const solves=(J.solves||[]).filter(s=>+s.finished!==0);
 const attempts=(J.solves||[]).length-solves.length;
 const lcAvg=solves.length?Math.round(solves.reduce((a,s)=>a+s.minutes,0)/solves.length):0;

@@ -888,7 +888,7 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .subedit{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-top:8px}
 /* past-grind rows: category, "until" time, remove; the computed from -> to line underneath */
 .logseg{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line2)}
-.logseg-row{display:grid;grid-template-columns:minmax(0,1.4fr) auto minmax(0,1fr) auto;gap:8px;align-items:center}
+.logseg-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center}
 .logseg-row select,.logseg-row input{padding:8px;font-size:14px;min-width:0;background:var(--well)}
 .logseg-until{font:700 12px var(--disp);color:var(--ink2)}
 .logseg-note{margin-top:6px;font-size:12px;color:var(--ink2)}
@@ -897,7 +897,7 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .logbar{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;margin-top:10px}
 .logbar i{display:block;min-width:4px}
 .tm24{font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.04em}
-@media(max-width:420px){.logseg-row{grid-template-columns:minmax(0,1fr) auto minmax(0,.8fr) auto;gap:6px}}
+@media(max-width:420px){.logseg-row{gap:6px}}
 .subedit input{padding:8px 8px;font-size:14px}
 
 /* ---------- grind task picker ---------- */
@@ -905,6 +905,17 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .taskbtn{display:flex;flex-direction:column;align-items:center;gap:8px;padding:16px 8px;border-radius:12px;
   background:var(--surface2);border:1px solid var(--line2);font:700 14px var(--disp)}
 .taskbtn:active{transform:scale(.95)}
+/* multi-pick: a picked tile takes its category colour and a check badge */
+.taskbtn{position:relative;cursor:pointer;color:var(--ink);transition:border-color .15s,background .15s}
+.taskbtn .tk{position:absolute;top:8px;right:8px;width:20px;height:20px;border-radius:99px;display:grid;place-items:center;font:800 12px var(--disp);color:#0B0E14;background:var(--tc);opacity:0;transform:scale(.6);transition:opacity .15s,transform .15s}
+.taskbtn.on{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 16%,var(--surface2));box-shadow:0 0 0 1px var(--tc) inset}
+.taskbtn.on .tk{opacity:1;transform:none}
+#tpOk:disabled{opacity:.45}
+.lgtasks{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
+.lgtk{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;font:700 12px var(--disp);letter-spacing:.02em;white-space:nowrap}
+.logseg-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.lgcat{min-height:0;height:32px;padding:0 12px;border-radius:99px;border:1px solid var(--line2);background:var(--well);color:var(--ink2);font:700 12px var(--disp);white-space:nowrap;cursor:pointer}
+.lgcat.on{border-color:var(--tc);color:var(--ink);background:color-mix(in srgb,var(--tc) 20%,var(--well))}
 
 /* ---------- global refresh ---------- */
 .refresh-fab{position:fixed;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:60;
@@ -1078,7 +1089,7 @@ if(!GA){el.style.display='none';el.innerHTML='';return;}
 el.style.display='';
 el.title='Grind running \u00b7 tap for Today';
 el.onclick=()=>{if(location.pathname!=='/')location.href='/';};
-el.innerHTML='<span class="gdot"></span>'+(GTASK[GA.cur_task]||'\uD83D\uDD25')+' '+fmtDur(gaMin());}
+el.innerHTML='<span class="gdot"></span>'+(String(GA.cur_task||'').split(',').map(k=>GTASK[k]||'').join('')||'\uD83D\uDD25')+' '+fmtDur(gaMin());}
 function gpMin(){if(!GP||!GP.paused_at)return 0;
 const a=new Date(GP.paused_at+':00'),b=new Date(nyNowT()+':00');
 return Math.max(0,Math.round((b-a)/60000));}
@@ -1089,7 +1100,7 @@ if(!GP){el.style.display='none';el.innerHTML='';return;}
 el.style.display='';
 const m=gpMin();
 el.innerHTML='<span class="gp-dot"></span><b>GRIND PAUSED</b>'
-+'<span class="tiny">frozen '+(m?fmtDur(m):'just now')+(GP.cur_task?' \u00b7 '+GP.cur_task:'')+'</span>'
++'<span class="tiny">frozen '+(m?fmtDur(m):'just now')+(GP.cur_task?' \u00b7 '+String(GP.cur_task).split(',').map(k=>{const c=CATS.find(x=>x.key===k);return c?c.emoji+' '+c.name:k;}).join(' + '):'')+'</span>'
 +'<span class="grow"></span>'
 +'<button class="pri sm" onclick="gpResume()">\u25b6 Resume</button>';
 document.documentElement.style.setProperty('--gph',el.offsetHeight+'px');}
