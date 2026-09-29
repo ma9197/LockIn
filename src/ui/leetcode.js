@@ -4,7 +4,8 @@ import { shell } from './theme.js';
 // take structured notes, and sketch arrays with their indices.
 export const leetcodePage = (cfg) => shell('LockIn · LeetCode', '/leetcode', `
 <style>@media(min-width:1000px){.wrap{max-width:1240px}}@media(min-width:1500px){.wrap{max-width:1420px}}</style>
-<div class="ph"><div class="ph-t"><h1>LeetCode</h1><p class="ph-d">Pick a problem, run the timer, log how it went. A problem's state is its newest attempt.</p></div></div>
+<div class="ph"><div class="ph-t"><h1>LeetCode</h1><p class="ph-d">Pick a problem, run the timer, log how it went. A problem's state is its newest attempt.</p></div>
+<div class="ph-a"><button class="pri sm" onclick="lcManual()">✍️ Log an attempt</button></div></div>
 <div class="tabbar" id="tabs">
   <button data-t="solve" class="on">🧩 Solve</button>
   <button data-t="stats">📊 Stats</button>
@@ -116,6 +117,14 @@ const mins=m=>m?fmtDur(m):'–';
 window.__TIMER_CTX=()=>({date:TODAY,hasActiveGrind:HASGRIND,record:!!PROB,name:PROB,
 difficulty:(document.querySelector('#lcDiff button.on')||{dataset:{}}).dataset.d||'medium',
 onSaved:()=>{if(PROB)loadProblem(PROB,true);}});
+
+// ---- manual attempt: same panel as the timer, plus a date, no timer involved ----
+function lcManual(){
+openLcLog({source:'manual',name:PROB||'',difficulty:(document.querySelector('#lcDiff button.on')||{dataset:{}}).dataset.d||'medium'},
+{date:TODAY,manual:true,onSaved:async()=>{
+try{LCNAMES=(await api('/api/lc/names')).names||[];}catch(e){}
+if(PROB)loadProblem(PROB,true);
+if(localStorage.getItem(TK)==='stats')loadStats();}});}
 
 // ---- tabs ----
 const TK='lc_tab';

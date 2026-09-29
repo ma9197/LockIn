@@ -387,6 +387,9 @@ body.gpaused .liveclock{top:calc(var(--gph,50px) + 6px)}
 .acitem:hover,.acitem:focus-visible{background:var(--surface3)}
 .acitem>.grow{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
+.lgpair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.lgpair>div{min-width:0}
+.lgpair input{width:100%;min-width:0}
 .outb{display:inline-flex;align-items:center;gap:4px;font:800 11px var(--disp);border-radius:5px;
   padding:2px 8px;white-space:nowrap;letter-spacing:.02em}
 /* expandable problem rows on the Stats tab */
@@ -1310,8 +1313,8 @@ const p=pre||{};LCCTX=ctx||{};
 let open=[];
 try{const r=await Promise.all([api('/api/lc/open'),api('/api/lc/names')]);open=r[0].open;LCNAMES=r[1].names||[];}catch(e){}
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
-+'<h1 style="font-size:20px">\uD83E\uDDE9 Log a LeetCode problem</h1>'
-+'<p class="muted" style="margin-top:4px">All three count for today. \u26a1 Solved, slow is not counted as solved and stays in your come-back list.</p>'
++'<h1 style="font-size:20px">'+(LCCTX.manual?'✍️ Log an attempt':'\uD83E\uDDE9 Log a LeetCode problem')+'</h1>'
++'<p class="muted" style="margin-top:4px">'+(LCCTX.manual?'No timer needed. A problem you have never logged becomes a new record. ':'')+'All three outcomes count for the day. \u26a1 Solved, slow is not counted as solved and stays in your come-back list.</p>'
 +(open.length?'<label class="fld">Come back to one of these</label>'
 +'<div class="row" style="flex-wrap:wrap;gap:8px">'+open.map(o=>
 '<button class="chip" style="cursor:pointer" data-n="'+esc(o.name)+'" data-d="'+o.difficulty+'" onclick="lcPickOpen(this)">'
@@ -1319,7 +1322,9 @@ $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<label class="fld">Difficulty</label>'
 +'<div class="seg-ctl" id="lgDiff">'+['easy','medium','hard'].map(d=>
 '<button data-d="'+d+'"'+((p.difficulty||'medium')===d?' class="on"':'')+'>'+d[0].toUpperCase()+d.slice(1)+'</button>').join('')+'</div>'
-+'<label class="fld">Minutes spent</label><input id="lgMin" type="number" min="1" max="600" inputmode="numeric" value="'+(p.minutes||'')+'" placeholder="e.g. 22">'
++(LCCTX.manual?'<div class="lgpair"><div><label class="fld">Minutes it took</label><input id="lgMin" type="number" min="1" max="600" inputmode="numeric" value="'+(p.minutes||'')+'" placeholder="e.g. 22"></div>'
++'<div><label class="fld">Date</label><input id="lgDate" type="date" value="'+(LCCTX.date||todayU())+'" max="'+todayU()+'"></div></div>'
+:'<label class="fld">Minutes spent</label><input id="lgMin" type="number" min="1" max="600" inputmode="numeric" value="'+(p.minutes||'')+'" placeholder="e.g. 22">')
 +'<label class="fld">Problem name</label>'
 +'<input id="lgName" autocomplete="off" oninput="lcSuggest()" onfocus="lcSuggest()" value="'+esc(p.name||'')+'" placeholder="Start typing, matches appear below">'
 +'<div id="lgMatch" class="tiny" style="margin-top:8px;min-height:16px"></div><div id="lgSug"></div>'
@@ -1333,7 +1338,8 @@ $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 document.querySelectorAll('#lgDiff button').forEach(b=>b.onclick=()=>{
 document.querySelectorAll('#lgDiff button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
 lcSuggest();
-if(!p.minutes)setTimeout(()=>$('lgMin').focus(),80);}
+if(LCCTX.manual)setTimeout(()=>$('lgName').focus(),80);
+else if(!p.minutes)setTimeout(()=>$('lgMin').focus(),80);}
 // live match list: pick a past problem so tries stack on the same one
 function lcSuggest(){
 const box=$('lgSug'),m=$('lgMatch');
@@ -1398,10 +1404,12 @@ const mins=+$('lgMin').value;
 const name=$('lgName').value.trim();
 if(!sel)return toast('Pick a difficulty');
 if(!mins||mins<1)return toast('Enter how many minutes it took');
-if(finished!==1&&!name)return toast('Name the problem so your next try matches it');
+if((finished!==1||(LCCTX&&LCCTX.manual))&&!name)return toast('Name the problem so your next try matches it');
 const ctx=LCCTX||{};
+const day=ctx.manual&&$('lgDate')&&$('lgDate').value?$('lgDate').value:ctx.date;
+if(ctx.manual&&day>todayU())return toast('That date has not happened yet');
 try{
-const res=await api('/api/lc',{body:{difficulty:sel.dataset.d,minutes:mins,name,date:ctx.date,source,finished}});
+const res=await api('/api/lc',{body:{difficulty:sel.dataset.d,minutes:mins,name,date:day,source,finished}});
 // timed effort outside a grind session is still grind, solved or not.
 // check live: a running session already covers this wall clock time, logging again would double it
 let grindNote='';
@@ -1412,6 +1420,8 @@ if(!live){
 try{await api('/api/grind/log',{body:{date:ctx.date,segments:[{t:'leetcode',m:mins}]}});grindNote=' \u00b7 +'+fmtDur(mins)+' grind';}
 catch(e){}}}
 $('modalHost').innerHTML='';
+if(ctx.manual&&name&&!res.matched)grindNote+=' \u00b7 new problem added';
+if(ctx.manual&&day!==todayU())grindNote+=' \u00b7 on '+day.slice(5);
 toast(finished===1
 ?('\uD83E\uDDE9 Solved \u00b7 '+sel.dataset.d+' \u00b7 '+fmtDur(mins)+(res.tries>1?' \u00b7 cracked on try #'+res.tries+' \uD83C\uDF89':'')+grindNote)
 :finished===2
