@@ -360,51 +360,87 @@ toast(a.paused_at?'▶ Back to it':'⏸ Paused · clock frozen');load();gpCheck(
 catch(e){toast(String(e))}}
 
 // ---- retroactive grind log ----
+// Each task row has an "until" time; its start is the previous row's end (the first row starts at the start time).
+// Minutes are derived here, so the server contract stays {date, start, segments:[{t,m}]}.
 let LOGSEGS=[];
+const H24=!!(window.__U&&window.__U.clock24);
+// "18:30", "1830", "18.30", "9:30" -> minutes after midnight, else null
+function parseHM(v){const m=String(v||'').trim().match(/^(\\d{1,2})[:.h]?(\\d{2})$/);if(!m)return null;const h=+m[1],mi=+m[2];return h>23||mi>59?null:h*60+mi;}
+const mHM=x=>String(Math.floor(x/60)%24).padStart(2,'0')+':'+String(x%60).padStart(2,'0');
+function tIn(id,val,extra){return H24
+?'<input id="'+id+'" type="text" class="tm24" inputmode="numeric" maxlength="5" placeholder="HH:MM" value="'+(val||'')+'" '+extra+'>'
+:'<input id="'+id+'" type="time" value="'+(val||'')+'" '+extra+'>';}
 function openGrindLog(){
-LOGSEGS=[{t:FIRSTCAT,m:''}];
+LOGSEGS=[{t:FIRSTCAT,e:''}];
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<h1 style="font-size:20px">✍️ Log a grind you forgot to record</h1>'
-+'<p class="muted" style="margin-top:4px">For '+(D===TODAY?'today':D)+'.</p>'
-+'<label class="fld">Start time</label>'
-+'<input id="logStart" type="time" oninput="logSummary()">'
-+'<label class="fld">What you did</label>'
++'<p class="muted" style="margin-top:4px">For '+(D===TODAY?'today':D)+'. Set when you started, then when each task ended. The next task starts where the last one stopped.</p>'
++'<label class="fld">Started at</label>'
++tIn('logStart','','oninput="logSummary()" onchange="tmNorm(this);logSummary()"')
++'<label class="fld">What you did, and until when</label>'
 +'<div id="logSegs"></div>'
-+'<button class="sm" style="margin-top:8px" onclick="LOGSEGS.push({t:FIRSTCAT,m:\\'\\'});renderLogSegs()">＋ task</button>'
++'<button class="sm" style="margin-top:8px" onclick="addLogSeg()">＋ Next task</button>'
 +'<div class="card" id="logSum" style="margin:16px 0 0;padding:12px;background:var(--surface2)"></div>'
 +'<div class="row" style="margin-top:16px">'
 +'<button class="pri grow" onclick="saveGrindLog()">Record it</button>'
 +'<button onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button></div></div></div>';
 renderLogSegs();
 setTimeout(()=>$('logStart').focus(),80);}
+function addLogSeg(){
+// the new task defaults to a different category than the one before it
+const last=LOGSEGS[LOGSEGS.length-1];const keys=Object.keys(MOD);
+const next=keys.find(k=>k!==(last&&last.t))||FIRSTCAT;
+LOGSEGS.push({t:next,e:''});renderLogSegs();
+setTimeout(()=>{const el=$('logEnd'+(LOGSEGS.length-1));if(el)el.focus();},60);}
+// walk the rows: each start = previous end; an end earlier than its start means it ran past midnight
+function logPlan(){
+const s0=parseHM($('logStart')?$('logStart').value:'');
+const rows=[];let cur=s0,ok=s0!==null;
+for(const s of LOGSEGS){
+const e=parseHM(s.e);
+if(cur===null||e===null){rows.push({from:cur,to:null,m:0,bad:false});cur=null;continue;}
+let m=e-(cur%1440);if(m<=0)m+=1440;
+const bad=m>720;
+rows.push({from:cur,to:cur+m,m:bad?0:m,bad:bad});
+if(bad)ok=false;cur=cur+m;}
+return {start:s0,rows:rows,ok:ok&&rows.every(r=>r.to!==null&&r.m>0)};}
 function renderLogSegs(){
 $('logSegs').innerHTML=LOGSEGS.map((s,i)=>
-'<div class="subedit" style="grid-template-columns:1.3fr 1fr auto">'
+'<div class="logseg"><div class="logseg-row">'
 +'<select onchange="LOGSEGS['+i+'].t=this.value">'
 +Object.entries(MOD).map(([k,m])=>'<option value="'+k+'"'+(s.t===k?' selected':'')+'>'+m.e+' '+m.n+'</option>').join('')+'</select>'
-+'<input type="number" min="1" max="720" inputmode="numeric" placeholder="minutes" value="'+s.m+'" oninput="LOGSEGS['+i+'].m=this.value;logSummary()">'
-+(LOGSEGS.length>1?'<button class="ghost sm" onclick="LOGSEGS.splice('+i+',1);renderLogSegs()">✕</button>':'<span></span>')
-+'</div>').join('');
++'<span class="logseg-until">until</span>'
++tIn('logEnd'+i,s.e,'oninput="LOGSEGS['+i+'].e=this.value;logSummary()" onchange="tmNorm(this);LOGSEGS['+i+'].e=this.value;logSummary()" aria-label="ended at"')
++(LOGSEGS.length>1?'<button class="ghost sm" onclick="LOGSEGS.splice('+i+',1);renderLogSegs()" aria-label="remove task">✕</button>':'<span></span>')
++'</div><div class="logseg-note" id="logNote'+i+'"></div></div>').join('');
 logSummary();}
 function logSummary(){
-const total=LOGSEGS.reduce((a,s)=>a+(+s.m>0?+s.m:0),0);
-const start=$('logStart').value;
+const P=logPlan();
+P.rows.forEach((r,i)=>{const el=$('logNote'+i);if(!el)return;
+el.className='logseg-note'+(r.bad?' bad':'');
+el.innerHTML=r.bad?'More than 12 hours. Check the time.'
+:r.from===null?(i===0?'Set the start time first':'Set the end of the task above first')
+:r.to===null?'from <b>'+fmtT(mHM(r.from))+'</b> · when did it end?'
+:'<b>'+fmtT(mHM(r.from))+'</b> → <b>'+fmtT(mHM(r.to))+'</b>'+(r.to>=1440?' ⁺¹':'')+' · <span class="num">'+fmtDur(r.m)+'</span>';});
+const total=P.rows.reduce((a,r)=>a+r.m,0);
 let html='';
-if(!start)html='<span class="tiny">Pick a start time to see the summary.</span>';
-else if(!total)html='<span class="tiny">Starts <b class="num">'+fmtT(start)+'</b> · add task minutes.</span>';
+if(P.start===null)html='<span class="tiny">Set the start time, then when each task ended.</span>';
+else if(!total)html='<span class="tiny">Starts <b class="num">'+fmtT(mHM(P.start))+'</b> · set when the first task ended.</span>';
 else{
-const end=(hmMin(start)+total)%1440;
-const endHM=String(Math.floor(end/60)).padStart(2,'0')+':'+String(end%60).padStart(2,'0');
+const endAt=P.start+total;
 html='<div class="row"><span>🔥 Total <b class="num">'+fmtDur(total)+'</b></span><span class="grow"></span>'
-+'<span class="num">'+fmtT(start)+' → '+fmtT(endHM)+(hmMin(start)+total>=1440?' ⁺¹':'')+'</span></div>';}
++'<span class="num">'+fmtT(mHM(P.start))+' → '+fmtT(mHM(endAt))+(endAt>=1440?' ⁺¹':'')+'</span></div>'
++'<div class="logbar">'+P.rows.filter(r=>r.m>0).map((r,i)=>{const s=LOGSEGS[P.rows.indexOf(r)];const md=MOD[s.t]||{};
+return '<i style="flex:'+r.m+';background:'+(md.c||'var(--ember)')+'" title="'+(md.n||'')+' '+fmtDur(r.m)+'"></i>';}).join('')+'</div>';}
 $('logSum').innerHTML=html;}
 async function saveGrindLog(){
-const start=$('logStart').value;
-if(!start)return toast('Start time is required');
-const segs=LOGSEGS.map(s=>({t:s.t,m:+s.m})).filter(s=>s.m>0);
-if(!segs.length)return toast('Enter minutes for at least one task');
+const P=logPlan();
+if(P.start===null)return toast('Set the start time');
+const bad=P.rows.findIndex(r=>r.to===null||!r.m);
+if(bad>=0)return toast(P.rows[bad].bad?'Task '+(bad+1)+' runs over 12 hours. Check its end time':'Set when task '+(bad+1)+' ended');
+const segs=LOGSEGS.map((s,i)=>({t:s.t,m:P.rows[i].m}));
 try{
-const j=await api('/api/grind/log',{body:{date:D,start,segments:segs}});
+const j=await api('/api/grind/log',{body:{date:D,start:mHM(P.start),segments:segs}});
 $('modalHost').innerHTML='';
 toast('✍️ '+fmtDur(j.total)+' recorded · '+segs.map(s=>MOD[s.t].e+' '+fmtDur(s.m)).join(' · '));load();}
 catch(e){toast(String(e))}}

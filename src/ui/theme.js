@@ -883,6 +883,18 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .sub-t{font:700 15px/1.3 var(--body);overflow-wrap:anywhere}
 .sub-v{font-size:12px;color:var(--ink2);overflow-wrap:anywhere;margin-top:2px}
 .subedit{display:grid;grid-template-columns:1fr 1.4fr auto;gap:8px;margin-top:8px}
+/* past-grind rows: category, "until" time, remove; the computed from -> to line underneath */
+.logseg{margin-top:8px;padding:10px 12px;border-radius:12px;background:var(--surface2);border:1px solid var(--line2)}
+.logseg-row{display:grid;grid-template-columns:minmax(0,1.4fr) auto minmax(0,1fr) auto;gap:8px;align-items:center}
+.logseg-row select,.logseg-row input{padding:8px;font-size:14px;min-width:0;background:var(--well)}
+.logseg-until{font:700 12px var(--disp);color:var(--ink2)}
+.logseg-note{margin-top:6px;font-size:12px;color:var(--ink2)}
+.logseg-note b{color:var(--ink);font-weight:700}
+.logseg-note.bad{color:var(--rose)}
+.logbar{display:flex;gap:2px;height:8px;border-radius:99px;overflow:hidden;margin-top:10px}
+.logbar i{display:block;min-width:4px}
+.tm24{font-variant-numeric:tabular-nums;text-align:center;letter-spacing:.04em}
+@media(max-width:420px){.logseg-row{grid-template-columns:minmax(0,1fr) auto minmax(0,.8fr) auto;gap:6px}}
 .subedit input{padding:8px 8px;font-size:14px}
 
 /* ---------- grind task picker ---------- */
