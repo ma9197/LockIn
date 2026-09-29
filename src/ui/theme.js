@@ -1179,12 +1179,26 @@ if($('tHint'))$('tHint').textContent='\u23F8 Paused \u00b7 '+(left>=0?fmtTm(left
 tWrite();tLoop();tDraw();tBtns();}
 function tReset(){TS=null;tWrite();tLoop();tDraw();tBtns();
 if($('tHint'))$('tHint').textContent='Stuck at 25? Read the solution. Do not grind for 2 hours.';}
+function tFinish(secs){TS=null;tWrite();tLoop();tBtns();tDraw();
+if($('tHint'))$('tHint').innerHTML='\u2705 Finished \u00b7 <b class="num">'+fmtTm(secs)+'</b> elapsed';}
 async function tDone(){
 const secs=tElapsedS(),mins=Math.max(1,Math.round(secs/60));
-TS=null;tWrite();tLoop();tBtns();tDraw();
-if($('tHint'))$('tHint').innerHTML='\u2705 Finished \u00b7 <b class="num">'+fmtTm(secs)+'</b> elapsed';
 const c=tCtx();
-if(c.record)openLcLog({minutes:mins,difficulty:c.difficulty||'medium',name:c.name||'',source:'timer'},c);}
+// nothing to log: Done simply finishes the timer
+if(!c.record||!TS){tFinish(secs);return;}
+// something to log: hold the clock still while the panel is open. Saving finishes it,
+// Cancel (a mis-tap on Done) puts it back exactly as it was: paused stays paused, running resumes.
+const wasRunning=!TS.pausedAt;
+if(wasRunning){TS.pausedAt=Date.now();tWrite();tLoop();tDraw();tBtns();}
+if($('tHint'))$('tHint').textContent='\u23F8 Held while you log it \u00b7 Cancel keeps the timer where it was';
+openLcLog({minutes:mins,difficulty:c.difficulty||'medium',name:c.name||'',source:'timer'},
+Object.assign({},c,{
+onSaved:function(res){tFinish(secs);if(c.onSaved)c.onSaved(res);},
+onCancel:function(){tRead();
+if(!TS){tDraw();tBtns();return;}
+if(wasRunning&&TS.pausedAt){TS.pausedMs+=Date.now()-TS.pausedAt;TS.pausedAt=null;}
+tWrite();tLoop();tDraw();tBtns();
+if($('tHint'))$('tHint').textContent=TS.pausedAt?'\u23F8 Still paused \u00b7 nothing was logged':'\u23F3 Back to it \u00b7 nothing was logged';}}));}
 function tRestore(){tRead();
 if(TS&&$('tlen')){if(![...$('tlen').options].some(o=>+o.value===TS.len)){
 const o=document.createElement('option');o.value=TS.len;o.textContent=TS.len+' min';$('tlen').prepend(o);}
@@ -1344,13 +1358,14 @@ $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<button class="grow" style="border-color:#9B6EF388;color:var(--violet)" onclick="saveLcLog(\\''+(p.source||'manual')+'\\',2)">\u26a1 Solved, slow</button>'
 +'<button class="grow" onclick="saveLcLog(\\''+(p.source||'manual')+'\\',0)">\u2715 Did not finish</button>'
 +'</div>'
-+'<button class="ghost" style="width:100%;margin-top:12px" onclick="$(\\'modalHost\\').innerHTML=\\'\\'">Cancel</button>'
++'<button class="ghost" style="width:100%;margin-top:12px" onclick="lcCancel()">Cancel</button>'
 +'</div></div>';
 document.querySelectorAll('#lgDiff button').forEach(b=>b.onclick=()=>{
 document.querySelectorAll('#lgDiff button').forEach(x=>x.classList.remove('on'));b.classList.add('on');});
 lcSuggest();
 if(LCCTX.manual)setTimeout(()=>$('lgName').focus(),80);
 else if(!p.minutes)setTimeout(()=>$('lgMin').focus(),80);}
+function lcCancel(){$('modalHost').innerHTML='';const f=LCCTX&&LCCTX.onCancel;LCCTX={};if(f)f();}
 // live match list: pick a past problem so tries stack on the same one
 function lcSuggest(){
 const box=$('lgSug'),m=$('lgMatch');
