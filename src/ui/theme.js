@@ -911,6 +911,20 @@ svg text.cxl{fill:var(--ink2);font:600 12px var(--body)}
 .taskbtn.on{border-color:var(--tc);background:color-mix(in srgb,var(--tc) 16%,var(--surface2));box-shadow:0 0 0 1px var(--tc) inset}
 .taskbtn.on .tk{opacity:1;transform:none}
 #tpOk:disabled{opacity:.45}
+/* effort split under the picker: a switch row, then one slim slider per picked category in its colour */
+.wbox{margin-top:16px;padding:12px 14px;border-radius:12px;background:var(--surface2);border:1px solid var(--line2)}
+.wsw{display:flex;align-items:center;gap:12px;padding-bottom:10px;margin-bottom:4px;border-bottom:1px solid var(--line)}
+.wsw b{font:700 14px var(--body)}
+.wrow{display:grid;grid-template-columns:minmax(0,9em) 1fr 3.2em;align-items:center;gap:10px;margin-top:10px}
+.wn{font:700 13px var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wv{font:800 13px var(--disp);text-align:right;color:var(--tc);font-variant-numeric:tabular-nums}
+.wrow input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;padding:0;border:0;border-radius:99px;margin:0;cursor:pointer;
+  background:linear-gradient(90deg,var(--tc) var(--v,50%),var(--surface3) var(--v,50%))}
+.wrow input[type=range]:focus{outline:none}
+.wrow input[type=range]:focus-visible{outline:2px solid var(--tc);outline-offset:4px}
+.wrow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:99px;background:#fff;border:3px solid var(--tc);box-shadow:0 1px 4px #0008}
+.wrow input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:99px;background:#fff;border:3px solid var(--tc)}
+@media(max-width:480px){.wrow{grid-template-columns:minmax(0,1fr) auto;row-gap:8px}.wrow input[type=range]{grid-column:1/-1;grid-row:2}}
 .lgtasks{display:inline-flex;gap:6px;flex-wrap:wrap;align-items:center}
 .lgtk{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;font:700 12px var(--disp);letter-spacing:.02em;white-space:nowrap}
 .logseg-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}

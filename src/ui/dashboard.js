@@ -263,45 +263,92 @@ return Math.max(0,gMin(g)-plan);};
 const curTasks=a=>String((a&&a.cur_task)||'').split(',').filter(Boolean);
 const tasksLabel=ks=>ks.map(k=>MOD[k].e+' '+MOD[k].n).join(' + ');
 const tasksEmoji=ks=>ks.map(k=>MOD[k].e).join('');
+// cur_w: effort % per running category, aligned with cur_task; null = 100% each
+function curW(a){const ks=curTasks(a);let w=null;try{w=JSON.parse((a&&a.cur_w)||'null')}catch(e){}
+return Array.isArray(w)&&w.length===ks.length?Object.fromEntries(ks.map((k,i)=>[k,w[i]])):null;}
+// a split entry: m = credited minutes, p = its %, the group's first entry keeps the wall minutes in w
+const pctOf=s=>s.p!=null?' '+s.p+'%':'';
 function segText(splits){const out=[];
-for(const s of splits||[]){if(s.x&&out.length){out[out.length-1].e+=MOD[s.t].e;continue;}out.push({e:MOD[s.t].e,m:s.m});}
+for(const s of splits||[]){if(s.x&&out.length){out[out.length-1].e+=' '+MOD[s.t].e+pctOf(s);continue;}out.push({e:MOD[s.t].e+pctOf(s),m:s.w!=null?s.w:s.m});}
 return out.map(o=>o.e+' '+fmtDur(o.m)).join(' · ');}
-// tiles light up when picked; nothing starts until Confirm
-function taskPicker(title,cb,pre,okLabel){
+// tiles light up when picked; nothing starts until Confirm. With 2+ picked, an effort slider per category:
+// linked ("Split 100% between them") keeps the total at 100, so raising one lowers the others equally;
+// unlinked, every slider is its own 0-100%. cb(keys, weights|null), weights = {key:%} only when not 100% each.
+function taskPicker(title,cb,pre,okLabel,preW){
 const sel=new Set(pre||[]);
+let wt={},linked=true;
+const WK=()=>Object.keys(MOD).filter(k=>sel.has(k));
+const even=()=>{const ks=WK();ks.forEach(k=>{wt[k]=100/ks.length;});};
+if(preW){wt=Object.assign({},preW);linked=Math.abs(WK().reduce((s,k)=>s+(wt[k]==null?100:wt[k]),0)-100)<1;}
+else if(sel.size>1&&linked)even();
+WK().forEach(k=>{if(wt[k]==null)wt[k]=100;});
 $('modalHost').innerHTML='<div class="modal-bg"><div class="modal">'
 +'<h1 style="font-size:20px">'+title+'</h1>'
-+'<p class="muted" style="margin-top:4px">Pick one or more. Things you do at the same time share the clock: the grind counts those minutes once, and every picked category gets them.</p>'
++'<p class="muted" style="margin-top:4px">Pick one or more. Things you do at the same time share the clock: the grind counts those minutes once, and each picked category gets its share.</p>'
 +'<div class="taskgrid">'+Object.entries(MOD).map(([k,m])=>
 '<button type="button" class="taskbtn'+(sel.has(k)?' on':'')+'" data-t="'+k+'" aria-pressed="'+sel.has(k)+'" style="--tc:'+m.c+'">'
 +'<span class="tk">✓</span><span style="font-size:24px">'+m.e+'</span>'+m.n+'</button>').join('')+'</div>'
++'<div id="tpW"></div>'
 +'<div class="row" style="margin-top:16px;gap:8px"><button class="pri grow" id="tpOk"></button><button id="tpCancel">Cancel</button></div>'
 +'</div></div>';
 const ok=$('tpOk');
-const sync=()=>{ok.disabled=!sel.size;ok.textContent=sel.size?(okLabel||'Confirm')+(sel.size>1?' · '+sel.size+' at once':''):'Pick at least one';};
+const sync=()=>{const ks=WK(),dead=ks.length>1&&ks.every(k=>wt[k]<0.5);
+ok.disabled=!ks.length||dead;
+ok.textContent=!ks.length?'Pick at least one':dead?'Give one of them some effort':(okLabel||'Confirm')+(ks.length>1?' · '+ks.length+' at once':'');};
+// move one slider; spread the opposite change over the others, never below 0 or above 100
+function bal(k,v){const others=WK().filter(x=>x!==k);wt[k]=v;
+let diff=(100-v)-others.reduce((s,x)=>s+wt[x],0),pool=others.slice(),guard=0;
+while(Math.abs(diff)>1e-6&&pool.length&&guard++<12){const sh=diff/pool.length;
+for(const x of pool){const nv=Math.min(100,Math.max(0,wt[x]+sh));diff-=nv-wt[x];wt[x]=nv;}
+pool=pool.filter(x=>diff<0?wt[x]>1e-9:wt[x]<100-1e-9);}}
+function paintW(){WK().forEach(k=>{const r=document.querySelector('#tpW input[data-k="'+k+'"]'),v=$('wv-'+k);
+if(r&&document.activeElement!==r)r.value=Math.round(wt[k]);if(r)r.style.setProperty('--v',Math.round(wt[k])+'%');if(v)v.textContent=Math.round(wt[k])+'%';});sync();}
+function renderW(){const ks=WK(),box=$('tpW');
+if(ks.length<2){box.innerHTML='';sync();return;}
+box.innerHTML='<div class="wbox"><div class="wsw"><div class="grow"><b>Split 100% between them</b><div class="tiny">'
++(linked?'Raise one and the others give up the same amount':'Each one gets its own %, 100 means full credit')+'</div></div>'
++'<div class="toggle'+(linked?' on':'')+'" id="tpLink" role="switch" tabindex="0" aria-checked="'+linked+'" aria-label="Split 100% between them"></div></div>'
++ks.map(k=>'<div class="wrow" style="--tc:'+MOD[k].c+'"><span class="wn">'+MOD[k].e+' '+MOD[k].n+'</span>'
++'<input type="range" min="0" max="100" step="1" data-k="'+k+'" value="'+Math.round(wt[k])+'" aria-label="'+MOD[k].n+' effort">'
++'<b class="wv" id="wv-'+k+'">'+Math.round(wt[k])+'%</b></div>').join('')+'</div>';
+box.querySelectorAll('input[type=range]').forEach(r=>r.oninput=()=>{const k=r.dataset.k,v=+r.value;
+if(linked)bal(k,v);else wt[k]=v;paintW();});
+const sw=$('tpLink'),flip=()=>{linked=!linked;
+if(linked){const s=WK().reduce((a,k)=>a+wt[k],0);if(s>0)WK().forEach(k=>{wt[k]=wt[k]*100/s;});else even();}
+renderW();};
+sw.onclick=flip;sw.onkeydown=e=>{if(e.key===' '||e.key==='Enter'){e.preventDefault();flip();}};
+paintW();}
 document.querySelectorAll('.taskbtn').forEach(b=>b.onclick=()=>{const k=b.dataset.t;
-if(sel.has(k))sel.delete(k);else sel.add(k);
-b.classList.toggle('on',sel.has(k));b.setAttribute('aria-pressed',String(sel.has(k)));sync();});
-ok.onclick=()=>{if(!sel.size)return;const ks=Object.keys(MOD).filter(k=>sel.has(k));$('modalHost').innerHTML='';cb(ks);};
+if(sel.has(k)){sel.delete(k);delete wt[k];}else sel.add(k);
+b.classList.toggle('on',sel.has(k));b.setAttribute('aria-pressed',String(sel.has(k)));
+if(linked)even();else WK().forEach(x=>{if(wt[x]==null)wt[x]=100;});
+renderW();});
+ok.onclick=()=>{const ks=WK();if(!ks.length||ok.disabled)return;
+let w=null;
+if(ks.length>1){const r=Object.fromEntries(ks.map(k=>[k,Math.round(wt[k])]));
+if(linked){const s=ks.reduce((a,k)=>a+r[k],0),top=ks.reduce((m,k)=>r[k]>r[m]?k:m,ks[0]);r[top]+=100-s;}
+if(ks.some(k=>r[k]!==100))w=r;}
+$('modalHost').innerHTML='';cb(ks,w);};
 $('tpCancel').onclick=()=>{$('modalHost').innerHTML='';};
-sync();}
+renderW();}
+const wText=(ks,w)=>ks.map(k=>MOD[k].e+' '+MOD[k].n+(w?' '+w[k]+'%':'')).join(' + ');
 function startGrind(blockIdx){
 let body={date:TODAY};
 if(blockIdx!==null){const b=J.blocks[blockIdx];
 body.block_label=b.label;body.planned_start=TODAY+'T'+b.start;
 body.planned_end=(b.endNextDay?nextDs(TODAY):TODAY)+'T'+b.end;}
 else body.block_label='Ad-hoc grind';
-taskPicker('🔥 What are you starting with?',async tasks=>{
-body.tasks=tasks;body.task=tasks[0];
-try{await api('/api/grind/start',{body});toast(tasksEmoji(tasks)+' Checked in. Go.');load();gpCheck();}
+taskPicker('🔥 What are you starting with?',async(tasks,w)=>{
+body.tasks=tasks;body.task=tasks[0];if(w)body.weights=w;
+try{await api('/api/grind/start',{body});toast((w?wText(tasks,w):tasksEmoji(tasks))+' · Checked in. Go.');load();gpCheck();}
 catch(e){toast(String(e))}},[],'🔥 Start');}
-// switch = change the set: add one alongside, drop one, or swap everything
+// switch = change the set or the split: add one alongside, drop one, swap everything, or re-weight
 function switchTask(){
 const a=J.active;if(!a)return;
-taskPicker('⇄ What are you on now?',async tasks=>{
-if(tasks.join(',')===a.cur_task)return toast('No change · still on '+tasksLabel(tasks));
-try{await api('/api/grind/switch',{body:{id:a.id,tasks}});toast('⇄ Now on '+tasksLabel(tasks));load();gpCheck();}
-catch(e){toast(String(e))}},curTasks(a),'Confirm');}
+taskPicker('⇄ What are you on now?',async(tasks,w)=>{
+try{const r=await api('/api/grind/switch',{body:{id:a.id,tasks,weights:w}});
+toast(r.unchanged?'No change · still on '+wText(tasks,w):'⇄ Now on '+wText(tasks,w));load();gpCheck();}
+catch(e){toast(String(e))}},curTasks(a),'Confirm',curW(a));}
 function nextDs(ds){const d=new Date(ds+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+1);return d.toISOString().slice(0,10);}
 async function checkout(){
 const j=await api('/api/grind/stop',{body:{id:J.active.id}});
@@ -337,7 +384,8 @@ if(!a){$('liveGrind').style.display='none';if(liveInt){clearInterval(liveInt);li
 $('liveGrind').style.display='';
 const paused=!!a.paused_at;
 $('lgTitle').textContent=(paused?'⏸ ':'🔒 ')+(a.block_label||'Grind')+(paused?' · paused':'');
-$('lgTask').innerHTML=curTasks(a).map(k=>'<span class="lgtk" style="background:'+MOD[k].c+'22;color:'+MOD[k].c+'">'+MOD[k].e+' '+MOD[k].n+'</span>').join('');
+const lw=curW(a);
+$('lgTask').innerHTML=curTasks(a).map(k=>'<span class="lgtk" style="background:'+MOD[k].c+'22;color:'+MOD[k].c+'">'+MOD[k].e+' '+MOD[k].n+(lw?' <b>'+lw[k]+'%</b>':'')+'</span>').join('');
 let segs=[];try{segs=JSON.parse(a.splits||'[]')}catch(e){}
 $('lgSegs').textContent=segs.length?('done: '+segText(segs)):'';
 $('lgPause').textContent=paused?'▶ Resume':'⏸ Pause';
@@ -474,9 +522,9 @@ for(const g of sessions){
 total+=gMin(g);overtime+=otMin(g);paused+=(g.paused_min||0);
 let segs=[];try{segs=JSON.parse(g.splits||'[]')}catch(e){}
 let banked=0;
-for(const s of segs){addSeg(s.t,s.m);if(!s.x)banked+=s.m;}
+for(const s of segs){addSeg(s.t,s.m);if(!s.x)banked+=(s.w!=null?s.w:s.m);}
 // running segment of an active session isn't in splits yet
-if(!g.end_ts&&g.cur_task){const live=Math.max(0,gMin(g)-banked);curTasks(g).forEach(k=>addSeg(k,live));}}
+if(!g.end_ts&&g.cur_task){const live=Math.max(0,gMin(g)-banked),lw=curW(g);curTasks(g).forEach(k=>addSeg(k,lw?live*lw[k]/100:live));}}
 const solves=(J.solves||[]).filter(s=>+s.finished!==0);
 const attempts=(J.solves||[]).length-solves.length;
 const lcAvg=solves.length?Math.round(solves.reduce((a,s)=>a+s.minutes,0)/solves.length):0;

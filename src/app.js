@@ -708,11 +708,21 @@ const taskList = (v, keys) => {
   const raw = (Array.isArray(v) ? v : String(v || '').split(',')).map(s => String(s || '').trim());
   return keys.filter(k => raw.includes(k)).slice(0, 4);   // category order, no duplicates, at most four
 };
-const pushSeg = (splits, tasks, m) => {
-  const n = tasks.length, tail = splits.slice(-n);
-  const same = tail.length === n && tail.every((s, i) => s && s.t === tasks[i] && (i === 0 ? !s.x : !!s.x));
-  if (same) { for (const s of tail) s.m += m; return; }
-  tasks.forEach((t, i) => splits.push(i ? { t, m, x: 1 } : { t, m }));
+// Effort weights: each running category can get less than the full minutes (owner: "not always 100% effort").
+// An entry carries p (its %, omitted at 100) and the group's first entry carries w (the wall minutes) whenever its own
+// m is not the wall time. Wall time of a group = first.w ?? first.m. m is always the credited minutes.
+const wList = (tasks, raw) => {
+  if (tasks.length < 2 || !raw || typeof raw !== 'object') return null;
+  const ws = tasks.map(k => { const v = Math.round(+(Array.isArray(raw) ? raw[tasks.indexOf(k)] : raw[k])); return Number.isFinite(v) ? Math.min(100, Math.max(0, v)) : 100; });
+  return ws.every(v => v === 100) ? null : ws;
+};
+const wParse = (s, n) => { try { const a = JSON.parse(s || 'null'); return Array.isArray(a) && a.length === n ? a : null; } catch (e) { return null; } };
+const pushSeg = (splits, tasks, m, ws) => {
+  const n = tasks.length, ps = tasks.map((t, i) => (ws && ws[i] != null ? ws[i] : 100)), cred = ps.map(p => Math.round(m * p / 100));
+  const tail = splits.slice(-n);
+  const same = tail.length === n && tail.every((s, i) => s && s.t === tasks[i] && (i === 0 ? !s.x : !!s.x) && (s.p == null ? 100 : s.p) === ps[i]);
+  if (same) { tail.forEach((s, i) => { s.m += cred[i]; }); if (tail[0].w != null) tail[0].w += m; return; }
+  tasks.forEach((t, i) => { const e = { t, m: cred[i] }; if (i) e.x = 1; if (ps[i] !== 100) e.p = ps[i]; if (!i && cred[0] !== m) e.w = m; splits.push(e); });
 };
 const catView = (cfg, keys) => keys.map(k => cfg.allCategories.find(x => x.key === k) || { key: k, emoji: '⭐', name: k, color: '#FF6B35' });
 
@@ -721,12 +731,13 @@ app.get('/api/overlay/state', async c => {
   const cfg = c.get('cfg');
   const a = await c.env.DB.prepare('SELECT * FROM grind_sessions WHERE end_ts IS NULL ORDER BY id DESC LIMIT 1').first();
   const cats = a ? catView(cfg, String(a.cur_task || '').split(',').filter(Boolean)) : [];
+  const ows = a ? wParse(a.cur_w, cats.length) : null;
   return json(c, {
     now: nowIn(c.env.TZ), tz: c.env.TZ, clock24: cfg.clock24, overlay: cfg.overlay,
     grind: a ? { id: a.id, label: a.block_label || 'Grind', start_ts: a.start_ts, paused_at: a.paused_at, paused_min: a.paused_min || 0,
       planned_end: a.planned_end || null,
-      task: cats.length ? { key: cats[0].key, emoji: cats.map(x => x.emoji).join(''), name: cats.map(x => x.name).join(' + '), color: cats[0].color } : { key: '', emoji: '⭐', name: 'Grind', color: '#FF6B35' },
-      tasks: cats.map(x => ({ key: x.key, emoji: x.emoji, name: x.name, color: x.color })) } : null,
+      task: cats.length ? { key: cats[0].key, emoji: cats.map(x => x.emoji).join(''), name: cats.map((x, i) => x.name + (ows ? ' ' + ows[i] + '%' : '')).join(' + '), color: cats[0].color } : { key: '', emoji: '⭐', name: 'Grind', color: '#FF6B35' },
+      tasks: cats.map((x, i) => ({ key: x.key, emoji: x.emoji, name: x.name, color: x.color, weight: ows ? ows[i] : 100 })) } : null,
     timer: cfg.focusTimer,
   });
 });
@@ -755,9 +766,9 @@ app.post('/api/grind/start', async c => {
   const date = b.date || now.slice(0, 10);
   const keys = c.get('cfg').catKeys;
   const picked = taskList(b.tasks !== undefined ? b.tasks : b.task, keys);
-  const task = (picked.length ? picked : keys.slice(0, 1)).join(',');
-  const r = await db.prepare('INSERT INTO grind_sessions (date,block_label,planned_start,planned_end,start_ts,cur_task,cur_since) VALUES (?,?,?,?,?,?,?)')
-    .bind(date, String(b.block_label || '').slice(0, 60), b.planned_start || null, b.planned_end || null, now, task, now).run();
+  const list = picked.length ? picked : keys.slice(0, 1), task = list.join(','), ws = wList(list, b.weights);
+  const r = await db.prepare('INSERT INTO grind_sessions (date,block_label,planned_start,planned_end,start_ts,cur_task,cur_since,cur_w) VALUES (?,?,?,?,?,?,?,?)')
+    .bind(date, String(b.block_label || '').slice(0, 60), b.planned_start || null, b.planned_end || null, now, task, now, ws ? JSON.stringify(ws) : null).run();
   const a = await db.prepare('SELECT * FROM grind_sessions WHERE id=?').bind(r.meta.last_row_id).first();
   return json(c, { ok: true, active: a });
 });
@@ -771,7 +782,7 @@ const foldPause = async (db, id, tz, at) => {
   }
 };
 // close the running task segment: append its worked minutes to splits, restart the segment clock
-const foldSegment = async (db, id, nextTask, tz, at) => {
+const foldSegment = async (db, id, nextTask, tz, at, nextW) => {
   const s = await db.prepare('SELECT * FROM grind_sessions WHERE id=?').bind(id).first();
   if (!s) return;
   const now = at || nowIn(tz);
@@ -780,11 +791,12 @@ const foldSegment = async (db, id, nextTask, tz, at) => {
     if (m >= 1) {
       let splits = [];
       try { splits = JSON.parse(s.splits || '[]'); } catch (e) {}
-      pushSeg(splits, String(s.cur_task).split(',').filter(Boolean), m);
+      const ts = String(s.cur_task).split(',').filter(Boolean);
+      pushSeg(splits, ts, m, wParse(s.cur_w, ts.length));
       await db.prepare('UPDATE grind_sessions SET splits=? WHERE id=?').bind(JSON.stringify(splits), id).run();
     }
   }
-  await db.prepare('UPDATE grind_sessions SET cur_task=?, cur_since=?, cur_paused=0 WHERE id=?').bind(nextTask || null, now, id).run();
+  await db.prepare('UPDATE grind_sessions SET cur_task=?, cur_since=?, cur_paused=0, cur_w=? WHERE id=?').bind(nextTask || null, now, nextW ? JSON.stringify(nextW) : null, id).run();
 };
 app.post('/api/grind/switch', async c => {
   const db = c.env.DB;
@@ -792,12 +804,13 @@ app.post('/api/grind/switch', async c => {
   const id = b.id;
   const tasks = taskList(b.tasks !== undefined ? b.tasks : b.task, c.get('cfg').catKeys);
   if (!tasks.length) return json(c, { error: 'pick at least one category' }, 400);
-  const s = await db.prepare('SELECT id, cur_task FROM grind_sessions WHERE id=? AND end_ts IS NULL').bind(+id).first();
+  const ws = wList(tasks, b.weights);
+  const s = await db.prepare('SELECT id, cur_task, cur_w FROM grind_sessions WHERE id=? AND end_ts IS NULL').bind(+id).first();
   if (!s) return json(c, { error: 'no active session' }, 400);
-  if (s.cur_task === tasks.join(',')) return json(c, { ok: true, unchanged: true });
+  if (s.cur_task === tasks.join(',') && (s.cur_w || null) === (ws ? JSON.stringify(ws) : null)) return json(c, { ok: true, unchanged: true });
   await foldPause(db, +id, c.env.TZ);
-  await foldSegment(db, +id, tasks.join(','), c.env.TZ);
-  return json(c, { ok: true, tasks });
+  await foldSegment(db, +id, tasks.join(','), c.env.TZ, undefined, ws);
+  return json(c, { ok: true, tasks, weights: ws });
 });
 app.post('/api/grind/pause', async c => {
   const db = c.env.DB;
@@ -827,14 +840,14 @@ app.post('/api/grind/reclaim', async c => {
     try { const p = JSON.parse(g.splits || '[]'); if (Array.isArray(p)) segs = p; } catch (e) {}
     // credit whatever was running when it was paused, else the last thing worked on
     const keys = c.get('cfg').catKeys;
-    let tasks = taskList(g.cur_task, keys);
+    let tasks = taskList(g.cur_task, keys), ws = tasks.join(',') === g.cur_task ? wParse(g.cur_w, tasks.length) : null;
     if (!tasks.length && segs.length) {
       // the last group in splits: its wall entry and the same-time entries after it
       let i = segs.length - 1; while (i > 0 && segs[i] && segs[i].x) i--;
       tasks = taskList(segs.slice(i).map(x => x && x.t), keys);
     }
     if (!tasks.length) tasks = keys.slice(0, 1);
-    pushSeg(segs, tasks, g.paused_min);
+    pushSeg(segs, tasks, g.paused_min, ws);
     minutes += g.paused_min;
     await db.prepare('UPDATE grind_sessions SET splits=?, paused_min=0 WHERE id=?')
       .bind(JSON.stringify(segs), g.id).run();
@@ -846,12 +859,12 @@ app.post('/api/grind/log', async c => {
   const db = c.env.DB;
   const b = await c.req.json();
   const rows = (Array.isArray(b.segments) ? b.segments : [])
-    .map(s => ({ ts: taskList(s && (s.ts !== undefined ? s.ts : s.t), c.get('cfg').catKeys), m: Math.min(720, Math.max(1, Math.round(+(s && s.m) || 0))) }))
+    .map(s => { const ts = taskList(s && (s.ts !== undefined ? s.ts : s.t), c.get('cfg').catKeys); return { ts, ws: wList(ts, s && s.ws), m: Math.min(720, Math.max(1, Math.round(+(s && s.m) || 0))) }; })
     .filter(s => s.ts.length && s.m).slice(0, 10);
   if (!rows.length) return json(c, { error: 'at least one task with minutes' }, 400);
   const total = rows.reduce((a, s) => a + s.m, 0);
   const segs = [];
-  for (const r of rows) pushSeg(segs, r.ts, r.m);
+  for (const r of rows) pushSeg(segs, r.ts, r.m, r.ws);
   const date = /^\d{4}-\d{2}-\d{2}$/.test(b.date || '') ? b.date : todayIn(c.env.TZ);
   let start;
   if (/^\d{2}:\d{2}$/.test(b.start || '')) start = `${date}T${b.start}`;
@@ -896,7 +909,7 @@ app.patch('/api/grind/:id', async c => {
   const b = await c.req.json();
   if (Array.isArray(b.splits)) {
     const clean = b.splits.filter(s => s && typeof s.t === 'string' && s.m >= 0)
-      .map(s => (s.x ? { t: s.t.slice(0, 20), m: Math.round(s.m), x: 1 } : { t: s.t.slice(0, 20), m: Math.round(s.m) }));
+      .map(s => { const e = { t: s.t.slice(0, 20), m: Math.round(s.m) }; if (s.x) e.x = 1; if (s.p != null) e.p = Math.min(100, Math.max(0, Math.round(+s.p))); if (s.w != null) e.w = Math.max(0, Math.round(+s.w)); return e; });
     await c.env.DB.prepare('UPDATE grind_sessions SET splits=? WHERE id=?').bind(JSON.stringify(clean), +c.req.param('id')).run();
   }
   return json(c, { ok: true });
